@@ -50,3 +50,8 @@ function something()
 {
     // ..
 }
+
+function livewire($component, $params = [])
+{
+    return \Livewire\Livewire::test($component, $params);
+}

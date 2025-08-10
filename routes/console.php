@@ -57,3 +57,36 @@ Schedule::call(function () {
 })
 ->hourly()
 ->name('system-health-check');
+
+// Sauvegarde automatique quotidienne
+Schedule::command('schedule:backup-sync --backup-only')
+    ->dailyAt('02:00')
+    ->name('daily-backup')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/backup.log'));
+
+// Synchronisation automatique toutes les 4 heures
+Schedule::command('schedule:backup-sync --sync-only')
+    ->cron('0 */4 * * *')
+    ->name('sync-external-systems')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/sync.log'));
+
+// Sauvegarde complète hebdomadaire (dimanche à 01:00)
+Schedule::command('schedule:backup-sync --backup-only')
+    ->weeklyOn(0, '01:00')
+    ->name('weekly-full-backup')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/backup.log'));
+
+// Nettoyage des logs de synchronisation anciens (plus de 30 jours)
+Schedule::call(function () {
+    \App\Models\ExternalSyncLog::where('created_at', '<', now()->subDays(30))->delete();
+})
+    ->weeklyOn(0, '03:00')
+    ->name('cleanup-old-sync-logs')
+    ->withoutOverlapping()
+    ->onOneServer();
