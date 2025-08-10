@@ -23,22 +23,22 @@ class BackupForm
                 Select::make('type')
                     ->label('Type')
                     ->options([
-                        'full' => 'Complète',
-                        'incremental' => 'Incrémentale', 
-                        'differential' => 'Différentielle',
+                        BackupType::FULL->value => BackupType::FULL->label(),
+                        BackupType::INCREMENTAL->value => BackupType::INCREMENTAL->label(),
+                        BackupType::DIFFERENTIAL->value => BackupType::DIFFERENTIAL->label(),
                     ])
                     ->required()
-                    ->default('full'),
+                    ->default(BackupType::FULL->value),
                 Select::make('status')
                     ->label('Statut')
                     ->options([
-                        'pending' => 'En attente',
-                        'running' => 'En cours',
-                        'completed' => 'Terminée',
-                        'failed' => 'Échec',
+                        BackupStatus::PENDING->value => BackupStatus::PENDING->label(),
+                        BackupStatus::RUNNING->value => BackupStatus::RUNNING->label(),
+                        BackupStatus::COMPLETED->value => BackupStatus::COMPLETED->label(),
+                        BackupStatus::FAILED->value => BackupStatus::FAILED->label(),
                     ])
                     ->required()
-                    ->default('pending'),
+                    ->default(BackupStatus::PENDING->value),
                 Select::make('storage_driver')
                     ->label('Stockage')
                     ->options([

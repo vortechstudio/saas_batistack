@@ -23,7 +23,7 @@ class CustomerFactory extends Factory
             'company_name' => fake()->company(),
             'contact_name' => fake()->name(),
             'email' => fake()->unique()->companyEmail(),
-            'phone' => fake()->phoneNumber(),
+            'phone' => fake()->numerify('+33 # ## ## ## ##'),
             'address' => fake()->streetAddress(),
             'city' => fake()->city(),
             'postal_code' => fake()->postcode(),

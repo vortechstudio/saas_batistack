@@ -92,6 +92,7 @@ describe('Customer Resource', function () {
                 'company_name' => $customer->company_name,
                 'contact_name' => $customer->contact_name,
                 'email' => $customer->email,
+                'phone' => $customer->phone,
                 'status' => $customer->status->value,
             ]);
     });
@@ -107,6 +108,7 @@ describe('Customer Resource', function () {
                 'company_name' => $newData->company_name,
                 'contact_name' => $newData->contact_name,
                 'email' => $newData->email,
+                'phone' => $newData->phone,
             ])
             ->call('save')
             ->assertHasNoFormErrors();

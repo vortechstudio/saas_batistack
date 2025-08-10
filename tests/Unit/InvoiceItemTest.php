@@ -27,9 +27,17 @@ describe('InvoiceItem Model', function () {
 
     test('has correct fillable attributes', function () {
         $fillable = [
-            'invoice_id', 'description', 'quantity', 'unit_price', 'total_price'
+            'invoice_id',
+            'product_id',
+            'license_id',
+            'description',
+            'quantity',
+            'unit_price',
+            'total_price',
+            'tax_rate',
+            'tax_amount',
         ];
-        
+
         expect($this->invoiceItem->getFillable())->toBe($fillable);
     });
 
@@ -49,15 +57,15 @@ describe('InvoiceItem Model', function () {
             'quantity' => 3,
             'unit_price' => 25.50,
         ]);
-        
+
         expect($item->quantity * $item->unit_price)->toBe(76.5);
     });
 
     test('getFormattedUnitPriceAttribute returns formatted price', function () {
-        expect($this->invoiceItem->formatted_unit_price)->toBe('50.00 EUR');
+        expect($this->invoiceItem->formatted_unit_price)->toBe('50.00 €');
     });
 
     test('getFormattedTotalPriceAttribute returns formatted total', function () {
-        expect($this->invoiceItem->formatted_total_price)->toBe('100.00 EUR');
+        expect($this->invoiceItem->formatted_total_price)->toBe('100.00 €');
     });
 });

@@ -61,6 +61,14 @@ class ExternalSyncLog extends Model
     }
 
     /**
+     * Scope pour les synchronisations en attente
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', SyncStatus::PENDING);
+    }
+
+    /**
      * Scope par système externe
      */
     public function scopeForSystem($query, string $systemName)
@@ -104,6 +112,30 @@ class ExternalSyncLog extends Model
     public function isRunning(): bool
     {
         return $this->status === SyncStatus::RUNNING;
+    }
+
+    /**
+     * Vérifie si la synchronisation est en attente
+     */
+    public function isPending(): bool
+    {
+        return $this->status === SyncStatus::PENDING;
+    }
+
+    /**
+     * Accesseur pour le libellé du statut
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->status->label();
+    }
+
+    /**
+     * Accesseur pour la couleur du statut
+     */
+    public function getStatusColorAttribute(): string
+    {
+        return $this->status->color();
     }
 
     /**

@@ -26,23 +26,24 @@ class ExternalSyncLogFactory extends Factory
     public function definition(): array
     {
         return [
-            'entity_type' => $this->faker->randomElement(['Customer', 'Product', 'Invoice', 'Payment']),
+            'system_name' => $this->faker->randomElement(['external_api', 'crm_system', 'billing_system']),
+            'operation' => $this->faker->randomElement(['sync', 'export', 'import']),
+            'entity_type' => $this->faker->randomElement(['customers', 'products', 'licenses', 'users']),
             'entity_id' => $this->faker->numberBetween(1, 1000),
-            'external_id' => $this->faker->uuid(),
-            'action' => $this->faker->randomElement(['create', 'update', 'delete']),
             'status' => $this->faker->randomElement(SyncStatus::cases()),
-            'request_data' => json_encode([
+            'request_data' => [
                 'field1' => $this->faker->word(),
                 'field2' => $this->faker->numberBetween(1, 100),
-            ]),
-            'response_data' => json_encode([
+            ],
+            'response_data' => [
                 'success' => $this->faker->boolean(),
                 'message' => $this->faker->sentence(),
-            ]),
+            ],
             'error_message' => $this->faker->optional(0.2)->sentence(),
-            'synced_at' => $this->faker->optional(0.8)->dateTimeBetween('-1 month', 'now'),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'retry_count' => $this->faker->numberBetween(0, 3),
+            'last_retry_at' => $this->faker->optional(0.3)->dateTimeBetween('-1 week', 'now'),
+            'started_at' => $this->faker->optional(0.8)->dateTimeBetween('-1 month', 'now'),
+            'completed_at' => $this->faker->optional(0.8)->dateTimeBetween('-1 month', 'now'),
         ];
     }
 
@@ -54,7 +55,7 @@ class ExternalSyncLogFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => SyncStatus::SUCCESS,
             'error_message' => null,
-            'synced_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'completed_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
         ]);
     }
 
@@ -66,7 +67,7 @@ class ExternalSyncLogFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => SyncStatus::FAILED,
             'error_message' => $this->faker->sentence(),
-            'synced_at' => null,
+            'completed_at' => null,
         ]);
     }
 
@@ -78,7 +79,8 @@ class ExternalSyncLogFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => SyncStatus::PENDING,
             'error_message' => null,
-            'synced_at' => null,
+            'started_at' => null,
+            'completed_at' => null,
         ]);
     }
 }

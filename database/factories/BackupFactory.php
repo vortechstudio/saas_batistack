@@ -32,7 +32,7 @@ class BackupFactory extends Factory
         return [
             'name' => 'backup-' . $this->faker->date() . '-' . $this->faker->time('His'),
             'type' => $this->faker->randomElement(BackupType::cases()),
-            'storage_driver' => $this->faker->randomElement(['local', 's3', 'backup']),
+            'storage_driver' => $this->faker->randomElement(['local', 's3', 'ftp']),
             'file_path' => 'backups/' . $this->faker->uuid() . '.zip',
             'status' => $this->faker->randomElement(BackupStatus::cases()),
             'file_size' => $this->faker->numberBetween(1024, 1073741824), // 1KB to 1GB

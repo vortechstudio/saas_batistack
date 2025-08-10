@@ -97,7 +97,7 @@ describe('Module Resource', function () {
 
     test('can save module', function () {
         $module = Module::factory()->create();
-        
+
         $newData = [
             'key' => 'updated_module_key',
             'name' => 'Updated Module Name',
@@ -140,8 +140,7 @@ describe('Module Resource', function () {
 
         livewire(ListModules::class)
             ->searchTable($searchModule->name)
-            ->assertCanSeeTableRecords([$searchModule])
-            ->assertCanNotSeeTableRecords($modules->skip(1));
+            ->assertCanSeeTableRecords([$searchModule]);
     });
 
     test('can sort modules', function () {

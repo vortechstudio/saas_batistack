@@ -34,7 +34,7 @@ class InvoiceItemFactory extends Factory
             'description' => $this->faker->sentence(),
             'quantity' => $quantity,
             'unit_price' => $unitPrice,
-            'total' => $total,
+            'total_price' => $total,
             'created_at' => now(),
             'updated_at' => now(),
         ];

@@ -3,18 +3,21 @@
 use App\Models\Notification;
 use App\Models\User;
 use App\Enums\NotificationType;
-use App\Enums\NotificationChannel;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
     $this->notification = Notification::factory()->create([
-        'user_id' => $this->user->id,
+        'notifiable_type' => User::class,
+        'notifiable_id' => $this->user->id,
         'type' => NotificationType::LICENSE_EXPIRING,
-        'channel' => NotificationChannel::EMAIL,
-        'title' => 'License Expiring',
-        'message' => 'Your license will expire soon',
-        'data' => ['license_id' => 1],
-        'is_read' => false,
+        'data' => [
+            'title' => 'License Expiring',
+            'message' => 'Your license will expire soon',
+            'license_id' => 1
+        ],
+        'channels' => ['email'],
+        'priority' => 3,
+        'read_at' => null,
         'sent_at' => now(),
     ]);
 });
@@ -22,15 +25,15 @@ beforeEach(function () {
 describe('Notification Model', function () {
     test('can create a notification', function () {
         expect($this->notification)->toBeInstanceOf(Notification::class)
-            ->and($this->notification->title)->toBe('License Expiring')
-            ->and($this->notification->message)->toBe('Your license will expire soon')
-            ->and($this->notification->is_read)->toBeFalse();
+            ->and($this->notification->data['title'])->toBe('License Expiring')
+            ->and($this->notification->data['message'])->toBe('Your license will expire soon')
+            ->and($this->notification->isUnread())->toBeTrue();
     });
 
     test('has correct fillable attributes', function () {
         $fillable = [
-            'user_id', 'type', 'channel', 'title', 'message', 'data',
-            'is_read', 'read_at', 'sent_at', 'scheduled_for'
+            'type', 'notifiable_type', 'notifiable_id', 'data',
+            'read_at', 'priority', 'channels', 'scheduled_at', 'sent_at', 'level'
         ];
         
         expect($this->notification->getFillable())->toBe($fillable);
@@ -38,51 +41,32 @@ describe('Notification Model', function () {
 
     test('casts attributes correctly', function () {
         expect($this->notification->type)->toBeInstanceOf(NotificationType::class)
-            ->and($this->notification->channel)->toBeInstanceOf(NotificationChannel::class)
             ->and($this->notification->data)->toBeArray()
-            ->and($this->notification->is_read)->toBeFalse()
+            ->and($this->notification->channels)->toBeArray()
             ->and($this->notification->sent_at)->toBeInstanceOf(\Carbon\Carbon::class);
     });
 
-    test('belongs to a user', function () {
-        expect($this->notification->user)->toBeInstanceOf(User::class)
-            ->and($this->notification->user->id)->toBe($this->user->id);
+    test('has polymorphic relationship to notifiable', function () {
+        expect($this->notification->notifiable)->toBeInstanceOf(User::class)
+            ->and($this->notification->notifiable->id)->toBe($this->user->id);
     });
 
     test('unread scope filters unread notifications', function () {
-        Notification::factory()->create(['is_read' => true]);
+        Notification::factory()->create(['read_at' => now()]);
         
         $unreadNotifications = Notification::unread()->get();
         
         expect($unreadNotifications)->toHaveCount(1)
-            ->and($unreadNotifications->first()->is_read)->toBeFalse();
+            ->and($unreadNotifications->first()->isUnread())->toBeTrue();
     });
 
     test('read scope filters read notifications', function () {
-        Notification::factory()->create(['is_read' => true]);
+        Notification::factory()->create(['read_at' => now()]);
         
         $readNotifications = Notification::read()->get();
         
         expect($readNotifications)->toHaveCount(1)
-            ->and($readNotifications->first()->is_read)->toBeTrue();
-    });
-
-    test('sent scope filters sent notifications', function () {
-        Notification::factory()->create(['sent_at' => null]);
-        
-        $sentNotifications = Notification::sent()->get();
-        
-        expect($sentNotifications)->toHaveCount(1)
-            ->and($sentNotifications->first()->sent_at)->not->toBeNull();
-    });
-
-    test('pending scope filters pending notifications', function () {
-        Notification::factory()->create(['sent_at' => null]);
-        
-        $pendingNotifications = Notification::pending()->get();
-        
-        expect($pendingNotifications)->toHaveCount(1)
-            ->and($pendingNotifications->first()->sent_at)->toBeNull();
+            ->and($readNotifications->first()->isRead())->toBeTrue();
     });
 
     test('byType scope filters by notification type', function () {
@@ -94,61 +78,61 @@ describe('Notification Model', function () {
             ->and($licenseNotifications->first()->type)->toBe(NotificationType::LICENSE_EXPIRING);
     });
 
-    test('byChannel scope filters by notification channel', function () {
-        Notification::factory()->create(['channel' => NotificationChannel::SMS]);
+    test('highPriority scope filters high priority notifications', function () {
+        Notification::factory()->create(['type' => NotificationType::SECURITY_ALERT]);
+        Notification::factory()->create(['type' => NotificationType::NEW_CUSTOMER]);
         
-        $emailNotifications = Notification::byChannel(NotificationChannel::EMAIL)->get();
+        $highPriorityNotifications = Notification::highPriority()->get();
         
-        expect($emailNotifications)->toHaveCount(1)
-            ->and($emailNotifications->first()->channel)->toBe(NotificationChannel::EMAIL);
+        expect($highPriorityNotifications)->toHaveCount(1)
+            ->and($highPriorityNotifications->first()->type)->toBe(NotificationType::SECURITY_ALERT);
     });
 
     test('isRead returns correct boolean', function () {
         expect($this->notification->isRead())->toBeFalse();
         
-        $readNotification = Notification::factory()->create(['is_read' => true]);
+        $readNotification = Notification::factory()->create(['read_at' => now()]);
         expect($readNotification->isRead())->toBeTrue();
     });
 
-    test('isSent returns correct boolean', function () {
-        expect($this->notification->isSent())->toBeTrue();
+    test('isUnread returns correct boolean', function () {
+        expect($this->notification->isUnread())->toBeTrue();
         
-        $pendingNotification = Notification::factory()->create(['sent_at' => null]);
-        expect($pendingNotification->isSent())->toBeFalse();
+        $readNotification = Notification::factory()->create(['read_at' => now()]);
+        expect($readNotification->isUnread())->toBeFalse();
     });
 
     test('markAsRead updates read status and timestamp', function () {
         $this->notification->markAsRead();
         
-        expect($this->notification->fresh()->is_read)->toBeTrue()
+        expect($this->notification->fresh()->isRead())->toBeTrue()
             ->and($this->notification->fresh()->read_at)->not->toBeNull();
     });
 
     test('markAsUnread updates read status', function () {
         $readNotification = Notification::factory()->create([
-            'is_read' => true,
             'read_at' => now()
         ]);
         
         $readNotification->markAsUnread();
         
-        expect($readNotification->fresh()->is_read)->toBeFalse()
+        expect($readNotification->fresh()->isUnread())->toBeTrue()
             ->and($readNotification->fresh()->read_at)->toBeNull();
     });
 
-    test('markAsSent updates sent timestamp', function () {
-        $pendingNotification = Notification::factory()->create(['sent_at' => null]);
-        
-        $pendingNotification->markAsSent();
-        
-        expect($pendingNotification->fresh()->sent_at)->not->toBeNull();
+    test('getTypeLabel returns type label', function () {
+        expect($this->notification->getTypeLabel())->toBe($this->notification->type->label());
     });
 
-    test('getTypeLabelAttribute returns type label', function () {
-        expect($this->notification->type_label)->toBe($this->notification->type->label());
+    test('getTypeIcon returns type icon', function () {
+        expect($this->notification->getTypeIcon())->toBe($this->notification->type->icon());
     });
 
-    test('getChannelLabelAttribute returns channel label', function () {
-        expect($this->notification->channel_label)->toBe($this->notification->channel->label());
+    test('getTypeColor returns type color', function () {
+        expect($this->notification->getTypeColor())->toBe($this->notification->type->color());
+    });
+
+    test('getPriority returns type priority', function () {
+        expect($this->notification->getPriority())->toBe($this->notification->type->priority());
     });
 });

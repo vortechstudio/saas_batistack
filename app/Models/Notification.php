@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use App\Enums\NotificationType;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Notification extends Model
 {
+    use HasFactory, HasUuids;
+
     protected $fillable = [
         'type',
         'notifiable_type',
@@ -18,6 +22,7 @@ class Notification extends Model
         'channels',
         'scheduled_at',
         'sent_at',
+        'level',
     ];
 
     protected $casts = [

@@ -5,31 +5,33 @@ use App\Enums\SyncStatus;
 
 beforeEach(function () {
     $this->syncLog = ExternalSyncLog::factory()->create([
-        'entity_type' => 'Customer',
+        'system_name' => 'external_api',
+        'operation' => 'sync',
+        'entity_type' => 'customers',
         'entity_id' => 1,
-        'external_id' => 'ext_123',
-        'action' => 'create',
         'status' => SyncStatus::SUCCESS,
         'request_data' => ['name' => 'Test Customer'],
         'response_data' => ['id' => 'ext_123', 'status' => 'created'],
         'error_message' => null,
-        'synced_at' => now(),
+        'started_at' => now()->subMinutes(5),
+        'completed_at' => now(),
     ]);
 });
 
 describe('ExternalSyncLog Model', function () {
     test('can create a sync log', function () {
         expect($this->syncLog)->toBeInstanceOf(ExternalSyncLog::class)
-            ->and($this->syncLog->entity_type)->toBe('Customer')
-            ->and($this->syncLog->entity_id)->toBe(1)
-            ->and($this->syncLog->external_id)->toBe('ext_123')
-            ->and($this->syncLog->action)->toBe('create');
+            ->and($this->syncLog->system_name)->toBe('external_api')
+            ->and($this->syncLog->operation)->toBe('sync')
+            ->and($this->syncLog->entity_type)->toBe('customers')
+            ->and($this->syncLog->entity_id)->toBe(1);
     });
 
     test('has correct fillable attributes', function () {
         $fillable = [
-            'entity_type', 'entity_id', 'external_id', 'action', 'status',
-            'request_data', 'response_data', 'error_message', 'synced_at'
+            'system_name', 'operation', 'entity_type', 'entity_id', 'status',
+            'request_data', 'response_data', 'error_message', 'retry_count',
+            'last_retry_at', 'started_at', 'completed_at'
         ];
         
         expect($this->syncLog->getFillable())->toBe($fillable);
@@ -39,7 +41,10 @@ describe('ExternalSyncLog Model', function () {
         expect($this->syncLog->status)->toBeInstanceOf(SyncStatus::class)
             ->and($this->syncLog->request_data)->toBeArray()
             ->and($this->syncLog->response_data)->toBeArray()
-            ->and($this->syncLog->synced_at)->toBeInstanceOf(\Carbon\Carbon::class);
+            ->and($this->syncLog->retry_count)->toBeInt()
+            ->and($this->syncLog->entity_id)->toBeInt()
+            ->and($this->syncLog->started_at)->toBeInstanceOf(\Carbon\Carbon::class)
+            ->and($this->syncLog->completed_at)->toBeInstanceOf(\Carbon\Carbon::class);
     });
 
     test('successful scope filters successful syncs', function () {
@@ -72,14 +77,14 @@ describe('ExternalSyncLog Model', function () {
 
     test('forEntity scope filters by entity', function () {
         ExternalSyncLog::factory()->create([
-            'entity_type' => 'Product',
+            'entity_type' => 'products',
             'entity_id' => 2
         ]);
         
-        $customerLogs = ExternalSyncLog::forEntity('Customer', 1)->get();
+        $customerLogs = ExternalSyncLog::forEntity('customers', 1)->get();
         
         expect($customerLogs)->toHaveCount(1)
-            ->and($customerLogs->first()->entity_type)->toBe('Customer')
+            ->and($customerLogs->first()->entity_type)->toBe('customers')
             ->and($customerLogs->first()->entity_id)->toBe(1);
     });
 
