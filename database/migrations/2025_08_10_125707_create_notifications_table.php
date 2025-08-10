@@ -17,7 +17,19 @@ return new class extends Migration
             $table->morphs('notifiable');
             $table->text('data');
             $table->timestamp('read_at')->nullable();
+            $table->integer('priority')->default(5);
+            $table->json('channels')->nullable();
+            $table->timestamp('scheduled_at')->nullable();
+            $table->timestamp('sent_at')->nullable();
+            $table->string('level')->default('info');
             $table->timestamps();
+
+            // Index personnalisés (sans dupliquer l'index morphs)
+            $table->index(['type', 'created_at']);
+            $table->index(['read_at']);
+            $table->index(['priority', 'created_at']);
+            $table->index(['level']);
+            $table->index(['scheduled_at']);
         });
     }
 

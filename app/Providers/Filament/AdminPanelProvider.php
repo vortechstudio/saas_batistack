@@ -2,12 +2,16 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\NotificationCenter;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Filament\Widgets\RevenueChartWidget;
 use App\Filament\Widgets\LicenseStatusWidget;
 use App\Filament\Widgets\PopularProductsWidget;
 use App\Filament\Widgets\RecentLicensesWidget;
 use App\Filament\Widgets\ExpiringLicensesWidget;
+use App\Filament\Widgets\PopularModulesWidget;
+use App\Filament\Widgets\NotificationCenterWidget;
+use App\Filament\Widgets\NotificationBadgeWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -16,8 +20,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
+use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -41,28 +44,26 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
                 'gray' => Color::Slate,
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Dashboard::class,
+                NotificationCenter::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                // Widgets personnalisés pour le dashboard
+                NotificationBadgeWidget::class,
                 StatsOverviewWidget::class,
                 RevenueChartWidget::class,
                 LicenseStatusWidget::class,
                 PopularProductsWidget::class,
                 RecentLicensesWidget::class,
                 ExpiringLicensesWidget::class,
-
-                // Widgets par défaut
-                AccountWidget::class,
-                // FilamentInfoWidget::class, // Retiré pour un dashboard plus propre
+                PopularModulesWidget::class,
+                NotificationCenterWidget::class,
+                Widgets\AccountWidget::class,
+                Widgets\FilamentInfoWidget::class,
             ])
-            ->sidebarCollapsibleOnDesktop()
-            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
-            ->databaseNotifications()
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -76,6 +77,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->globalSearch(true)
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->sidebarCollapsibleOnDesktop()
+            ->spa();
     }
 }
