@@ -7,18 +7,17 @@ use App\Filament\Resources\Permissions\Pages\EditPermission;
 use App\Filament\Resources\Permissions\Pages\ListPermissions;
 use App\Filament\Resources\Permissions\Schemas\PermissionForm;
 use App\Filament\Resources\Permissions\Tables\PermissionsTable;
-use Spatie\Permission\Models\Permission;
 use BackedEnum;
+use Spatie\Permission\Models\Permission;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
 class PermissionResource extends Resource
 {
     protected static ?string $model = Permission::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-key';
 
     protected static ?string $recordTitleAttribute = 'name';
 
