@@ -1,0 +1,123 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ExternalSyncLogResource\Pages;
+use App\Models\ExternalSyncLog;
+use App\Enums\SyncStatus;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class ExternalSyncLogResource extends Resource
+{
+    protected static ?string $model = ExternalSyncLog::class;
+
+    protected static ?string $navigationLabel = 'Synchronisations';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('system')
+                    ->label('Système')
+                    ->required()
+                    ->maxLength(255),
+
+                Forms\Components\TextInput::make('entity_type')
+                    ->label('Type d\'entité')
+                    ->required()
+                    ->maxLength(255),
+
+                Forms\Components\TextInput::make('entity_id')
+                    ->label('ID de l\'entité')
+                    ->numeric(),
+
+                Forms\Components\Select::make('operation_type')
+                    ->label('Type d\'opération')
+                    ->options([
+                        'create' => 'Créer',
+                        'update' => 'Mettre à jour',
+                        'delete' => 'Supprimer',
+                        'sync' => 'Synchroniser',
+                    ])
+                    ->required(),
+
+                Forms\Components\Select::make('status')
+                    ->label('Statut')
+                    ->options([
+                        'pending' => 'En attente',
+                        'running' => 'En cours',
+                        'success' => 'Succès',
+                        'failed' => 'Échec',
+                    ])
+                    ->required()
+                    ->default('pending'),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('system')
+                    ->label('Système')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('entity_type')
+                    ->label('Type d\'entité')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('entity_id')
+                    ->label('ID')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('operation_type')
+                    ->label('Opération')
+                    ->badge(),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Statut')
+                    ->badge(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Créée le')
+                    ->dateTime()
+                    ->sortable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListExternalSyncLogs::route('/'),
+            'create' => Pages\CreateExternalSyncLog::route('/create'),
+            'view' => Pages\ViewExternalSyncLog::route('/{record}'),
+            'edit' => Pages\EditExternalSyncLog::route('/{record}/edit'),
+        ];
+    }
+}

@@ -1,0 +1,109 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\BackupResource\Pages;
+use App\Models\Backup;
+use App\Enums\BackupStatus;
+use App\Enums\BackupType;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class BackupResource extends Resource
+{
+    protected static ?string $model = Backup::class;
+
+    protected static ?string $navigationLabel = 'Sauvegardes';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('name')
+                    ->label('Nom')
+                    ->required()
+                    ->maxLength(255),
+
+                Forms\Components\Select::make('type')
+                    ->label('Type')
+                    ->options([
+                        'full' => 'Complète',
+                        'incremental' => 'Incrémentale',
+                        'differential' => 'Différentielle',
+                    ])
+                    ->required()
+                    ->default('full'),
+
+                Forms\Components\Select::make('storage_driver')
+                    ->label('Stockage')
+                    ->options([
+                        'local' => 'Local',
+                        's3' => 'Amazon S3',
+                        'ftp' => 'FTP',
+                    ])
+                    ->required()
+                    ->default('local'),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nom')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Type')
+                    ->badge(),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Statut')
+                    ->badge(),
+
+                Tables\Columns\TextColumn::make('storage_driver')
+                    ->label('Stockage')
+                    ->badge(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Créée le')
+                    ->dateTime()
+                    ->sortable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListBackups::route('/'),
+            'create' => Pages\CreateBackup::route('/create'),
+            'view' => Pages\ViewBackup::route('/{record}'),
+            'edit' => Pages\EditBackup::route('/{record}/edit'),
+        ];
+    }
+}
