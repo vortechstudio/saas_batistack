@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use BackedEnum;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
+use UnitEnum;
 
 class TwoFactorSettings extends Page
 {
@@ -13,10 +14,12 @@ class TwoFactorSettings extends Page
     protected string $view = 'filament.pages.two-factor-settings';
 
     protected static ?string $title = 'Authentification à deux facteurs';
-    
+
     protected static ?string $navigationLabel = '2FA';
-    
+
     protected static ?int $navigationSort = 10;
+
+    protected static string | UnitEnum | null $navigationGroup = 'Securité';
 
     public static function canAccess(): bool
     {

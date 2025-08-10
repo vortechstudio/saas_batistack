@@ -12,6 +12,7 @@ use Spatie\Permission\Models\Permission;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class PermissionResource extends Resource
 {
@@ -26,6 +27,8 @@ class PermissionResource extends Resource
     protected static ?string $modelLabel = 'Permission';
 
     protected static ?string $pluralModelLabel = 'Permissions';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Securité';
 
     public static function form(Schema $schema): Schema
     {
