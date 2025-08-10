@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('BatiStack SaaS')
-            ->brandLogo(asset('images/logo.svg'))
+            ->brandLogo(asset('storage/images/logo.png'))
             ->favicon(asset('favicon.ico'))
             ->colors([
                 'primary' => Color::Blue,
