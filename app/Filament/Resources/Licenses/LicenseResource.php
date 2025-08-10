@@ -18,9 +18,18 @@ class LicenseResource extends Resource
 {
     protected static ?string $model = License::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-key';
 
-    protected static ?string $recordTitleAttribute = 'License';
+    protected static ?string $navigationLabel = 'Licences';
+
+    protected static ?string $modelLabel = 'Licence';
+
+    protected static ?string $pluralModelLabel = 'Licences';
+
+    protected static ?string $recordTitleAttribute = 'license_key';
+
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
@@ -35,7 +44,7 @@ class LicenseResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            // Relations avec modules et options seront ajoutées plus tard
         ];
     }
 
@@ -46,5 +55,20 @@ class LicenseResource extends Resource
             'create' => CreateLicense::route('/create'),
             'edit' => EditLicense::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getGlobalSearchEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->with(['customer', 'product']);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['license_key', 'customer.company_name', 'product.name'];
     }
 }
