@@ -2,6 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\StatsOverviewWidget;
+use App\Filament\Widgets\RevenueChartWidget;
+use App\Filament\Widgets\LicenseStatusWidget;
+use App\Filament\Widgets\PopularProductsWidget;
+use App\Filament\Widgets\RecentLicensesWidget;
+use App\Filament\Widgets\ExpiringLicensesWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -28,8 +34,12 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName('BatiStack SaaS')
+            ->brandLogo(asset('images/logo.svg'))
+            ->favicon(asset('favicon.ico'))
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Blue,
+                'gray' => Color::Slate,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
@@ -38,9 +48,21 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
+                // Widgets personnalisés pour le dashboard
+                StatsOverviewWidget::class,
+                RevenueChartWidget::class,
+                LicenseStatusWidget::class,
+                PopularProductsWidget::class,
+                RecentLicensesWidget::class,
+                ExpiringLicensesWidget::class,
+
+                // Widgets par défaut
                 AccountWidget::class,
-                FilamentInfoWidget::class,
+                // FilamentInfoWidget::class, // Retiré pour un dashboard plus propre
             ])
+            ->sidebarCollapsibleOnDesktop()
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->databaseNotifications()
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

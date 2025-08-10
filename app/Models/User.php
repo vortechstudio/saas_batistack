@@ -8,6 +8,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -60,11 +61,46 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Relation avec les notifications
+     */
+    public function notifications(): MorphMany
+    {
+        return $this->morphMany(Notification::class, 'notifiable');
+    }
+
+    /**
      * Vérifie si l'utilisateur a un client associé
      */
     public function hasCustomer(): bool
     {
         return $this->customer()->exists();
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un administrateur
+     */
+    public function isAdmin(): bool
+    {
+        return str_ends_with($this->email, '@batistack.com');
+    }
+
+    /**
+     * Get unread notifications count
+     */
+    public function getUnreadNotificationsCountAttribute(): int
+    {
+        return $this->notifications()->whereNull('read_at')->count();
+    }
+
+    /**
+     * Get high priority unread notifications count
+     */
+    public function getHighPriorityNotificationsCountAttribute(): int
+    {
+        return $this->notifications()
+            ->whereNull('read_at')
+            ->where('priority', '<=', 3)
+            ->count();
     }
 
     /**
