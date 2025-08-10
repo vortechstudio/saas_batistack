@@ -22,7 +22,9 @@ class InvoiceForm
                     ->schema([
                         Select::make('customer_id')
                             ->label('Client')
-                            ->options(Customer::all()->pluck('name', 'id'))
+                            ->options(Customer::all()->mapWithKeys(function ($customer) {
+                                return [$customer->id => $customer->name ?: "Client #{$customer->id}"];
+                            }))
                             ->searchable()
                             ->required(),
 

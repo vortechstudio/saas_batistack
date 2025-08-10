@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
 
 class SyncEntityCommand extends Command
 {
-    protected $signature = 'sync:entity 
+    protected $signature = 'sync:entity
                             {system : Nom du système externe (crm, erp, accounting, analytics)}
                             {operation : Opération (sync, export, import)}
                             {entity_type : Type d\'entité (customers, licenses, products, users)}
@@ -62,7 +62,7 @@ class SyncEntityCommand extends Command
         bool $async
     ): int {
         $entity = $this->findEntity($entityType, $entityId);
-        
+
         if (!$entity) {
             $this->error("Entité {$entityType}#{$entityId} non trouvée");
             return 1;
@@ -76,8 +76,8 @@ class SyncEntityCommand extends Command
             SyncEntityJob::dispatch($syncLog);
             $this->info("Synchronisation #{$syncLog->id} programmée en arrière-plan.");
         } else {
-            $success = $syncService->executSync($syncLog);
-            
+            $success = $syncService->executeSync($syncLog);
+
             if ($success) {
                 $this->info("Synchronisation #{$syncLog->id} réussie !");
             } else {
@@ -112,7 +112,7 @@ class SyncEntityCommand extends Command
             $this->info("{$entities->count()} synchronisations programmées en arrière-plan.");
         } else {
             $result = $syncService->bulkSync($system, $operation, $entityType);
-            
+
             if ($result['success']) {
                 $this->info("Synchronisation en masse terminée !");
                 $this->line("Total: {$result['total']}");

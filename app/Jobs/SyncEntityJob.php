@@ -26,13 +26,13 @@ class SyncEntityJob implements ShouldQueue
     {
         Log::info('Début du job de synchronisation', ['sync_id' => $this->syncLog->id]);
 
-        $success = $syncService->executSync($this->syncLog);
+        $success = $syncService->executeSync($this->syncLog);
 
         if ($success) {
             Log::info('Job de synchronisation terminé avec succès', ['sync_id' => $this->syncLog->id]);
         } else {
             Log::error('Échec du job de synchronisation', ['sync_id' => $this->syncLog->id]);
-            
+
             // Tentative de retry si possible
             if ($this->syncLog->canRetry()) {
                 Log::info('Tentative de retry programmée', ['sync_id' => $this->syncLog->id]);
