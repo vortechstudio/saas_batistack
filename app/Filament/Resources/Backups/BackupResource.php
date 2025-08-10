@@ -29,7 +29,7 @@ class BackupResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Sauvegardes';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Sauvegarde/Syncronisation';
+    protected static string | UnitEnum | null $navigationGroup = 'Sauvegarde/Synchronisation';
 
     public static function form(Schema $schema): Schema
     {

@@ -21,21 +21,31 @@ class BackupsTable
                 TextColumn::make('type')
                     ->label('Type')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'full' => 'primary',
-                        'incremental' => 'warning',
-                        'differential' => 'info',
-                        default => 'gray',
+                    ->formatStateUsing(fn ($state) => $state instanceof \App\Enums\BackupType ? $state->label() : $state)
+                    ->color(function ($state) {
+                        $value = $state instanceof \App\Enums\BackupType ? $state->value : $state;
+                        return match ($value) {
+                            'full' => 'primary',
+                            'incremental' => 'warning',
+                            'differential' => 'info',
+                            default => 'gray',
+                        };
                     }),
                 TextColumn::make('status')
                     ->label('Statut')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'gray',
-                        'running' => 'warning',
-                        'completed' => 'success',
-                        'failed' => 'danger',
-                        default => 'gray',
+                    ->formatStateUsing(fn ($state) => $state instanceof \App\Enums\BackupStatus ? $state->label() : $state)
+                    ->color(function ($state) {
+                        if ($state instanceof \App\Enums\BackupStatus) {
+                            return $state->color();
+                        }
+                        return match ($state) {
+                            'pending' => 'gray',
+                            'running' => 'warning',
+                            'completed' => 'success',
+                            'failed' => 'danger',
+                            default => 'gray',
+                        };
                     }),
                 TextColumn::make('storage_driver')
                     ->label('Stockage')
