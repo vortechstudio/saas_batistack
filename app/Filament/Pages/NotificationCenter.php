@@ -26,8 +26,10 @@ class NotificationCenter extends Page implements HasTable, HasActions
     protected static ?string $navigationLabel = 'Centre de Notifications';
     protected static ?string $title = 'Centre de Notifications';
     protected static ?int $navigationSort = 1;
-
     protected string $view = 'filament.pages.notification-center';
+
+    // SUPPRIMER cette ligne problématique :
+    // protected string $view = 'filament-panels::page';
 
     public function table(Table $table): Table
     {
@@ -43,7 +45,7 @@ class NotificationCenter extends Page implements HasTable, HasActions
                     ->label('')
                     ->icon(fn ($record) => $record->getTypeIcon())
                     ->color(fn ($record) => $record->getTypeColor())
-                    ->size('lg'),
+                    ->size('sm'),
 
                 Tables\Columns\TextColumn::make('data.title')
                     ->label('Notification')
@@ -152,13 +154,13 @@ class NotificationCenter extends Page implements HasTable, HasActions
             ])
             ->toolbarActions([
                 BulkAction::make('markAllAsRead')
-                    ->label('Marquer tout comme lu')
+                    ->label('Marquer comme lu')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->action(fn ($records) => $records->each->markAsRead()),
 
                 BulkAction::make('markAllAsUnread')
-                    ->label('Marquer tout comme non lu')
+                    ->label('Marquer comme non lu')
                     ->icon('heroicon-o-clock')
                     ->color('warning')
                     ->action(fn ($records) => $records->each->markAsUnread()),

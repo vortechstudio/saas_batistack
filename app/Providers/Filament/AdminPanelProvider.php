@@ -3,6 +3,12 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\NotificationCenter;
+use App\Filament\Resources\CustomerResource;
+use App\Filament\Resources\LicenseResource;
+use App\Filament\Resources\ModuleResource;
+use App\Filament\Resources\OptionResource;
+use App\Filament\Resources\ProductResource;
+use App\Filament\Resources\UserResource;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Filament\Widgets\RevenueChartWidget;
 use App\Filament\Widgets\LicenseStatusWidget;
@@ -10,8 +16,6 @@ use App\Filament\Widgets\PopularProductsWidget;
 use App\Filament\Widgets\RecentLicensesWidget;
 use App\Filament\Widgets\ExpiringLicensesWidget;
 use App\Filament\Widgets\PopularModulesWidget;
-use App\Filament\Widgets\NotificationCenterWidget;
-use App\Filament\Widgets\NotificationBadgeWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -52,7 +56,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                NotificationBadgeWidget::class,
+                // Supprimer ces lignes problématiques :
+                // use App\Filament\Widgets\NotificationCenterWidget;
+                // use App\Filament\Widgets\NotificationBadgeWidget;
                 StatsOverviewWidget::class,
                 RevenueChartWidget::class,
                 LicenseStatusWidget::class,
@@ -60,7 +66,6 @@ class AdminPanelProvider extends PanelProvider
                 RecentLicensesWidget::class,
                 ExpiringLicensesWidget::class,
                 PopularModulesWidget::class,
-                NotificationCenterWidget::class,
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
             ])
