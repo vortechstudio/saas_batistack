@@ -28,34 +28,34 @@ class PopularProductsWidget extends BaseWidget
                     ->label('Produit')
                     ->searchable()
                     ->sortable(),
-
+                    
                 Tables\Columns\TextColumn::make('base_price')
                     ->label('Prix')
                     ->money('EUR')
                     ->sortable(),
-
+                    
                 Tables\Columns\TextColumn::make('billing_cycle')
                     ->label('Cycle')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => $state->label())
+                    ->formatStateUsing(fn ($state) => $state->getLabel())
                     ->color(fn ($state) => match($state->value) {
                         'monthly' => 'success',
                         'yearly' => 'warning',
                         'lifetime' => 'info',
                         default => 'gray',
                     }),
-
+                    
                 Tables\Columns\TextColumn::make('licenses_count')
                     ->label('Licences')
                     ->badge()
                     ->color('success')
                     ->sortable(),
-
+                    
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Actif')
                     ->boolean()
                     ->sortable(),
-
+                    
                 Tables\Columns\IconColumn::make('is_featured')
                     ->label('Vedette')
                     ->boolean()

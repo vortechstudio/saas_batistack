@@ -29,30 +29,30 @@ class ExpiringLicensesWidget extends BaseWidget
                     ->label('Client')
                     ->searchable()
                     ->sortable(),
-
+                    
                 Tables\Columns\TextColumn::make('product.name')
                     ->label('Produit')
                     ->searchable()
                     ->sortable(),
-
+                    
                 Tables\Columns\TextColumn::make('expires_at')
                     ->label('Expire le')
                     ->date('d/m/Y')
                     ->sortable()
                     ->color(fn ($state) => $state->diffInDays() <= 7 ? 'danger' : 'warning')
-                    ->description(fn ($record) =>
+                    ->description(fn ($record) => 
                         'Dans ' . $record->expires_at->diffForHumans(null, true)
                     ),
-
+                    
                 Tables\Columns\TextColumn::make('status')
                     ->label('Statut')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => $state->label())
+                    ->formatStateUsing(fn ($state) => $state->getLabel())
                     ->color(fn ($state) => $state->color()),
-
+                    
                 Tables\Columns\TextColumn::make('current_users')
                     ->label('Utilisateurs')
-                    ->description(fn ($record) => $record->max_users ?
+                    ->description(fn ($record) => $record->max_users ? 
                         "/ {$record->max_users} max" : 'Illimité'
                     ),
             ])
