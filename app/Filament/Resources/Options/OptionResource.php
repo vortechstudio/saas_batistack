@@ -18,9 +18,18 @@ class OptionResource extends Resource
 {
     protected static ?string $model = Option::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
-    protected static ?string $recordTitleAttribute = 'Option';
+    protected static ?string $navigationLabel = 'Options';
+
+    protected static ?string $modelLabel = 'Option';
+
+    protected static ?string $pluralModelLabel = 'Options';
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {
@@ -35,7 +44,7 @@ class OptionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            // Relations avec produits seront ajoutées plus tard
         ];
     }
 
@@ -46,5 +55,20 @@ class OptionResource extends Resource
             'create' => CreateOption::route('/create'),
             'edit' => EditOption::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getGlobalSearchEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getGlobalSearchEloquentQuery();
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['key', 'name', 'description'];
     }
 }
