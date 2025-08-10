@@ -18,9 +18,17 @@ class ModuleResource extends Resource
 {
     protected static ?string $model = Module::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-puzzle-piece';
 
-    protected static ?string $recordTitleAttribute = 'Module';
+    protected static ?string $navigationLabel = 'Modules';
+
+    protected static ?string $modelLabel = 'Module';
+
+    protected static ?string $pluralModelLabel = 'Modules';
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {
@@ -35,7 +43,7 @@ class ModuleResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            // Relations avec produits seront ajoutées plus tard
         ];
     }
 
@@ -46,5 +54,20 @@ class ModuleResource extends Resource
             'create' => CreateModule::route('/create'),
             'edit' => EditModule::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getGlobalSearchEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getGlobalSearchEloquentQuery();
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['key', 'name', 'description'];
     }
 }
