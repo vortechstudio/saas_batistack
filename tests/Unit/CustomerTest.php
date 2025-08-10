@@ -30,7 +30,7 @@ describe('Customer Model', function () {
             'city', 'postal_code', 'country', 'siret', 'vat_number',
             'status', 'stripe_customer_id', 'user_id'
         ];
-
+        
         expect($this->customer->getFillable())->toBe($fillable);
     });
 
@@ -47,7 +47,7 @@ describe('Customer Model', function () {
     test('can have many licenses', function () {
         $license1 = License::factory()->create(['customer_id' => $this->customer->id]);
         $license2 = License::factory()->create(['customer_id' => $this->customer->id]);
-
+        
         expect($this->customer->licenses)->toHaveCount(2)
             ->and($this->customer->licenses->first())->toBeInstanceOf(License::class);
     });
@@ -55,9 +55,9 @@ describe('Customer Model', function () {
     test('active scope filters active customers', function () {
         Customer::factory()->create(['status' => CustomerStatus::INACTIVE]);
         Customer::factory()->create(['status' => CustomerStatus::SUSPENDED]);
-
+        
         $activeCustomers = Customer::active()->get();
-
+        
         expect($activeCustomers)->toHaveCount(1)
             ->and($activeCustomers->first()->status)->toBe(CustomerStatus::ACTIVE);
     });
@@ -68,7 +68,7 @@ describe('Customer Model', function () {
 
     test('isActive returns false for inactive customer', function () {
         $inactiveCustomer = Customer::factory()->create(['status' => CustomerStatus::INACTIVE]);
-
+        
         expect($inactiveCustomer->isActive())->toBeFalse();
     });
 
