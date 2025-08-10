@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'check.permission' => \App\Http\Middleware\CheckPermission::class,
+            'two.factor' => \App\Http\Middleware\TwoFactorAuthentication::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

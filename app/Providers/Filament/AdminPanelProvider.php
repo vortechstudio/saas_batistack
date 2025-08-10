@@ -1,0 +1,91 @@
+<?php
+
+namespace App\Providers\Filament;
+
+use App\Filament\Pages\NotificationCenter;
+use App\Filament\Resources\CustomerResource;
+use App\Filament\Resources\LicenseResource;
+use App\Filament\Resources\ModuleResource;
+use App\Filament\Resources\OptionResource;
+use App\Filament\Resources\ProductResource;
+use App\Filament\Resources\UserResource;
+use App\Filament\Widgets\StatsOverviewWidget;
+use App\Filament\Widgets\RevenueChartWidget;
+use App\Filament\Widgets\LicenseStatusWidget;
+use App\Filament\Widgets\PopularProductsWidget;
+use App\Filament\Widgets\RecentLicensesWidget;
+use App\Filament\Widgets\ExpiringLicensesWidget;
+use App\Filament\Widgets\PopularModulesWidget;
+use Filament\Http\Middleware\Authenticate;
+use Filament\Http\Middleware\AuthenticateSession;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Pages\Dashboard;
+use Filament\Panel;
+use Filament\PanelProvider;
+use Filament\Support\Colors\Color;
+use Filament\Widgets;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+
+class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->default()
+            ->id('admin')
+            ->path('admin')
+            ->login()
+            ->brandName('BatiStack SaaS')
+            ->brandLogo(asset('storage/images/logo.png'))
+            ->favicon(asset('favicon.ico'))
+            ->colors([
+                'primary' => Color::Blue,
+                'gray' => Color::Slate,
+            ])
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->pages([
+                Dashboard::class,
+                NotificationCenter::class,
+            ])
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->widgets([
+                // Supprimer ces lignes problématiques :
+                // use App\Filament\Widgets\NotificationCenterWidget;
+                // use App\Filament\Widgets\NotificationBadgeWidget;
+                StatsOverviewWidget::class,
+                RevenueChartWidget::class,
+                LicenseStatusWidget::class,
+                PopularProductsWidget::class,
+                RecentLicensesWidget::class,
+                ExpiringLicensesWidget::class,
+                PopularModulesWidget::class,
+                Widgets\AccountWidget::class,
+                Widgets\FilamentInfoWidget::class,
+            ])
+            ->middleware([
+                EncryptCookies::class,
+                AddQueuedCookiesToResponse::class,
+                StartSession::class,
+                AuthenticateSession::class,
+                ShareErrorsFromSession::class,
+                VerifyCsrfToken::class,
+                SubstituteBindings::class,
+                DisableBladeIconComponents::class,
+                DispatchServingFilamentEvent::class,
+            ])
+            ->authMiddleware([
+                Authenticate::class,
+            ])
+            ->globalSearch(true)
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->sidebarCollapsibleOnDesktop()
+            ->spa();
+    }
+}
