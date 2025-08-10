@@ -34,6 +34,7 @@ class User extends Authenticatable implements FilamentUser
         'last_login_at',
         'last_login_ip',
         'failed_login_attempts',
+        'locked_until',
     ];
 
     /**
