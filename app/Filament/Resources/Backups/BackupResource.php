@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class BackupResource extends Resource
 {
@@ -21,12 +22,14 @@ class BackupResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'name';
-    
+
     protected static ?string $navigationLabel = 'Sauvegardes';
-    
+
     protected static ?string $modelLabel = 'Sauvegarde';
-    
+
     protected static ?string $pluralModelLabel = 'Sauvegardes';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Sauvegarde/Syncronisation';
 
     public static function form(Schema $schema): Schema
     {
