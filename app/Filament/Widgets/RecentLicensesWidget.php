@@ -27,31 +27,31 @@ class RecentLicensesWidget extends BaseWidget
                     ->label('Client')
                     ->searchable()
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('product.name')
                     ->label('Produit')
                     ->searchable()
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('license_key')
                     ->label('Clé')
                     ->copyable()
                     ->copyMessage('Clé copiée!')
                     ->limit(20),
-                    
+
                 Tables\Columns\TextColumn::make('status')
                     ->label('Statut')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => $state->getLabel())
+                    ->formatStateUsing(fn ($state) => $state->label())
                     ->color(fn ($state) => $state->color()),
-                    
+
                 Tables\Columns\TextColumn::make('expires_at')
                     ->label('Expire le')
                     ->date('d/m/Y')
                     ->sortable()
-                    ->color(fn ($state) => $state && $state->isPast() ? 'danger' : 
+                    ->color(fn ($state) => $state && $state->isPast() ? 'danger' :
                         ($state && $state->diffInDays() <= 30 ? 'warning' : 'success')),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Créée le')
                     ->date('d/m/Y H:i')

@@ -7,6 +7,8 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\VerifyEmail;
+use App\Livewire\Auth\TwoFactorSetup;
+use App\Livewire\Auth\TwoFactorVerify;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -26,6 +28,14 @@ Route::middleware('auth')->group(function () {
 
     Route::get('confirm-password', ConfirmPassword::class)
         ->name('password.confirm');
+    
+    // Routes 2FA
+    Route::get('two-factor-setup', TwoFactorSetup::class)
+        ->name('two-factor.setup');
+    
+    Route::get('two-factor-verify', TwoFactorVerify::class)
+        ->name('two-factor.verify')
+        ->middleware('throttle:5,1');
 });
 
 Route::post('logout', App\Livewire\Actions\Logout::class)

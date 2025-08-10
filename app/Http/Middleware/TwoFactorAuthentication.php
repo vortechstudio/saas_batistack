@@ -25,8 +25,8 @@ class TwoFactorAuthentication
         // Si l'utilisateur a activé la 2FA mais n'a pas confirmé son code dans cette session
         if ($user->hasTwoFactorEnabled() && !session('2fa_verified')) {
             // Exclure les routes de 2FA pour éviter une boucle infinie
-            if (!$request->routeIs('2fa.*')) {
-                return redirect()->route('2fa.verify');
+            if (!$request->routeIs('two-factor.*')) {
+                return redirect()->route('two-factor.verify');
             }
         }
 
