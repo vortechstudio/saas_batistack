@@ -10,7 +10,9 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class InvoicesTable
 {
@@ -74,6 +76,10 @@ class InvoicesTable
                     ->label('Client')
                     ->relationship('customer', 'name')
                     ->searchable(),
+
+                Filter::make('overdue')
+                    ->label('En retard')
+                    ->query(fn (Builder $query): Builder => $query->overdue()),
             ])
             ->recordActions([
                 ViewAction::make(),

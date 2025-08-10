@@ -42,7 +42,7 @@ class PermissionsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make('all_delete'),
                 ]),
             ]);
     }

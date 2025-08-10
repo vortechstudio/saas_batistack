@@ -46,6 +46,16 @@ class PaymentResource extends Resource
         ];
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['stripe_payment_intent_id', 'customer.name', 'invoice.invoice_number'];
+    }
+
     public static function getPages(): array
     {
         return [

@@ -19,42 +19,18 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
-        $products = [
-            'Batistack Starter' => [
-                'description' => 'Solution de base pour les petites entreprises du BTP',
-                'price' => 49.99,
-                'max_users' => 3,
-                'max_projects' => 10,
-                'storage' => 5,
-            ],
-            'Batistack Professional' => [
-                'description' => 'Solution complète pour les entreprises en croissance',
-                'price' => 99.99,
-                'max_users' => 10,
-                'max_projects' => 50,
-                'storage' => 25,
-            ],
-            'Batistack Enterprise' => [
-                'description' => 'Solution avancée pour les grandes entreprises',
-                'price' => 199.99,
-                'max_users' => null,
-                'max_projects' => null,
-                'storage' => 100,
-            ],
-        ];
-
-        $productName = fake()->randomElement(array_keys($products));
-        $productData = $products[$productName];
+        $productTypes = ['Starter', 'Professional', 'Enterprise', 'Basic', 'Premium', 'Ultimate'];
+        $productName = 'Batistack ' . fake()->randomElement($productTypes) . ' ' . fake()->unique()->numberBetween(1000, 9999);
 
         return [
             'name' => $productName,
             'slug' => Str::slug($productName),
-            'description' => $productData['description'],
-            'base_price' => $productData['price'],
+            'description' => fake()->sentence(10),
+            'base_price' => fake()->randomFloat(2, 19.99, 299.99),
             'billing_cycle' => fake()->randomElement(BillingCycle::cases())->value,
-            'max_users' => $productData['max_users'],
-            'max_projects' => $productData['max_projects'],
-            'storage_limit' => $productData['storage'],
+            'max_users' => fake()->optional(0.3)->numberBetween(1, 100),
+            'max_projects' => fake()->optional(0.3)->numberBetween(5, 500),
+            'storage_limit' => fake()->numberBetween(1, 1000),
             'is_active' => fake()->boolean(95), // 95% de chance d'être actif
             'is_featured' => fake()->boolean(30), // 30% de chance d'être en vedette
             'stripe_price_id' => 'price_' . fake()->regexify('[A-Za-z0-9]{24}'),
