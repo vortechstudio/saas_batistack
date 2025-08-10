@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ActivityLogResource extends Resource
 {
@@ -25,6 +26,8 @@ class ActivityLogResource extends Resource
     protected static ?string $modelLabel = 'Activité';
 
     protected static ?string $pluralModelLabel = 'Journal d\'audit';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Securité';
 
     public static function form(Schema $schema): Schema
     {

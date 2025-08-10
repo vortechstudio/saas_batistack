@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class RoleResource extends Resource
 {
@@ -28,6 +29,8 @@ class RoleResource extends Resource
     protected static ?string $modelLabel = 'Rôle';
 
     protected static ?string $pluralModelLabel = 'Rôles';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Securité';
 
     public static function form(Schema $schema): Schema
     {
@@ -53,5 +56,10 @@ class RoleResource extends Resource
             'create' => CreateRole::route('/create'),
             'edit' => EditRole::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
     }
 }

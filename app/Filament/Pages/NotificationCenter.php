@@ -25,7 +25,7 @@ class NotificationCenter extends Page implements HasTable, HasActions
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-bell';
     protected static ?string $navigationLabel = 'Centre de Notifications';
     protected static ?string $title = 'Centre de Notifications';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 9;
     protected string $view = 'filament.pages.notification-center';
 
     // SUPPRIMER cette ligne problématique :
