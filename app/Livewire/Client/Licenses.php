@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Computed;
+use App\Services\LicenseActivationService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 #[Layout('components.layouts.app')]
 #[Title('Mes Licences')]
@@ -77,20 +80,52 @@ class Licenses extends Component
 
     public function activateLicense($licenseId)
     {
-        $license = License::find($licenseId);
-        if ($license && $license->customer_id === $this->customer->id) {
-            $license->update(['status' => LicenseStatus::ACTIVE]);
-            session()->flash('success', 'Licence activée avec succès.');
+        try {
+            $activationService = app(LicenseActivationService::class);
+            $result = $activationService->activate($licenseId, Auth::user());
+
+            session()->flash('success', $result['message']);
+            $this->resetPage(); // Rafraîchir la pagination
+
+        } catch (ValidationException $e) {
+            $errors = $e->errors();
+            $message = collect($errors)->flatten()->first();
+            session()->flash('error', $message);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur activation licence', [
+                'license_id' => $licenseId,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage()
+            ]);
+
+            session()->flash('error', 'Une erreur technique est survenue.');
         }
     }
 
     public function downloadLicense($licenseId)
     {
-        $license = License::find($licenseId);
-        if ($license && $license->customer_id === $this->customer->id) {
-            // Logique de téléchargement
-            return response()->download(storage_path('licenses/' . $license->license_key . '.pdf'));
+        $license = License::with(['customer', 'product', 'activeModules', 'activeOptions'])
+            ->find($licenseId);
+
+        if (!$license) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Licence introuvable.'
+            ]);
+            return;
         }
+
+        if ($license->customer_id !== $this->customer->id) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'Accès non autorisé à cette licence.'
+            ]);
+            return;
+        }
+
+        // Redirection vers le contrôleur pour générer et télécharger le PDF
+        return redirect()->route('client.license.certificate', $license);
     }
 
     public function showDetails($licenseId)
@@ -99,7 +134,7 @@ class Licenses extends Component
             ->where('id', $licenseId)
             ->where('customer_id', $this->customer->id)
             ->first();
-        
+
         $this->showLicenseDetails = true;
     }
 
@@ -114,14 +149,14 @@ class Licenses extends Component
         $license = License::find($licenseId);
         if ($license && $license->customer_id === $this->customer->id) {
             $module = $license->modules()->where('module_id', $moduleId)->first();
-            
+
             if ($module) {
                 $isEnabled = $module->pivot->enabled;
                 $license->modules()->updateExistingPivot($moduleId, [
                     'enabled' => !$isEnabled,
                     'updated_at' => now(),
                 ]);
-                
+
                 session()->flash('success', 'Module ' . (!$isEnabled ? 'activé' : 'désactivé') . ' avec succès.');
             }
         }

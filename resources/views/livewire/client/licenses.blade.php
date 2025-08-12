@@ -12,6 +12,11 @@
             {{ session('success') }}
         </x-mary-alert>
     @endif
+    @if(session('error'))
+        <x-mary-alert icon="o-exclamation-triangle" class="alert-error">
+            {{ session('error') }}
+        </x-mary-alert>
+    @endif
 
     @if($this->customer)
         <!-- Filtres et recherche -->
@@ -19,31 +24,31 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Recherche -->
                 <div>
-                    <x-mary-input 
-                        wire:model.live.debounce.300ms="search" 
-                        placeholder="Rechercher par clé ou produit..." 
-                        icon="o-magnifying-glass" 
-                        clearable 
+                    <x-mary-input
+                        wire:model.live.debounce.300ms="search"
+                        placeholder="Rechercher par clé ou produit..."
+                        icon="o-magnifying-glass"
+                        clearable
                         class="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                     />
                 </div>
-                
+
                 <!-- Filtre par statut -->
                 <div>
-                    <x-mary-select 
-                        wire:model.live="statusFilter" 
+                    <x-mary-select
+                        wire:model.live="statusFilter"
                         :options="[
                             ['id' => 'all', 'name' => 'Tous les statuts'],
                             ['id' => 'active', 'name' => 'Actives'],
                             ['id' => 'expired', 'name' => 'Expirées'],
                             ['id' => 'expiring', 'name' => 'Expirant bientôt']
-                        ]" 
-                        option-value="id" 
-                        option-label="name" 
+                        ]"
+                        option-value="id"
+                        option-label="name"
                         class="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                     />
                 </div>
-                
+
                 <!-- Statistiques rapides -->
                 <div class="flex items-center justify-end space-x-4 text-sm">
                     <div class="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-blue-200 shadow-sm">
@@ -60,17 +65,17 @@
                 @foreach($this->licenses as $license)
                     <div class="group relative">
                         <x-mary-card class="
-                            border-2 border-gray-200 dark:border-gray-700 
+                            border-2 border-gray-200 dark:border-gray-700
                             hover:border-blue-300 dark:hover:border-blue-600
-                            hover:shadow-xl 
+                            hover:shadow-xl
                             transition-all duration-300 ease-in-out
                             transform hover:-translate-y-1
                             bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900
-                            @if($license->status === App\Enums\LicenseStatus::ACTIVE) 
+                            @if($license->status === App\Enums\LicenseStatus::ACTIVE)
                                 border-l-4 border-l-green-500 bg-gradient-to-br from-green-50 to-white dark:from-green-900/20 dark:to-gray-800
-                            @elseif($license->isExpired()) 
+                            @elseif($license->isExpired())
                                 border-l-4 border-l-red-500 bg-gradient-to-br from-red-50 to-white dark:from-red-900/20 dark:to-gray-800
-                            @else 
+                            @else
                                 border-l-4 border-l-gray-400 bg-gradient-to-br from-gray-50 to-white dark:from-gray-700/20 dark:to-gray-800
                             @endif
                         ">
@@ -100,11 +105,11 @@
                                         <!-- Icône de produit avec arrière-plan -->
                                         <div class="
                                             p-3 rounded-xl shadow-md
-                                            @if($license->status === App\Enums\LicenseStatus::ACTIVE) 
+                                            @if($license->status === App\Enums\LicenseStatus::ACTIVE)
                                                 bg-green-100 dark:bg-green-900/30
-                                            @elseif($license->isExpired()) 
+                                            @elseif($license->isExpired())
                                                 bg-red-100 dark:bg-red-900/30
-                                            @else 
+                                            @else
                                                 bg-gray-100 dark:bg-gray-700
                                             @endif
                                         ">
@@ -116,7 +121,7 @@
                                                 <x-mary-icon name="o-shield" class="h-8 w-8 text-gray-600 dark:text-gray-400" />
                                             @endif
                                         </div>
-                                        
+
                                         <div>
                                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">
                                                 {{ $license->product->name }}
@@ -129,7 +134,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Informations détaillées avec cartes -->
                                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                         <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
@@ -141,7 +146,7 @@
                                                 {{ $license->status->value }}
                                             </span>
                                         </div>
-                                        
+
                                         @if($license->expires_at)
                                             <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                                                 <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Expire le</div>
@@ -150,7 +155,7 @@
                                                 </div>
                                             </div>
                                         @endif
-                                        
+
                                         <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                                             <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Utilisateurs</div>
                                             <div class="font-semibold text-gray-900 dark:text-white">
@@ -159,7 +164,7 @@
                                                 <span>{{ $license->max_users }}</span>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                                             <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Modules</div>
                                             <div class="font-semibold text-gray-900 dark:text-white">
@@ -170,42 +175,42 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Actions en bas -->
                             <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <x-mary-button 
-                                    wire:click="showDetails({{ $license->id }})" 
+                                <x-mary-button
+                                    wire:click="showDetails({{ $license->id }})"
                                     class="btn-sm bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-md hover:shadow-lg transition-all"
                                     icon="o-eye"
                                 >
                                     Détails
                                 </x-mary-button>
-                                
+
                                 <x-mary-dropdown>
                                     <x-slot:trigger>
                                         <x-mary-button icon="o-ellipsis-vertical" class="btn-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border-0 shadow-md" />
                                     </x-slot:trigger>
-                                    
+
                                     @if($license->status !== App\Enums\LicenseStatus::ACTIVE)
-                                        <x-mary-menu-item 
-                                            title="Activer" 
-                                            icon="o-play" 
-                                            wire:click="activateLicense({{ $license->id }})" 
+                                        <x-mary-menu-item
+                                            title="Activer"
+                                            icon="o-play"
+                                            wire:click="activateLicense({{ $license->id }})"
                                             class="text-green-600 hover:bg-green-50"
                                         />
                                     @endif
-                                    
-                                    <x-mary-menu-item 
-                                        title="Télécharger" 
-                                        icon="o-arrow-down-tray" 
-                                        wire:click="downloadLicense({{ $license->id }})" 
+
+                                    <x-mary-menu-item
+                                        title="Télécharger"
+                                        icon="o-arrow-down-tray"
+                                        wire:click="downloadLicense({{ $license->id }})"
                                         class="text-blue-600 hover:bg-blue-50"
                                     />
-                                    
-                                    <x-mary-menu-item 
-                                        title="Accéder au service" 
-                                        icon="o-link" 
-                                        link="#" 
+
+                                    <x-mary-menu-item
+                                        title="Accéder au service"
+                                        icon="o-link"
+                                        link="#"
                                         class="text-purple-600 hover:bg-purple-50"
                                     />
                                 </x-mary-dropdown>
@@ -214,7 +219,7 @@
                     </div>
                 @endforeach
             </div>
-            
+
             <!-- Pagination -->
             <div class="mt-8">
                 {{ $this->licenses->links() }}
@@ -234,8 +239,8 @@
                         @endif
                     </p>
                     @if($search || $statusFilter !== 'all')
-                        <x-mary-button 
-                            wire:click="$set('search', ''); $set('statusFilter', 'all')" 
+                        <x-mary-button
+                            wire:click="$set('search', ''); $set('statusFilter', 'all')"
                             class="bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-md hover:shadow-lg transition-all"
                             icon="o-arrow-path"
                         >
@@ -261,121 +266,154 @@
 
     <!-- Modal des détails de licence -->
     @if($showLicenseDetails && $selectedLicense)
-        <x-mary-modal wire:model="showLicenseDetails" title="Détails de la licence" class="backdrop-blur">
-            <div class="space-y-6">
-                <!-- Informations générales -->
-                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl border border-blue-200 dark:border-gray-600">
-                    <h4 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                        <x-mary-icon name="o-information-circle" class="h-5 w-5 mr-2 text-blue-500" />
-                        Informations générales
-                    </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Produit</span>
-                            <span class="font-semibold text-gray-900 dark:text-white">{{ $selectedLicense->product->name }}</span>
-                        </div>
-                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Clé de licence</span>
-                            <code class="font-mono text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ $selectedLicense->license_key }}</code>
-                        </div>
-                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Statut</span>
-                            <span class="px-3 py-1 rounded-full text-xs font-bold
-                                @if($selectedLicense->status === App\Enums\LicenseStatus::ACTIVE) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
-                                {{ $selectedLicense->status->value }}
-                            </span>
-                        </div>
-                        @if($selectedLicense->expires_at)
+        <div>
+            <style>
+                .large-modal .modal-box {
+                    max-width: 90vw !important;
+                    width: 90vw !important;
+                }
+            </style>
+            <x-mary-modal
+                wire:model="showLicenseDetails"
+                title="Détails de la licence"
+                class="backdrop-blur large-modal"
+            >
+                <div class="space-y-6">
+                    <!-- Informations générales -->
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl border border-blue-200 dark:border-gray-600">
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <x-mary-icon name="o-information-circle" class="h-5 w-5 mr-2 text-blue-500" />
+                            Informations générales
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Date d'expiration</span>
-                                <span class="font-semibold text-gray-900 dark:text-white">{{ $selectedLicense->expires_at->format('d/m/Y H:i') }}</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Produit</span>
+                                <span class="font-semibold text-gray-900 dark:text-white">{{ $selectedLicense->product->name }}</span>
                             </div>
-                        @endif
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Clé de licence</span>
+                                <code class="font-mono text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ $selectedLicense->license_key }}</code>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Statut</span>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                    @if($selectedLicense->status === App\Enums\LicenseStatus::ACTIVE) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                    @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
+                                    {{ $selectedLicense->status->value }}
+                                </span>
+                            </div>
+                            @if($selectedLicense->expires_at)
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Date d'expiration</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white">{{ $selectedLicense->expires_at->format('d/m/Y H:i') }}</span>
+                                </div>
+                            @endif
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Utilisateurs</span>
+                                <div class="font-semibold text-gray-900 dark:text-white">
+                                    <span class="text-blue-600 dark:text-blue-400">{{ $selectedLicense->current_users }}</span>
+                                    <span class="text-gray-400">/</span>
+                                    <span>{{ $selectedLicense->max_users ?? 'Illimité' }}</span>
+                                </div>
+                            </div>
+                            @if($selectedLicense->starts_at)
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1">Date d'activation</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white">{{ $selectedLicense->starts_at->format('d/m/Y H:i') }}</span>
+                                </div>
+                            @endif
+                        </div>
                     </div>
+
+                    <!-- Modules -->
+                    @if($selectedLicense->modules->count() > 0)
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl border border-purple-200 dark:border-gray-600">
+                            <h4 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                                <x-mary-icon name="o-puzzle-piece" class="h-5 w-5 mr-2 text-purple-500" />
+                                Modules
+                            </h4>
+                            <div class="space-y-3">
+                                @foreach($selectedLicense->modules as $module)
+                                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                                    <x-mary-icon name="o-puzzle-piece" class="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                                </div>
+                                                <div>
+                                                    <span class="font-semibold text-gray-900 dark:text-white">{{ $module->name }}</span>
+                                                    @if($module->description)
+                                                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ $module->description }}</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-3">
+                                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                                    @if($module->pivot->enabled) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                    @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
+                                                    {{ $module->pivot->enabled ? 'Activé' : 'Désactivé' }}
+                                                </span>
+                                                <x-mary-toggle
+                                                    wire:click="toggleModule({{ $selectedLicense->id }}, {{ $module->id }})"
+                                                    :checked="$module->pivot->enabled"
+                                                    class="scale-75"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Options -->
+                    @if($selectedLicense->options->count() > 0)
+                        <div class="bg-gradient-to-r from-green-50 to-teal-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl border border-green-200 dark:border-gray-600">
+                            <h4 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                                <x-mary-icon name="o-cog" class="h-5 w-5 mr-2 text-green-500" />
+                                Options
+                            </h4>
+                            <div class="space-y-3">
+                                @foreach($selectedLicense->options as $option)
+                                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                                    <x-mary-icon name="o-cog" class="h-4 w-4 text-green-600 dark:text-green-400" />
+                                                </div>
+                                                <div>
+                                                    <span class="font-semibold text-gray-900 dark:text-white">{{ $option->name }}</span>
+                                                    @if($option->description)
+                                                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ $option->description }}</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <span class="px-3 py-1 rounded-full text-xs font-bold
+                                                @if($option->pivot->enabled) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
+                                                {{ $option->pivot->enabled ? 'Activé' : 'Désactivé' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
-                <!-- Modules -->
-                @if($selectedLicense->modules->count() > 0)
-                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl border border-purple-200 dark:border-gray-600">
-                        <h4 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <x-mary-icon name="o-puzzle-piece" class="h-5 w-5 mr-2 text-purple-500" />
-                            Modules
-                        </h4>
-                        <div class="space-y-3">
-                            @foreach($selectedLicense->modules as $module)
-                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                                                <x-mary-icon name="o-puzzle-piece" class="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                                            </div>
-                                            <div>
-                                                <span class="font-semibold text-gray-900 dark:text-white">{{ $module->name }}</span>
-                                                @if($module->description)
-                                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ $module->description }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center space-x-3">
-                                            <span class="px-3 py-1 rounded-full text-xs font-bold
-                                                @if($module->pivot->enabled) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                                @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
-                                                {{ $module->pivot->enabled ? 'Activé' : 'Désactivé' }}
-                                            </span>
-                                            <x-mary-toggle 
-                                                wire:click="toggleModule({{ $selectedLicense->id }}, {{ $module->id }})" 
-                                                :checked="$module->pivot->enabled"
-                                                class="scale-75"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Options -->
-                @if($selectedLicense->options->count() > 0)
-                    <div class="bg-gradient-to-r from-green-50 to-teal-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-xl border border-green-200 dark:border-gray-600">
-                        <h4 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                            <x-mary-icon name="o-cog" class="h-5 w-5 mr-2 text-green-500" />
-                            Options
-                        </h4>
-                        <div class="space-y-3">
-                            @foreach($selectedLicense->options as $option)
-                                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                                <x-mary-icon name="o-cog" class="h-4 w-4 text-green-600 dark:text-green-400" />
-                                            </div>
-                                            <div>
-                                                <span class="font-semibold text-gray-900 dark:text-white">{{ $option->name }}</span>
-                                                @if($option->description)
-                                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ $option->description }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <span class="px-3 py-1 rounded-full text-xs font-bold
-                                            @if($option->pivot->enabled) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                            @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
-                                            {{ $option->pivot->enabled ? 'Activé' : 'Désactivé' }}
-                                        </span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-            </div>
-
-            <x-slot:actions>
-                <x-mary-button wire:click="closeDetails" class="bg-gray-500 hover:bg-gray-600 text-white border-0 shadow-md">
-                    Fermer
-                </x-mary-button>
-            </x-slot:actions>
-        </x-mary-modal>
+                <x-slot:actions>
+                    <x-mary-button
+                        wire:click="downloadLicense({{ $selectedLicense->id }})"
+                        class="bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-md mr-2"
+                        icon="o-arrow-down-tray"
+                    >
+                        Télécharger certificat
+                    </x-mary-button>
+                    <x-mary-button wire:click="closeDetails" class="bg-gray-500 hover:bg-gray-600 text-white border-0 shadow-md">
+                        Fermer
+                    </x-mary-button>
+                </x-slot:actions>
+            </x-mary-modal>
+        </div>
     @endif
 </div>

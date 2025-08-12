@@ -14,11 +14,11 @@ Route::get('/', function () {
 // Route dashboard avec redirection conditionnelle
 Route::get('dashboard', function () {
     $user = Auth::user();
-    
+
     if (!$user) {
         return redirect()->route('login');
     }
-    
+
     // Rediriger selon le rôle
     if ($user->isAdmin() || $user->hasAnyRole(['Super Admin', 'Admin', 'Manager'])) {
         return redirect()->route('filament.admin.pages.dashboard');
@@ -33,7 +33,7 @@ Route::middleware(['auth', 'two.factor'])->group(function () {
     Route::get('settings/profile', Profile::class)->name('settings.profile');
     Route::get('settings/password', Password::class)->name('settings.password');
     Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
-    
+
     // Route pour télécharger les PDF de factures
     Route::get('invoice/{invoice}/pdf', [InvoicePdfController::class, 'download'])->name('invoice.pdf');
 });
@@ -42,6 +42,8 @@ Route::middleware(['auth', 'two.factor'])->group(function () {
 Route::middleware(['auth', 'verified', 'two.factor'])->prefix('client')->name('client.')->group(function () {
     Route::get('/dashboard', App\Livewire\Client\Dashboard::class)->name('dashboard');
     Route::get('/licenses', App\Livewire\Client\Licenses::class)->name('licenses');
+    Route::get('/licenses/{license}/certificate', [App\Http\Controllers\LicensePdfController::class, 'download'])
+        ->name('license.certificate');
     Route::get('/invoices', function() { return 'Factures à venir'; })->name('invoices');
     Route::get('/support', function() { return 'Support à venir'; })->name('support');
 });
