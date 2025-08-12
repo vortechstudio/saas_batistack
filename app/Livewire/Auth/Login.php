@@ -43,7 +43,17 @@ class Login extends Component
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        // Redirection conditionnelle basée sur le rôle de l'utilisateur
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur est un administrateur (email @batistack.com ou rôles admin)
+        if ($user->isAdmin() || $user->hasAnyRole(['Super Admin', 'Admin', 'Manager'])) {
+            // Rediriger vers l'interface admin (Filament)
+            $this->redirectIntended(default: route('filament.admin.pages.dashboard'), navigate: true);
+        } else {
+            // Rediriger vers l'interface client
+            $this->redirectIntended(default: route('client.dashboard'), navigate: true);
+        }
     }
 
     /**

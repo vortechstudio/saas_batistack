@@ -8,7 +8,8 @@ enum LicenseStatus: string
     case EXPIRED = 'expired';
     case SUSPENDED = 'suspended';
     case CANCELLED = 'cancelled';
-    case SAVED = 'savec';
+    case SAVED = 'saved';
+    case PENDING = 'pending';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum LicenseStatus: string
             self::SUSPENDED => 'Suspendue',
             self::CANCELLED => 'Annulée',
             self::SAVED => 'Sauvé',
+            self::PENDING => 'En attente',
         };
     }
 
@@ -26,7 +28,7 @@ enum LicenseStatus: string
         return match($this) {
             self::ACTIVE => 'green',
             self::EXPIRED => 'red',
-            self::SUSPENDED => 'amber',
+            self::SUSPENDED, self::PENDING => 'amber',
             self::CANCELLED => 'gray',
             self::SAVED => 'blue',
         };
