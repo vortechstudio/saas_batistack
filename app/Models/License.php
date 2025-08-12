@@ -17,6 +17,7 @@ class License extends Model
         'customer_id',
         'product_id',
         'license_key',
+        'domain',
         'status',
         'starts_at',
         'expires_at',
@@ -44,6 +45,10 @@ class License extends Model
         static::creating(function ($license) {
             if (empty($license->license_key)) {
                 $license->license_key = self::generateLicenseKey();
+            }
+
+            if (empty($license->domain)) {
+                $license->domain = self::generateDomain($license);
             }
         });
     }
@@ -251,5 +256,42 @@ class License extends Model
     public static function findByKey(string $licenseKey): ?self
     {
         return self::where('license_key', $licenseKey)->first();
+    }
+
+    /**
+     * Génère un domaine unique basé sur le nom du client et le produit
+     */
+    public static function generateDomain($license): string
+    {
+        $customer = $license->customer ?? Customer::find($license->customer_id);
+        $product = $license->product ?? Product::find($license->product_id);
+
+        $baseDomain = Str::slug($customer->company_name . '-' . $product->name);
+        $domain = $baseDomain;
+        $counter = 1;
+
+        while (self::where('domain', $domain)->exists()) {
+            $domain = $baseDomain . '-' . $counter;
+            $counter++;
+        }
+
+        return $domain;
+    }
+
+    /**
+     * Retourne l'URL complète du service
+     */
+    public function getServiceUrl(): string
+    {
+        $baseDomain = config('app.service_domain', 'batistack.com');
+        return "https://{$this->domain}.{$baseDomain}";
+    }
+
+    /**
+     * Vérifie si le domaine est configuré
+     */
+    public function hasDomain(): bool
+    {
+        return !empty($this->domain);
     }
 }

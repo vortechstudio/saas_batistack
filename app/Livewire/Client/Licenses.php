@@ -27,6 +27,10 @@ class Licenses extends Component
     public $selectedLicense = null;
     public $showLicenseDetails = false;
 
+    // Nouvelles propriétés pour l'accès au service
+    public $showServiceAccess = false;
+    public $selectedServiceLicense = null;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'statusFilter' => ['except' => 'all'],
@@ -142,6 +146,70 @@ class Licenses extends Component
     {
         $this->showLicenseDetails = false;
         $this->selectedLicense = null;
+    }
+
+    /**
+     * Affiche le modal d'accès au service
+     */
+    public function showServiceAccess($licenseId)
+    {
+        $license = License::with(['product', 'modules'])->find($licenseId);
+
+        if (!$license || $license->customer_id !== $this->customer->id) {
+            session()->flash('error', 'Licence non trouvée.');
+            return;
+        }
+
+        if ($license->status !== LicenseStatus::ACTIVE) {
+            session()->flash('error', 'Cette licence n\'est pas active.');
+            return;
+        }
+
+        if (!$license->hasDomain()) {
+            session()->flash('error', 'Le domaine de cette licence n\'est pas encore configuré.');
+            return;
+        }
+
+        $this->selectedServiceLicense = $license;
+        $this->showServiceAccess = true;
+    }
+
+    /**
+     * Ferme le modal d'accès au service
+     */
+    public function closeServiceAccess()
+    {
+        $this->showServiceAccess = false;
+        $this->selectedServiceLicense = null;
+    }
+
+    /**
+     * Accès direct au service
+     */
+    public function accessServiceDirect($licenseId)
+    {
+        $license = License::find($licenseId);
+
+        if (!$license || $license->customer_id !== $this->customer->id) {
+            session()->flash('error', 'Licence non trouvée.');
+            return;
+        }
+
+        if ($license->status !== LicenseStatus::ACTIVE) {
+            session()->flash('error', 'Cette licence n\'est pas active.');
+            return;
+        }
+
+        if (!$license->hasDomain()) {
+            session()->flash('error', 'Le domaine de cette licence n\'est pas encore configuré.');
+            return;
+        }
+
+        // Mettre à jour la dernière utilisation
+        $license->updateLastUsed();
+
+        // Rediriger vers le service
+        return redirect()->away($license->getServiceUrl());
     }
 
     public function toggleModule($licenseId, $moduleId)

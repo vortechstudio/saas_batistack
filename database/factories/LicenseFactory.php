@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\License;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\License>
@@ -27,10 +28,15 @@ class LicenseFactory extends Factory
         $startsAt = $this->faker->dateTimeBetween('-1 year', 'now');
         $expiresAt = $this->faker->dateTimeBetween($startsAt, '+2 years');
 
+        // Générer un domaine unique basé sur le client et le produit
+        $baseDomain = Str::slug($customer->name . '-' . $product->name);
+        $domain = $baseDomain . '-' . $this->faker->unique()->numberBetween(1000, 9999);
+
         return [
             'customer_id' => $customer->id,
             'product_id' => $product->id,
             'license_key' => 'LIC-' . strtoupper($this->faker->bothify('????-????-????-????')),
+            'domain' => $domain,
             'status' => $this->faker->randomElement(LicenseStatus::cases()),
             'starts_at' => $startsAt,
             'expires_at' => $expiresAt,
@@ -136,6 +142,26 @@ class LicenseFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'product_id' => $product->id,
             'max_users' => $product->max_users,
+        ]);
+    }
+
+    /**
+     * Licence avec un domaine spécifique
+     */
+    public function withDomain(string $domain): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'domain' => $domain,
+        ]);
+    }
+
+    /**
+     * Licence avec domaine personnalisé
+     */
+    public function withCustomDomain(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'domain' => $this->faker->unique()->domainWord . '-' . $this->faker->numberBetween(100, 999),
         ]);
     }
 }

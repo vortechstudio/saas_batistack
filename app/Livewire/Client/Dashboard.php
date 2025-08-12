@@ -20,6 +20,10 @@ class Dashboard extends Component
     public $unpaidInvoices;
     public $stats = [];
 
+    // Nouvelles propriétés pour l'accès au service
+    public $showServiceAccess = false;
+    public $selectedServiceLicense = null;
+
     public function mount()
     {
         $this->loadCustomerData();
@@ -28,7 +32,7 @@ class Dashboard extends Component
     public function loadCustomerData()
     {
         $this->customer = Auth::user()->customer;
-        
+
         if (!$this->customer) {
             return;
         }
@@ -46,8 +50,8 @@ class Dashboard extends Component
 
         // Licences expirant dans les 30 jours
         $this->expiringLicenses = $this->licenses->filter(function($license) {
-            return $license->expires_at && 
-                   $license->expires_at->diffInDays(now()) <= 30 && 
+            return $license->expires_at &&
+                   $license->expires_at->diffInDays(now()) <= 30 &&
                    $license->expires_at->isFuture();
         });
 
@@ -83,6 +87,70 @@ class Dashboard extends Component
             // Logique de téléchargement
             return response()->download(storage_path('licenses/' . $license->license_key . '.pdf'));
         }
+    }
+
+    /**
+     * Affiche le modal d'accès au service
+     */
+    public function showServiceAccess($licenseId)
+    {
+        $license = License::with(['product', 'modules'])->find($licenseId);
+
+        if (!$license || $license->customer_id !== $this->customer->id) {
+            session()->flash('error', 'Licence non trouvée.');
+            return;
+        }
+
+        if ($license->status !== LicenseStatus::ACTIVE) {
+            session()->flash('error', 'Cette licence n\'est pas active.');
+            return;
+        }
+
+        if (!$license->hasDomain()) {
+            session()->flash('error', 'Le domaine de cette licence n\'est pas encore configuré.');
+            return;
+        }
+
+        $this->selectedServiceLicense = $license;
+        $this->showServiceAccess = true;
+    }
+
+    /**
+     * Ferme le modal d'accès au service
+     */
+    public function closeServiceAccess()
+    {
+        $this->showServiceAccess = false;
+        $this->selectedServiceLicense = null;
+    }
+
+    /**
+     * Accès direct au service
+     */
+    public function accessServiceDirect($licenseId)
+    {
+        $license = License::find($licenseId);
+
+        if (!$license || $license->customer_id !== $this->customer->id) {
+            session()->flash('error', 'Licence non trouvée.');
+            return;
+        }
+
+        if ($license->status !== LicenseStatus::ACTIVE) {
+            session()->flash('error', 'Cette licence n\'est pas active.');
+            return;
+        }
+
+        if (!$license->hasDomain()) {
+            session()->flash('error', 'Le domaine de cette licence n\'est pas encore configuré.');
+            return;
+        }
+
+        // Mettre à jour la dernière utilisation
+        $license->updateLastUsed();
+
+        // Rediriger vers le service
+        return redirect()->away($license->getServiceUrl());
     }
 
     #[Title("Tableau de Bord")]
