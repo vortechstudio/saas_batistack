@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InvoiceStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Services\LicenseCreationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -55,35 +59,50 @@ class StripeWebhookController extends Controller
         return response('Webhook handled', 200);
     }
 
-    private function handleCheckoutSessionCompleted($session)
+    public function handleCheckoutSessionCompleted(array $payload): Response
     {
-        $invoiceId = $session->metadata->invoice_id ?? null;
+        $session = $payload['data']['object'];
+        $invoiceId = $session['metadata']['invoice_id'] ?? null;
 
-        if ($invoiceId) {
-            $invoice = Invoice::find($invoiceId);
-            if ($invoice) {
-                $invoice->update([
-                    'status' => 'paid',
-                    'stripe_checkout_session_id' => $session->id,
-                    'paid_at' => now()
-                ]);
-
-                // Créer l'enregistrement de paiement
-                Payment::create([
-                    'invoice_id' => $invoice->id,
-                    'customer_id' => $invoice->customer_id,
-                    'amount' => $session->amount_total / 100, // Stripe utilise les centimes
-                    'currency' => strtoupper($session->currency),
-                    'method' => 'stripe',
-                    'status' => 'succeeded',
-                    'stripe_payment_intent_id' => $session->payment_intent,
-                    'stripe_charge_id' => null, // Sera mis à jour lors du payment_intent.succeeded
-                    'processed_at' => now()
-                ]);
-
-                Log::info('Invoice marked as paid', ['invoice_id' => $invoiceId]);
-            }
+        if (!$invoiceId) {
+            return $this->successMethod();
         }
+
+        $invoice = Invoice::find($invoiceId);
+        if (!$invoice) {
+            return $this->successMethod();
+        }
+
+        // Mettre à jour le statut de la facture
+        $invoice->update([
+            'status' => InvoiceStatus::PAID,
+            'paid_at' => now(),
+            'metadata' => array_merge($invoice->metadata ?? [], [
+                'stripe_checkout_session_id' => $session['id'],
+                'stripe_payment_intent_id' => $session['payment_intent'],
+            ])
+        ]);
+
+        // Créer l'enregistrement de paiement
+        Payment::create([
+            'customer_id' => $invoice->customer_id,
+            'invoice_id' => $invoice->id,
+            'amount' => $invoice->total_amount, // Corriger le nom du champ
+            'currency' => $invoice->currency,
+            'method' => PaymentMethod::CARD,
+            'status' => PaymentStatus::SUCCEEDED,
+            'transaction_id' => $session['payment_intent'],
+            'stripe_payment_intent_id' => $session['payment_intent'],
+            'metadata' => [
+                'stripe_checkout_session_id' => $session['id'],
+                'stripe_customer_id' => $session['customer'],
+            ],
+        ]);
+
+        // Créer la licence automatiquement
+        $this->createLicenseFromInvoice($invoice);
+
+        return $this->successMethod();
     }
 
     private function handlePaymentIntentSucceeded($paymentIntent)
@@ -127,5 +146,39 @@ class StripeWebhookController extends Controller
     {
         // Gérer les échecs de paiement de factures Stripe
         Log::info('Stripe invoice payment failed', ['stripe_invoice_id' => $stripeInvoice->id]);
+    }
+
+    /**
+     * Retourne une réponse de succès pour les webhooks
+     */
+    private function successMethod(): Response
+    {
+        return response('Webhook handled successfully', 200);
+    }
+
+    /**
+     * Crée une licence à partir d'une facture payée
+     */
+    private function createLicenseFromInvoice(Invoice $invoice): void
+    {
+        try {
+            $licenseService = new LicenseCreationService();
+            $license = $licenseService->createLicenseFromInvoice($invoice);
+
+            Log::info('License created successfully', [
+                'license_id' => $license->id,
+                'invoice_id' => $invoice->id,
+                'customer_id' => $invoice->customer_id
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create license from invoice', [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Optionnel : vous pourriez vouloir notifier l'équipe support
+            // ou marquer la facture avec un flag pour traitement manuel
+        }
     }
 }
