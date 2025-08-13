@@ -20,7 +20,7 @@ class CheckInactiveCustomersJob implements ShouldQueue
         $adminUsers = User::whereRaw("email LIKE '%@batistack.com'")->get();
 
         // Clients inactifs depuis plus de 90 jours
-        $inactiveCustomers = Customer::where('last_activity_at', '<', now()->subDays(90))
+        $inactiveCustomers = Customer::where('updated_at', '<', now()->subDays(90))
             ->where('status', 'active')
             ->get();
 

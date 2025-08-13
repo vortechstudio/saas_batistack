@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Cashier\Billable;
+use Stripe\StripeClient;
 
 class Customer extends Model
 {
@@ -139,5 +140,69 @@ class Customer extends Model
                 \App\Enums\InvoiceStatus::OVERDUE
             ])
             ->sum('total_amount');
+    }
+
+    /**
+     * Créer une subscription pour une licence
+     */
+    public function createLicenseSubscription($product, $billingCycle, $modules = [], $options = [])
+    {
+        $priceId = $this->getStripePriceId($product, $billingCycle);
+
+        // Créer la subscription avec le prix principal
+        $subscription = $this->newSubscription('license', $priceId)->create();
+
+        // Ajouter les modules comme items supplémentaires à la subscription existante
+        foreach ($modules as $module) {
+            $modulePriceId = $this->getModuleStripePriceId($module, $billingCycle);
+            $subscription->addPrice($modulePriceId);
+        }
+
+        // Ajouter les options à la subscription existante
+        foreach ($options as $option) {
+            $optionPriceId = $this->getOptionStripePriceId($option);
+            $subscription->addPrice($optionPriceId);
+        }
+
+        return $subscription;
+    }
+
+    /**
+     * Obtenir l'ID du prix Stripe pour un produit
+     */
+    private function getStripePriceId($product, $billingCycle)
+    {
+        return $billingCycle === 'yearly'
+            ? $product->stripe_price_id_yearly
+            : $product->stripe_price_id_monthly;
+    }
+
+    /**
+     * Obtenir l'ID du prix Stripe pour un module
+     */
+    private function getModuleStripePriceId($module, $billingCycle)
+    {
+        return $billingCycle === 'yearly'
+            ? $module->stripe_price_id_yearly
+            : $module->stripe_price_id_monthly;
+    }
+
+    /**
+     * Obtenir l'ID du prix Stripe pour une option
+     */
+    private function getOptionStripePriceId($option)
+    {
+        // Les options peuvent avoir un prix unique ou selon le cycle
+        return $option->stripe_price_id ?? $option->stripe_price_id_monthly;
+    }
+
+    /**
+     * Get a Stripe client instance
+     *
+     * @return \Stripe\StripeClient
+     */
+    public function stripe(): StripeClient
+    {
+        return new StripeClient(config('services.stripe.secret'));
     }
 }

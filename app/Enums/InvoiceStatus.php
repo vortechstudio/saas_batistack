@@ -10,6 +10,7 @@ enum InvoiceStatus: string
     case OVERDUE = 'overdue';
     case CANCELLED = 'cancelled';
     case REFUNDED = 'refunded';
+    case FAILED = 'failed';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum InvoiceStatus: string
             self::OVERDUE => 'En retard',
             self::CANCELLED => 'Annulée',
             self::REFUNDED => 'Remboursée',
+            self::FAILED => 'Échouée',
         };
     }
 
@@ -29,7 +31,7 @@ enum InvoiceStatus: string
             self::DRAFT => 'gray',
             self::PENDING => 'warning',
             self::PAID => 'success',
-            self::OVERDUE => 'danger',
+            self::OVERDUE, self::FAILED => 'danger',
             self::CANCELLED => 'gray',
             self::REFUNDED => 'info',
         };
@@ -41,7 +43,7 @@ enum InvoiceStatus: string
             self::DRAFT => 'heroicon-o-document',
             self::PENDING => 'heroicon-o-clock',
             self::PAID => 'heroicon-o-check-circle',
-            self::OVERDUE => 'heroicon-o-exclamation-triangle',
+            self::OVERDUE, self::FAILED => 'heroicon-o-exclamation-triangle',
             self::CANCELLED => 'heroicon-o-x-circle',
             self::REFUNDED => 'heroicon-o-arrow-uturn-left',
         };

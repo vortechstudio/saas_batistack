@@ -181,7 +181,7 @@
                 </div>
             @else
                 <div class="text-center py-8">
-                    <x-mary-icon name="oshield-exclamation" class="mx-auto h-12 w-12 text-gray-400" />
+                    <x-mary-icon name="o-shield-exclamation" class="mx-auto h-12 w-12 text-gray-400" />
                     <h3 class="mt-4 text-lg font-medium text-gray-600 dark:text-gray-400">Aucune licence</h3>
                     <p class="mt-2 text-gray-500">Vous n'avez pas encore de licence active.</p>
                     <div class="mt-4">
@@ -194,7 +194,14 @@
         </x-mary-card>
 
         <!-- Actions rapides -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <x-mary-card class="hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('client.order') }}'" wire:navigate>
+                <div class="text-center py-6">
+                    <x-mary-icon name="o-shopping-cart" class="mx-auto h-8 w-8 text-amber-500 mb-3" />
+                    <h3 class="font-medium">Commander une nouvelle licence</h3>
+                    <p class="mt-1 text-sm text-gray-600">Commandez une licence pour accéder à nos services</p>
+                </div>
+            </x-mary-card>
             <x-mary-card class="hover:shadow-lg transition-shadow cursor-pointer" onclick="window.location.href='{{ route('client.licenses') }}'">
                 <div class="text-center py-6">
                     <x-mary-icon name="o-shield-check" class="mx-auto h-8 w-8 text-blue-500 mb-3" />

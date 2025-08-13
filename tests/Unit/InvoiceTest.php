@@ -35,7 +35,7 @@ describe('Invoice Model', function () {
             'subtotal_amount', 'tax_amount', 'total_amount', 'currency',
             'due_date', 'paid_at', 'description', 'notes', 'metadata'
         ];
-        
+
         expect($this->invoice->getFillable())->toBe($fillable);
     });
 
@@ -54,14 +54,14 @@ describe('Invoice Model', function () {
 
     test('can have many invoice items', function () {
         InvoiceItem::factory()->count(3)->create(['invoice_id' => $this->invoice->id]);
-        
+
         expect($this->invoice->invoiceItems)->toHaveCount(3)
             ->and($this->invoice->invoiceItems->first())->toBeInstanceOf(InvoiceItem::class);
     });
 
     test('can have many payments', function () {
         Payment::factory()->count(2)->create(['invoice_id' => $this->invoice->id]);
-        
+
         expect($this->invoice->payments)->toHaveCount(2)
             ->and($this->invoice->payments->first())->toBeInstanceOf(Payment::class);
     });
@@ -75,7 +75,7 @@ describe('Invoice Model', function () {
             'invoice_id' => $this->invoice->id,
             'status' => PaymentStatus::FAILED
         ]);
-        
+
         expect($this->invoice->payment)->toBeInstanceOf(Payment::class)
             ->and($this->invoice->payment->status)->toBe(PaymentStatus::SUCCEEDED);
     });
@@ -89,27 +89,27 @@ describe('Invoice Model', function () {
             'due_date' => now()->addDays(5),
             'status' => InvoiceStatus::PENDING
         ]);
-        
+
         $overdueInvoices = Invoice::overdue()->get();
-        
+
         expect($overdueInvoices)->toHaveCount(1);
     });
 
     test('paid scope filters paid invoices', function () {
         Invoice::factory()->create(['status' => InvoiceStatus::PAID]);
         Invoice::factory()->create(['status' => InvoiceStatus::PENDING]);
-        
+
         $paidInvoices = Invoice::paid()->get();
-        
+
         expect($paidInvoices)->toHaveCount(1)
             ->and($paidInvoices->first()->status)->toBe(InvoiceStatus::PAID);
     });
 
     test('pending scope filters pending invoices', function () {
         Invoice::factory()->create(['status' => InvoiceStatus::PAID]);
-        
+
         $pendingInvoices = Invoice::pending()->get();
-        
+
         expect($pendingInvoices)->toHaveCount(1)
             ->and($pendingInvoices->first()->status)->toBe(InvoiceStatus::PENDING);
     });
@@ -119,34 +119,34 @@ describe('Invoice Model', function () {
             'due_date' => now()->subDays(5),
             'status' => InvoiceStatus::PENDING
         ]);
-        
+
         expect($overdueInvoice->isOverdue())->toBeTrue()
             ->and($this->invoice->isOverdue())->toBeFalse();
     });
 
     test('isPaid returns correct boolean', function () {
         expect($this->invoice->isPaid())->toBeFalse();
-        
+
         $paidInvoice = Invoice::factory()->create(['status' => InvoiceStatus::PAID]);
         expect($paidInvoice->isPaid())->toBeTrue();
     });
 
     test('markAsPaid updates status and paid_at', function () {
         $this->invoice->markAsPaid();
-        
+
         expect($this->invoice->fresh()->status)->toBe(InvoiceStatus::PAID)
             ->and($this->invoice->fresh()->paid_at)->not->toBeNull();
     });
 
     test('markAsOverdue updates status', function () {
         $this->invoice->markAsOverdue();
-        
+
         expect($this->invoice->fresh()->status)->toBe(InvoiceStatus::OVERDUE);
     });
 
     test('generateInvoiceNumber creates unique number', function () {
         $number = Invoice::generateInvoiceNumber();
-        
+
         expect($number)->toMatch('/^INV-\d{4}\d{2}-\d{4}$/');
     });
 
@@ -160,5 +160,18 @@ describe('Invoice Model', function () {
 
     test('getStatusColorAttribute returns status color', function () {
         expect($this->invoice->status_color)->toBe($this->invoice->status->color());
+    });
+
+    test('getStatusBadgeClass returns correct CSS class', function () {
+        // Test pour facture en attente
+        expect($this->invoice->getStatusBadgeClass())->toBe('badge-warning');
+
+        // Test pour facture payée
+        $paidInvoice = Invoice::factory()->create(['status' => InvoiceStatus::PAID]);
+        expect($paidInvoice->getStatusBadgeClass())->toBe('badge-success');
+
+        // Test pour facture en retard
+        $overdueInvoice = Invoice::factory()->create(['status' => InvoiceStatus::OVERDUE]);
+        expect($overdueInvoice->getStatusBadgeClass())->toBe('badge-error');
     });
 });

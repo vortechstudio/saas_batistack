@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -151,5 +152,14 @@ class Product extends Model
     public function isFeatured(): bool
     {
         return $this->is_featured;
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::creating(function ($product) {
+            $product->slug = Str::slug($product->name);
+        });
     }
 }

@@ -173,4 +173,16 @@ class Invoice extends Model
     {
         return $this->status->color();
     }
+
+    /**
+     * Obtient la classe CSS pour le badge de statut.
+     */
+    public function getStatusBadgeClass(): string
+    {
+        return match ($this->status) {
+            InvoiceStatus::PAID => 'badge-success',
+            InvoiceStatus::OVERDUE => 'badge-error',
+            default => 'badge-warning',
+        };
+    }
 }

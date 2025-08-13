@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained()->onDelete('cascade');
             $table->string('invoice_number')->unique();
             $table->string('stripe_invoice_id')->nullable()->unique();
-            $table->enum('status', ['draft', 'pending', 'paid', 'overdue', 'cancelled', 'refunded'])->default('draft');
+            $table->enum('status', ['draft', 'pending', 'paid', 'overdue', 'cancelled', 'refunded', 'failed'])->default('draft');
             $table->decimal('subtotal_amount', 10, 2);
             $table->decimal('tax_amount', 10, 2)->default(0);
             $table->decimal('total_amount', 10, 2);

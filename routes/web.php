@@ -6,6 +6,7 @@ use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Stripe\StripeClient;
 
 Route::get('/', function () {
     return view('welcome');
@@ -44,8 +45,20 @@ Route::middleware(['auth', 'verified', 'two.factor'])->prefix('client')->name('c
     Route::get('/licenses', App\Livewire\Client\Licenses::class)->name('licenses');
     Route::get('/licenses/{license}/certificate', [App\Http\Controllers\LicensePdfController::class, 'download'])
         ->name('license.certificate');
-    Route::get('/invoices', function() { return 'Factures à venir'; })->name('invoices');
+    // Remplacer la ligne 45 par :
+    Route::get('/invoices', App\Livewire\Client\Invoices::class)->name('invoices');
     Route::get('/support', function() { return 'Support à venir'; })->name('support');
+
+    // Nouvelles routes pour la commande
+    Route::get('/order', App\Livewire\Client\OrderLicense::class)->name('order');
+    Route::get('/order/success/{invoice}', function($invoiceId) {
+        $invoice = \App\Models\Invoice::findOrFail($invoiceId);
+        return view('client.order-success', compact('invoice'));
+    })->name('order.success');
+    Route::get('/order/cancel/{invoice}', function($invoiceId) {
+        $invoice = \App\Models\Invoice::findOrFail($invoiceId);
+        return view('client.order-cancel', compact('invoice'));
+    })->name('order.cancel');
 });
 
 require __DIR__.'/auth.php';
