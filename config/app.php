@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Service Domain
+    |--------------------------------------------------------------------------
+    |
+    | This value is the base domain used for generating service subdomains
+    | for each license. Each license will get a subdomain like:
+    | {license-domain}.{service_domain}
+    |
+    */
+
+    'service_domain' => env('APP_DOMAIN', 'batistack.com'),
+
 ];

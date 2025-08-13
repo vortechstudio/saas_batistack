@@ -20,7 +20,7 @@ test('users can authenticate using the login screen', function () {
 
     $response
         ->assertHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('client.dashboard', absolute: false));
 
     $this->assertAuthenticated();
 });
@@ -46,4 +46,21 @@ test('users can logout', function () {
     $response->assertRedirect('/');
 
     $this->assertGuest();
+});
+
+test('admin users are redirected to admin dashboard', function () {
+    $admin = User::factory()->create([
+        'email' => 'admin@batistack.com'
+    ]);
+
+    $response = Livewire::test(Login::class)
+        ->set('email', $admin->email)
+        ->set('password', 'password')
+        ->call('login');
+
+    $response
+        ->assertHasNoErrors()
+        ->assertRedirect(route('filament.admin.pages.dashboard', absolute: false));
+
+    $this->assertAuthenticated();
 });

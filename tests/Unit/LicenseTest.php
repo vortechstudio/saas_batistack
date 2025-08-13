@@ -26,12 +26,13 @@ describe('License Model', function () {
         expect($this->license)->toBeInstanceOf(License::class)
             ->and($this->license->status)->toBe(LicenseStatus::ACTIVE)
             ->and($this->license->max_users)->toBe(5)
-            ->and($this->license->current_users)->toBe(2);
+            ->and($this->license->current_users)->toBe(2)
+            ->and($this->license->domain)->not->toBeNull();
     });
 
     test('has correct fillable attributes', function () {
         $fillable = [
-            'customer_id', 'product_id', 'license_key', 'status',
+            'customer_id', 'product_id', 'license_key', 'domain', 'status',
             'starts_at', 'expires_at', 'max_users', 'current_users', 'last_used_at'
         ];
 
@@ -49,6 +50,36 @@ describe('License Model', function () {
 
         expect($newLicense->license_key)->not->toBeNull()
             ->and($newLicense->license_key)->toStartWith('LIC-');
+    });
+
+    test('generates domain automatically on creation', function () {
+        $newLicense = License::factory()->create();
+
+        expect($newLicense->domain)->not->toBeNull()
+            ->and($newLicense->domain)->toBeString();
+    });
+
+    test('generates unique domain for each license', function () {
+        $license1 = License::factory()->create();
+        $license2 = License::factory()->create();
+
+        expect($license1->domain)->not->toBe($license2->domain);
+    });
+
+    test('can create license with specific domain', function () {
+        $customDomain = 'custom-test-domain';
+        $license = License::factory()->withDomain($customDomain)->create();
+
+        expect($license->domain)->toBe($customDomain);
+    });
+
+    test('domain must be unique', function () {
+        $domain = 'unique-test-domain';
+        License::factory()->withDomain($domain)->create();
+
+        expect(function () use ($domain) {
+            License::factory()->withDomain($domain)->create();
+        })->toThrow(Exception::class);
     });
 
     test('belongs to customer', function () {
@@ -222,5 +253,100 @@ describe('License Model', function () {
         $this->license->refresh();
 
         expect($this->license->modules()->wherePivot('enabled', false)->count())->toBe(1);
+    });
+
+    // Tests pour les nouvelles fonctionnalités de domaine
+    test('generateDomain creates unique domain based on customer and product', function () {
+        $customer = Customer::factory()->create(['company_name' => 'Test Customer']);
+        $product = Product::factory()->create(['name' => 'Test Product']);
+
+        // Créer une licence temporaire pour tester la génération de domaine
+        $license = License::factory()->make([
+            'customer_id' => $customer->id,
+            'product_id' => $product->id,
+        ]);
+
+        // Charger les relations
+        $license->load(['customer', 'product']);
+
+        $domain = License::generateDomain($license);
+
+        expect($domain)->toContain('test-customer-test-product');
+    });
+
+    test('generateDomain handles duplicate domains by adding counter', function () {
+        $customer = Customer::factory()->create(['company_name' => 'Duplicate Test']);
+        $product = Product::factory()->create(['name' => 'Product']);
+
+        // Créer une première licence avec ce domaine
+        $firstLicense = License::factory()->create([
+            'customer_id' => $customer->id,
+            'product_id' => $product->id,
+            'domain' => 'duplicate-test-product'
+        ]);
+
+        // Créer une licence temporaire pour tester la génération de domaine
+        $license = License::factory()->make([
+            'customer_id' => $customer->id,
+            'product_id' => $product->id,
+        ]);
+
+        // Charger les relations
+        $license->load(['customer', 'product']);
+
+        $domain = License::generateDomain($license);
+
+        expect($domain)->toBe('duplicate-test-product-1');
+    });
+
+    test('getServiceUrl returns correct URL format', function () {
+        config(['app.service_domain' => 'example.com']);
+
+        $license = License::factory()->withDomain('test-domain')->create();
+
+        $serviceUrl = $license->getServiceUrl();
+
+        expect($serviceUrl)->toBe('https://test-domain.example.com');
+    });
+
+    test('getServiceUrl uses default domain when config not set', function () {
+        config(['app.service_domain' => 'batistack.com']);
+
+        $license = License::factory()->withDomain('test-domain')->create();
+
+        $serviceUrl = $license->getServiceUrl();
+
+        expect($serviceUrl)->toBe('https://test-domain.batistack.com');
+    });
+
+    test('hasDomain returns true when domain is set', function () {
+        $license = License::factory()->withDomain('test-domain')->create();
+
+        expect($license->hasDomain())->toBeTrue();
+    });
+
+    test('findByKey returns license with matching key', function () {
+        $licenseKey = 'TEST-KEY-1234';
+        $license = License::factory()->create(['license_key' => $licenseKey]);
+
+        $foundLicense = License::findByKey($licenseKey);
+
+        expect($foundLicense)->not->toBeNull()
+            ->and($foundLicense->id)->toBe($license->id);
+    });
+
+    test('findByKey returns null when no license found', function () {
+        $foundLicense = License::findByKey('NON-EXISTENT-KEY');
+
+        expect($foundLicense)->toBeNull();
+    });
+
+    test('updateLastUsed updates last_used_at timestamp', function () {
+        $originalTime = $this->license->last_used_at;
+
+        sleep(1); // Attendre une seconde pour s'assurer que le timestamp change
+        $this->license->updateLastUsed();
+
+        expect($this->license->fresh()->last_used_at)->not->toBe($originalTime);
     });
 });
