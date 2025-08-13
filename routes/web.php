@@ -6,10 +6,26 @@ use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Stripe\StripeClient;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::get('/test', function() {
+    $stripe = new StripeClient(config('services.stripe.secret'));
+    $products = $stripe->products->all(['limit' => 100]);
+    $pp = collect($products)->filter(function ($prod) {
+        return $prod->metadata->type === 'module';
+    })->groupBy('metadata.module_id')->reverse()->toArray();
+
+    foreach ($pp as $module) {
+        $prices = $stripe->prices->all(['product' => $module[0]['id']]);
+        dd($prices['data']);
+    }
+
+    dd($products, $pp);
+});
 
 // Route dashboard avec redirection conditionnelle
 Route::get('dashboard', function () {
