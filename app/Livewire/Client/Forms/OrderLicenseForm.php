@@ -359,14 +359,20 @@ class OrderLicenseForm extends Component implements HasSchemas
 
     public function updateSelectedOptions(string $type, ?array $optionIds): void
     {
-        // Supprimer les anciennes options de ce type
-        $this->selectedOptions = array_filter(
-            $this->selectedOptions,
-            fn($optionId) => !$this->selectedProduct->options
-                ->where('type', OptionType::from($type))
-                ->pluck('id')
-                ->contains($optionId)
-        );
+        // Try to convert the type string to OptionType enum
+        $optionType = OptionType::tryFrom($type);
+
+        // If the type is invalid, skip the removal block but continue with adding new options
+        if ($optionType !== null) {
+            // Supprimer les anciennes options de ce type
+            $this->selectedOptions = array_filter(
+                $this->selectedOptions,
+                fn($optionId) => !$this->selectedProduct->options
+                    ->where('type', $optionType)
+                    ->pluck('id')
+                    ->contains($optionId)
+            );
+        }
 
         // Ajouter les nouvelles options
         if ($optionIds) {

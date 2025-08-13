@@ -142,8 +142,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <x-mary-badge
                                             :value="$invoice->status->label()"
-                                            class="{{ $invoice->status === App\Enums\InvoiceStatus::PAID ? 'badge-success' :
-                                                     ($invoice->status === App\Enums\InvoiceStatus::OVERDUE ? 'badge-error' : 'badge-warning') }}"
+                                            :class="$invoice->getStatusBadgeClass()"
                                         />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'check.permission' => \App\Http\Middleware\CheckPermission::class,
             'two.factor' => \App\Http\Middleware\TwoFactorAuthentication::class,
+            'verify.stripe.webhook' => \App\Http\Middleware\VerifyStripeWebhook::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

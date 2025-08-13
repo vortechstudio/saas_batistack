@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\LicenseStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\License;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Notifications\PaymentFailedNotification; // Add this line
 use App\Services\LicenseCreationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification; // Add this line
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
 
@@ -23,6 +27,11 @@ class StripeWebhookController extends Controller
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
         $endpointSecret = config('services.stripe.webhook_secret');
+
+        if (!$endpointSecret) {
+            Log::error('Stripe webhook secret not configured');
+            return response('Webhook secret not configured', 500);
+        }
 
         try {
             $event = Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
@@ -108,7 +117,7 @@ class StripeWebhookController extends Controller
 
         try {
             // Récupérer la subscription Stripe
-            $stripeSubscription = $customer->stripe()->subscriptions->retrieve($session['subscription']);
+            $stripeSubscription = $customer->subscription($session['subscription']);
 
             // Créer la licence associée à la subscription
             $this->createLicenseFromSubscription($customer, $product, $stripeSubscription, $session['metadata']);
@@ -265,7 +274,49 @@ class StripeWebhookController extends Controller
             'customer_id' => $stripeInvoice->customer
         ]);
 
-        // Ici vous pourriez suspendre la licence ou envoyer des notifications
+        $invoice = Invoice::where('stripe_invoice_id', $stripeInvoice->id)->first();
+
+        if ($invoice) {
+            // Mettre à jour le statut de la facture dans notre système
+            $invoice->update([
+                'status' => InvoiceStatus::FAILED,
+                'paid_at' => null,
+                'metadata' => array_merge($invoice->metadata ?? [], [
+                    'stripe_payment_intent_id' => $stripeInvoice->payment_intent,
+                ])
+            ]);
+
+            // Tenter de trouver la licence associée à cette facture
+            // Cela peut nécessiter une logique plus complexe si une facture peut couvrir plusieurs licences
+            // ou si la relation n'est pas directe.
+            // Pour l'instant, nous allons chercher une licence liée au client de la facture.
+            $license = License::where('customer_id', $invoice->customer_id)
+                                ->where('status', LicenseStatus::ACTIVE)
+                                ->first(); // Ceci est une simplification, à adapter si nécessaire
+
+            if ($license) {
+                // Désactiver la licence en la suspendant tant que le client n'à pas payé la facture
+                $license->update(['status' => LicenseStatus::SUSPENDED]);
+                Log::info('License deactivated due to failed invoice payment', [
+                    'license_id' => $license->id,
+                    'invoice_id' => $invoice->id
+                ]);
+            }
+
+            // Envoyer une notification au client
+            if ($invoice->customer) {
+                Notification::send($invoice->customer->user, new PaymentFailedNotification($invoice));
+
+                Log::info('Notification sent to customer about failed payment', [
+                    'customer_id' => $invoice->customer_id,
+                    'invoice_id' => $invoice->id
+                ]);
+            }
+        } else {
+            Log::warning('Invoice not found in local database for failed Stripe invoice', [
+                'stripe_invoice_id' => $stripeInvoice->id
+            ]);
+        }
 
         return $this->successMethod();
     }

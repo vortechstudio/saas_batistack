@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Cashier\Billable;
+use Stripe\StripeClient;
 
 class Customer extends Model
 {
@@ -193,5 +194,15 @@ class Customer extends Model
     {
         // Les options peuvent avoir un prix unique ou selon le cycle
         return $option->stripe_price_id ?? $option->stripe_price_id_monthly;
+    }
+
+    /**
+     * Get a Stripe client instance
+     *
+     * @return \Stripe\StripeClient
+     */
+    public function stripe(): StripeClient
+    {
+        return new StripeClient(config('services.stripe.secret'));
     }
 }

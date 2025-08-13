@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
 
@@ -15,12 +16,18 @@ class VerifyStripeWebhook
         $sigHeader = $request->header('Stripe-Signature');
         $endpointSecret = config('services.stripe.webhook_secret');
 
-        try {
-            Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
-        } catch (SignatureVerificationException $e) {
-            return response('Invalid signature', 400);
+        if (empty($endpointSecret)) {
+            return response('Webhook secret not configured', 500);
         }
 
+        try {
+            $event = Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
+        } catch (SignatureVerificationException $e) {
+             Log::warning('Invalid Stripe webhook signature', ['error' => $e->getMessage()]);
+             return response('Invalid signature', 400);
+        }
+
+        $request->attributes->set('stripe_event', $event);
         return $next($request);
     }
 }
