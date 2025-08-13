@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\StripeWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Stripe Webhook Route (DOIT être accessible sans authentification)
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
+    ->name('stripe.webhook');
+
 // Routes pour les notifications (protégées par auth)
 Route::middleware(['auth:web'])->prefix('admin')->group(function () {
     Route::get('/notifications/count', [NotificationController::class, 'getNotificationCount'])
@@ -32,8 +37,4 @@ Route::middleware(['auth:web'])->prefix('admin')->group(function () {
 
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
         ->name('api.notifications.mark-all-read');
-
-// Stripe Webhook Route
-    Route::post('/stripe/webhook', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
-        ->name('stripe.webhook');
 });

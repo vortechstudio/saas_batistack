@@ -56,7 +56,7 @@ class BackupService
 
             if ($filePath) {
                 $fileSize = $this->getFileSize($filePath);
-                
+
                 $backup->update([
                     'status' => BackupStatus::COMPLETED,
                     'file_path' => $filePath,
@@ -147,6 +147,15 @@ class BackupService
      */
     protected function exportSchema(): array
     {
+        $driver = config('database.default');
+        $connection = config("database.connections.{$driver}");
+
+        if ($driver === 'sqlite' || (isset($connection['driver']) && $connection['driver'] === 'sqlite')) {
+            // Pour SQLite, utiliser une approche différente
+            return $this->exportSqliteSchema();
+        }
+
+        // Pour MySQL
         $tables = DB::select('SHOW TABLES');
         $schema = [];
 
@@ -160,15 +169,32 @@ class BackupService
     }
 
     /**
+     * Exporte le schéma SQLite
+     */
+    protected function exportSqliteSchema(): array
+    {
+        $tables = DB::select("SELECT name FROM sqlite_master WHERE type='table'");
+        $schema = [];
+
+        foreach ($tables as $table) {
+            $tableName = $table->name;
+            $createTable = DB::select("SELECT sql FROM sqlite_master WHERE type='table' AND name='{$tableName}'");
+            $schema[$tableName] = $createTable[0]->sql ?? '';
+        }
+
+        return $schema;
+    }
+
+    /**
      * Exporte toutes les données
      */
     protected function exportAllData(): array
     {
         $data = [];
-        
+
         // Tables principales à sauvegarder
         $tables = ['users', 'customers', 'products', 'modules', 'options', 'licenses', 'license_modules', 'license_options'];
-        
+
         foreach ($tables as $table) {
             try {
                 if (DB::getSchemaBuilder()->hasTable($table)) {
@@ -280,7 +306,7 @@ class BackupService
         ]);
 
         $success = $this->executeBackup($backup);
-        
+
         return $success ? $backup->fresh() : null;
     }
 
@@ -290,7 +316,7 @@ class BackupService
     public function cleanupOldBackups(int $keepDays = 30): int
     {
         $cutoffDate = now()->subDays($keepDays);
-        
+
         $oldBackups = Backup::where('created_at', '<', $cutoffDate)->get();
         $deletedCount = 0;
 
@@ -298,7 +324,7 @@ class BackupService
             if ($backup->file_path && $backup->fileExists()) {
                 unlink($backup->getFullPath());
             }
-            
+
             $backup->delete();
             $deletedCount++;
         }
@@ -350,7 +376,7 @@ class BackupService
     protected function restoreFullBackup(Backup $backup): bool
     {
         $filePath = $backup->getFullPath();
-        
+
         $databaseName = config('database.connections.mysql.database');
         $username = config('database.connections.mysql.username');
         $password = config('database.connections.mysql.password');

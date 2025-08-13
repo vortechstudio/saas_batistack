@@ -181,7 +181,7 @@
                 </div>
             @else
                 <div class="text-center py-8">
-                    <x-mary-icon name="oshield-exclamation" class="mx-auto h-12 w-12 text-gray-400" />
+                    <x-mary-icon name="o-shield-exclamation" class="mx-auto h-12 w-12 text-gray-400" />
                     <h3 class="mt-4 text-lg font-medium text-gray-600 dark:text-gray-400">Aucune licence</h3>
                     <p class="mt-2 text-gray-500">Vous n'avez pas encore de licence active.</p>
                     <div class="mt-4">
