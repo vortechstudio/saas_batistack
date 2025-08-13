@@ -7,6 +7,7 @@ use App\Models\Module;
 use App\Models\Option;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
+use Stripe\StripeClient;
 
 class ProductSeeder extends Seeder
 {
@@ -23,6 +24,7 @@ class ProductSeeder extends Seeder
         // Récupérer toutes les options
         $allOptions = Option::all();
 
+
         // Produit Starter
         $starter = Product::create([
             'name' => 'Batistack Starter',
@@ -35,7 +37,9 @@ class ProductSeeder extends Seeder
             'storage_limit' => 5,
             'is_active' => true,
             'is_featured' => false,
-            'stripe_price_id' => 'price_starter_monthly',
+            'stripe_price_id' => 'price_1RvheNCEoUhpOO020AQyGDNz',
+            'stripe_price_id_monthly' => 'price_1RvheNCEoUhpOO020AQyGDNz',
+            'stripe_price_id_yearly' => 'price_1RvheNCEoUhpOO027lChAu9r',
         ]);
 
         // Associer les modules core (inclus) au Starter
@@ -60,7 +64,9 @@ class ProductSeeder extends Seeder
             'storage_limit' => 25,
             'is_active' => true,
             'is_featured' => true,
-            'stripe_price_id' => 'price_professional_monthly',
+            'stripe_price_id' => 'price_1RvhhdCEoUhpOO02DCazEz58',
+            'stripe_price_id_monthly' => 'price_1RvhhdCEoUhpOO02DCazEz58',
+            'stripe_price_id_yearly' => 'price_1RvhiBCEoUhpOO02zqacWwiR',
         ]);
 
         // Associer les modules core (inclus) et advanced (inclus) au Professional
@@ -86,7 +92,9 @@ class ProductSeeder extends Seeder
             'storage_limit' => 100,
             'is_active' => true,
             'is_featured' => false,
-            'stripe_price_id' => 'price_enterprise_monthly',
+            'stripe_price_id' => 'price_1RvhjECEoUhpOO02mcKh6dZp',
+            'stripe_price_id_monthly' => 'price_1RvhjECEoUhpOO02mcKh6dZp',
+            'stripe_price_id_yearly' => 'price_1RvhjVCEoUhpOO02hbpUvmML',
         ]);
 
         // Associer tous les modules (inclus) à Enterprise
@@ -123,7 +131,9 @@ class ProductSeeder extends Seeder
                 'storage_limit' => $monthlyProduct->storage_limit,
                 'is_active' => true,
                 'is_featured' => $monthlyProduct->is_featured,
-                'stripe_price_id' => str_replace('monthly', 'yearly', $monthlyProduct->stripe_price_id),
+                'stripe_price_id' => $monthlyProduct->stripe_price_id,
+                'stripe_price_id_monthly' => $monthlyProduct->stripe_price_id_monthly,
+                'stripe_price_id_yearly' => $monthlyProduct->stripe_price_id_yearly,
             ]);
 
             // Copier les relations modules
