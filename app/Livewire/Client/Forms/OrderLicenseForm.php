@@ -507,6 +507,9 @@ class OrderLicenseForm extends Component implements HasSchemas
     {
         $billingCycle = BillingCycle::from($this->data['billing_cycle']);
 
+        // Créer d'abord une facture pour avoir un ID à passer dans les URLs
+        $invoice = $this->createInvoice($customer);
+
         // Préparer les line items pour la subscription
         $lineItems = [];
 
@@ -550,10 +553,11 @@ class OrderLicenseForm extends Component implements HasSchemas
             'payment_method_types' => ['card'],
             'line_items' => $lineItems,
             'mode' => 'subscription', // IMPORTANT: mode subscription
-            'success_url' => route('client.order.success') . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('client.order.cancel'),
+            'success_url' => route('client.order.success', ['invoice' => $invoice->id]) . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('client.order.cancel', ['invoice' => $invoice->id]),
             'customer' => $customer->stripe_id,
             'metadata' => [
+                'invoice_id' => $invoice->id,
                 'customer_id' => $customer->id,
                 'product_id' => $this->selectedProduct->id,
                 'domain' => $this->data['domain'],
@@ -563,6 +567,7 @@ class OrderLicenseForm extends Component implements HasSchemas
             ],
             'subscription_data' => [
                 'metadata' => [
+                    'invoice_id' => $invoice->id,
                     'domain' => $this->data['domain'],
                     'product_id' => $this->selectedProduct->id,
                 ],
