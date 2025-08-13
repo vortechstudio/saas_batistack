@@ -44,7 +44,8 @@ Route::middleware(['auth', 'verified', 'two.factor'])->prefix('client')->name('c
     Route::get('/licenses', App\Livewire\Client\Licenses::class)->name('licenses');
     Route::get('/licenses/{license}/certificate', [App\Http\Controllers\LicensePdfController::class, 'download'])
         ->name('license.certificate');
-    Route::get('/invoices', function() { return 'Factures à venir'; })->name('invoices');
+    // Remplacer la ligne 45 par :
+    Route::get('/invoices', App\Livewire\Client\Invoices::class)->name('invoices');
     Route::get('/support', function() { return 'Support à venir'; })->name('support');
 });
 

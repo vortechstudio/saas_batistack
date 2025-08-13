@@ -116,9 +116,9 @@
                                             @if($license->status === App\Enums\LicenseStatus::ACTIVE)
                                                 <x-mary-icon name="o-shield-check" class="h-8 w-8 text-green-600 dark:text-green-400" />
                                             @elseif($license->isExpired())
-                                                <x-mary-icon name="o-shield-exclamation" class="h-8 w-8 text-red-600 dark:text-red-400" />
+                                                <x-mary-icon name="o-x-mark" class="h-8 w-8 text-red-600 dark:text-red-400" />
                                             @else
-                                                <x-mary-icon name="o-shield" class="h-8 w-8 text-gray-600 dark:text-gray-400" />
+                                                <x-mary-icon name="o-shield-exclamation" class="h-8 w-8 text-gray-600 dark:text-gray-400" />
                                             @endif
                                         </div>
 
