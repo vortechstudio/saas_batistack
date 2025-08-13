@@ -550,7 +550,7 @@ class OrderLicenseForm extends Component implements HasSchemas
             'payment_method_types' => ['card'],
             'line_items' => $lineItems,
             'mode' => 'subscription', // IMPORTANT: mode subscription
-            'success_url' => route('client.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => route('client.order.success') . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('client.order.cancel'),
             'customer' => $customer->stripe_id,
             'metadata' => [
