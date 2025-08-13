@@ -433,7 +433,7 @@ class OrderLicenseForm extends Component implements HasSchemas
         }
 
         // Modules optionnels
-        if (!empty($this->selectedModules)) {
+        if (!empty($this->selectedModules) && is_array($this->selectedModules)) {
             $html .= '<div class="border-b pb-2">';
             $html .= '<h4 class="font-semibold">Modules optionnels</h4>';
             foreach ($this->selectedModules as $moduleId) {
@@ -450,7 +450,7 @@ class OrderLicenseForm extends Component implements HasSchemas
         }
 
         // Options
-        if (!empty($this->selectedOptions)) {
+        if (!empty($this->selectedOptions) && is_array($this->selectedOptions)) {
             $html .= '<div class="border-b pb-2">';
             $html .= '<h4 class="font-semibold">Options</h4>';
             foreach ($this->selectedOptions as $optionId) {
@@ -483,45 +483,99 @@ class OrderLicenseForm extends Component implements HasSchemas
             // Récupérer le client actuel
             $customer = Auth::user()->customer;
 
-            if (!$customer) {
-                throw new \Exception('Client non trouvé');
-            }
-
             // Créer ou récupérer le client Stripe
             if (!$customer->hasStripeId()) {
                 $customer->createAsStripeCustomer([
-                    'name' => $customer->name,
-                    'email' => $customer->email,
-                    'metadata' => [
-                        'customer_id' => $customer->id,
-                        'domain' => $this->data['domain'],
-                    ],
+                    'name' => $customer->stripeName(),
+                    'email' => $customer->stripeEmail(),
+                    'address' => $customer->stripeAddress(),
                 ]);
             }
 
-            // Créer la facture
-            $invoice = $this->createInvoice($customer);
-
-            // Créer la session Stripe Checkout
-            $checkoutSession = $this->createStripeCheckoutSession($customer, $invoice);
-
-            // Sauvegarder l'ID de session dans les métadonnées de la facture
-            $invoice->update([
-                'metadata' => array_merge($invoice->metadata ?? [], [
-                    'stripe_checkout_session_id' => $checkoutSession->id,
-                    'selected_modules' => $this->selectedModules,
-                    'selected_options' => $this->selectedOptions,
-                    'domain' => $this->data['domain'],
-                ])
-            ]);
+            // Créer la session de checkout pour subscription
+            $checkoutSession = $this->createStripeSubscriptionCheckout($customer);
 
             // Rediriger vers Stripe Checkout
             $this->redirect($checkoutSession->url);
         } catch (\Exception $e) {
-            // Gérer les erreurs
-            session()->flash('error', 'Erreur lors de la création du paiement : ' . $e->getMessage());
+            session()->flash('error', 'Erreur lors de la création de l\'abonnement : ' . $e->getMessage());
             return;
         }
+    }
+
+    protected function createStripeSubscriptionCheckout($customer)
+    {
+        $billingCycle = BillingCycle::from($this->data['billing_cycle']);
+
+        // Préparer les line items pour la subscription
+        $lineItems = [];
+
+        // Produit principal
+        $productPriceId = $this->getProductStripePriceId($this->selectedProduct, $billingCycle);
+        $lineItems[] = [
+            'price' => $productPriceId,
+            'quantity' => 1,
+        ];
+
+        // Modules optionnels
+        if (!empty($this->selectedModules) && is_array($this->selectedModules)) {
+            foreach ($this->selectedModules as $moduleId) {
+                $module = $this->selectedProduct->optionalModules()->find($moduleId);
+                if ($module) {
+                    $modulePriceId = $this->getModuleStripePriceId($module, $billingCycle);
+                    $lineItems[] = [
+                        'price' => $modulePriceId,
+                        'quantity' => 1,
+                    ];
+                }
+            }
+        }
+
+        // Options
+        if (!empty($this->selectedOptions) && is_array($this->selectedOptions)) {
+            foreach ($this->selectedOptions as $optionId) {
+                $option = Option::find($optionId);
+                if ($option) {
+                    $optionPriceId = $this->getOptionStripePriceId($option);
+                    $lineItems[] = [
+                        'price' => $optionPriceId,
+                        'quantity' => 1,
+                    ];
+                }
+            }
+        }
+
+        // Créer la session Stripe Checkout pour subscription
+        return $customer->stripe()->checkout->sessions->create([
+            'payment_method_types' => ['card'],
+            'line_items' => $lineItems,
+            'mode' => 'subscription', // IMPORTANT: mode subscription
+            'success_url' => route('client.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('client.order.cancel'),
+            'customer' => $customer->stripe_id,
+            'metadata' => [
+                'customer_id' => $customer->id,
+                'product_id' => $this->selectedProduct->id,
+                'domain' => $this->data['domain'],
+                'billing_cycle' => $billingCycle->value,
+                'selected_modules' => json_encode($this->selectedModules ?? []),
+                'selected_options' => json_encode($this->selectedOptions ?? []),
+            ],
+            'subscription_data' => [
+                'metadata' => [
+                    'domain' => $this->data['domain'],
+                    'product_id' => $this->selectedProduct->id,
+                ],
+            ],
+        ]);
+    }
+
+    private function getProductStripePriceId($product, $billingCycle)
+    {
+        // Retourner l'ID du prix Stripe selon le cycle de facturation
+        return $billingCycle === BillingCycle::YEARLY
+            ? $product->stripe_price_id_yearly
+            : $product->stripe_price_id_monthly;
     }
 
     protected function createInvoice($customer): Invoice
@@ -560,7 +614,7 @@ class OrderLicenseForm extends Component implements HasSchemas
             'description' => $this->selectedProduct->name . ' (' . $billingCycle->label() . ')',
             'quantity' => 1,
             'unit_price' => $productPrice,
-            'total' => $productPrice,
+            'total_price' => $productPrice, // Corriger 'total' en 'total_price'
             'metadata' => [
                 'type' => 'product',
                 'product_id' => $this->selectedProduct->id,
@@ -571,54 +625,58 @@ class OrderLicenseForm extends Component implements HasSchemas
         $subtotal = $productPrice;
 
         // Ajouter les modules optionnels
-        foreach ($this->selectedModules as $moduleId) {
-            $module = $this->selectedProduct->optionalModules()->find($moduleId);
-            if ($module) {
-                $modulePrice = $module->pivot->price_override ?? $module->base_price;
-                if ($billingCycle === BillingCycle::YEARLY) {
-                    $modulePrice = $modulePrice * 10;
+        if (!empty($this->selectedModules) && is_array($this->selectedModules)) {
+            foreach ($this->selectedModules as $moduleId) {
+                $module = $this->selectedProduct->optionalModules()->find($moduleId);
+                if ($module) {
+                    $modulePrice = $module->pivot->price_override ?? $module->base_price;
+                    if ($billingCycle === BillingCycle::YEARLY) {
+                        $modulePrice = $modulePrice * 10;
+                    }
+
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => 'Module: ' . $module->name . ' (' . $billingCycle->label() . ')',
+                        'quantity' => 1,
+                        'unit_price' => $modulePrice,
+                        'total_price' => $modulePrice,
+                        'metadata' => [
+                            'type' => 'module',
+                            'module_id' => $module->id,
+                            'billing_cycle' => $billingCycle->value,
+                        ],
+                    ]);
+
+                    $subtotal += $modulePrice;
                 }
-
-                InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'description' => 'Module: ' . $module->name . ' (' . $billingCycle->label() . ')',
-                    'quantity' => 1,
-                    'unit_price' => $modulePrice,
-                    'total' => $modulePrice,
-                    'metadata' => [
-                        'type' => 'module',
-                        'module_id' => $module->id,
-                        'billing_cycle' => $billingCycle->value,
-                    ],
-                ]);
-
-                $subtotal += $modulePrice;
             }
         }
 
         // Ajouter les options
-        foreach ($this->selectedOptions as $optionId) {
-            $option = Option::find($optionId);
-            if ($option) {
-                $optionPrice = $option->price;
-                if ($billingCycle === BillingCycle::YEARLY && $option->billing_cycle === BillingCycle::MONTHLY) {
-                    $optionPrice = $optionPrice * 10;
+        if (!empty($this->selectedOptions) && is_array($this->selectedOptions)) {
+            foreach ($this->selectedOptions as $optionId) {
+                $option = Option::find($optionId);
+                if ($option) {
+                    $optionPrice = $option->price;
+                    if ($billingCycle === BillingCycle::YEARLY && $option->billing_cycle === BillingCycle::MONTHLY) {
+                        $optionPrice = $optionPrice * 10;
+                    }
+
+                    InvoiceItem::create([
+                        'invoice_id' => $invoice->id,
+                        'description' => 'Option: ' . $option->name . ' (' . $option->billing_cycle->label() . ')',
+                        'quantity' => 1,
+                        'unit_price' => $optionPrice,
+                        'total_price' => $optionPrice,
+                        'metadata' => [
+                            'type' => 'option',
+                            'option_id' => $option->id,
+                            'billing_cycle' => $option->billing_cycle->value,
+                        ],
+                    ]);
+
+                    $subtotal += $optionPrice;
                 }
-
-                InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'description' => 'Option: ' . $option->name . ' (' . $option->billing_cycle->label() . ')',
-                    'quantity' => 1,
-                    'unit_price' => $optionPrice,
-                    'total' => $optionPrice,
-                    'metadata' => [
-                        'type' => 'option',
-                        'option_id' => $option->id,
-                        'billing_cycle' => $option->billing_cycle->value,
-                    ],
-                ]);
-
-                $subtotal += $optionPrice;
             }
         }
 
@@ -644,7 +702,7 @@ class OrderLicenseForm extends Component implements HasSchemas
         // Préparer les line items pour Stripe
         $lineItems = [];
 
-        foreach ($invoice->items as $item) {
+        foreach ($invoice->invoiceItems as $item) {
             $lineItems[] = [
                 'price_data' => [
                     'currency' => 'eur',
