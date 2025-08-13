@@ -47,6 +47,17 @@ Route::middleware(['auth', 'verified', 'two.factor'])->prefix('client')->name('c
     // Remplacer la ligne 45 par :
     Route::get('/invoices', App\Livewire\Client\Invoices::class)->name('invoices');
     Route::get('/support', function() { return 'Support à venir'; })->name('support');
+
+    // Nouvelles routes pour la commande
+    Route::get('/order', App\Livewire\Client\OrderLicense::class)->name('order');
+    Route::get('/order/success/{invoice}', function($invoiceId) {
+        $invoice = \App\Models\Invoice::findOrFail($invoiceId);
+        return view('client.order-success', compact('invoice'));
+    })->name('order.success');
+    Route::get('/order/cancel/{invoice}', function($invoiceId) {
+        $invoice = \App\Models\Invoice::findOrFail($invoiceId);
+        return view('client.order-cancel', compact('invoice'));
+    })->name('order.cancel');
 });
 
 require __DIR__.'/auth.php';

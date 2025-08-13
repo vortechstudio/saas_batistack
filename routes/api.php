@@ -23,13 +23,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware(['auth:web'])->prefix('admin')->group(function () {
     Route::get('/notifications/count', [NotificationController::class, 'getNotificationCount'])
         ->name('api.notifications.count');
-    
+
     Route::get('/notifications', [NotificationController::class, 'getNotifications'])
         ->name('api.notifications.index');
-    
+
     Route::post('/notifications/mark-read', [NotificationController::class, 'markAsRead'])
         ->name('api.notifications.mark-read');
-    
+
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
         ->name('api.notifications.mark-all-read');
+
+// Stripe Webhook Route
+    Route::post('/stripe/webhook', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
+        ->name('stripe.webhook');
 });
