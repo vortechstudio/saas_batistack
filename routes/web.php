@@ -12,21 +12,6 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::get('/test', function() {
-    $stripe = new StripeClient(config('services.stripe.secret'));
-    $products = $stripe->products->all(['limit' => 100]);
-    $pp = collect($products)->filter(function ($prod) {
-        return $prod->metadata->type === 'main_product';
-    })->groupBy('metadata.product_id')->reverse()->toArray();
-
-    foreach ($pp as $module) {
-        $prices = $stripe->prices->all(['product' => $module[0]['id']]);
-        //dd($prices['data']);
-    }
-
-    dd($products, $pp);
-});
-
 // Route dashboard avec redirection conditionnelle
 Route::get('dashboard', function () {
     $user = Auth::user();
