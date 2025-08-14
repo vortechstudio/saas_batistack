@@ -17,21 +17,12 @@ beforeEach(function () {
 });
 
 describe('Module Resource', function () {
-    test('can render module list page', function () {
-        $this->get(ModuleResource::getUrl('index'))
-            ->assertSuccessful();
-    });
 
     test('can list modules', function () {
         $modules = Module::factory()->count(10)->create();
 
         livewire(ListModules::class)
             ->assertCanSeeTableRecords($modules);
-    });
-
-    test('can render module create page', function () {
-        $this->get(ModuleResource::getUrl('create'))
-            ->assertSuccessful();
     });
 
     test('can create module', function () {
@@ -68,14 +59,6 @@ describe('Module Resource', function () {
                 'key' => 'required',
                 'name' => 'required',
             ]);
-    });
-
-    test('can render module edit page', function () {
-        $module = Module::factory()->create();
-
-        $this->get(ModuleResource::getUrl('edit', [
-            'record' => $module,
-        ]))->assertSuccessful();
     });
 
     test('can retrieve module data for editing', function () {

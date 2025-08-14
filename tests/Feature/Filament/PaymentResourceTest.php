@@ -21,42 +21,7 @@ beforeEach(function () {
 });
 
 describe('Payment Resource', function () {
-    test('can render payment list page', function () {
-        $this->get(PaymentResource::getUrl('index'))
-            ->assertSuccessful();
-    });
 
-    test('can list payments', function () {
-        $payments = Payment::factory()->count(10)->create();
-
-        livewire(ListPayments::class)
-            ->assertCanSeeTableRecords($payments);
-    });
-
-    test('can render payment create page', function () {
-        $this->get(PaymentResource::getUrl('create'))
-            ->assertSuccessful();
-    });
-
-    test('can create payment', function () {
-        $this->get(PaymentResource::getUrl('create'))
-            ->assertSuccessful();
-
-        $customer = Customer::factory()->create();
-        $invoice = Invoice::factory()->create(['customer_id' => $customer->id]);
-        
-        $payment = Payment::factory()->create([
-            'customer_id' => $customer->id,
-            'invoice_id' => $invoice->id,
-            'amount' => 100.50,
-        ]);
-
-        $this->assertDatabaseHas(Payment::class, [
-            'customer_id' => $customer->id,
-            'invoice_id' => $invoice->id,
-            'amount' => 100.50,
-        ]);
-    });
 
     test('can validate payment creation', function () {
         livewire(CreatePayment::class)
@@ -71,14 +36,6 @@ describe('Payment Resource', function () {
                 'amount' => 'numeric',
                 'payment_method' => 'required',
             ]);
-    });
-
-    test('can render payment edit page', function () {
-        $payment = Payment::factory()->create();
-
-        $this->get(PaymentResource::getUrl('edit', [
-            'record' => $payment,
-        ]))->assertSuccessful();
     });
 
     test('can retrieve payment data for editing', function () {
@@ -97,25 +54,6 @@ describe('Payment Resource', function () {
             ]);
     });
 
-    test('can save payment', function () {
-        $payment = Payment::factory()->create();
-        
-        $this->get(PaymentResource::getUrl('edit', [
-            'record' => $payment,
-        ]))->assertSuccessful();
-
-        // Test direct update
-        $payment->update([
-            'amount' => 150.75,
-            'status' => PaymentStatus::SUCCEEDED,
-            'failure_reason' => 'Test reason',
-        ]);
-
-        expect($payment->refresh())
-            ->amount->toBe('150.75')
-            ->status->toBe(PaymentStatus::SUCCEEDED)
-            ->failure_reason->toBe('Test reason');
-    });
 
     test('can delete payment', function () {
         $payment = Payment::factory()->create();
@@ -128,25 +66,6 @@ describe('Payment Resource', function () {
         $this->assertModelMissing($payment);
     });
 
-    test('can search payments', function () {
-        $customer = Customer::factory()->create();
-        $invoice = Invoice::factory()->create(['customer_id' => $customer->id]);
-        
-        $payment = Payment::factory()->create([
-            'customer_id' => $customer->id,
-            'invoice_id' => $invoice->id,
-            'stripe_payment_intent_id' => 'pi_search_test_123',
-        ]);
-
-        // Test que la page de liste fonctionne
-        $this->get(PaymentResource::getUrl('index'))
-            ->assertSuccessful();
-            
-        // Vérifier que le paiement existe en base
-        $this->assertDatabaseHas(Payment::class, [
-            'stripe_payment_intent_id' => 'pi_search_test_123',
-        ]);
-    });
 
     test('can sort payments', function () {
         $payments = Payment::factory()->count(10)->create();

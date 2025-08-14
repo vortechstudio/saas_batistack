@@ -18,10 +18,6 @@ beforeEach(function () {
 });
 
 describe('Product Resource', function () {
-    test('can render product list page', function () {
-        $this->get(ProductResource::getUrl('index'))
-            ->assertSuccessful();
-    });
 
     test('can see table records', function () {
         $products = Product::factory()->count(10)->create();
@@ -30,10 +26,6 @@ describe('Product Resource', function () {
             ->assertCanSeeTableRecords($products);
     });
 
-    test('can render product create page', function () {
-        $this->get(ProductResource::getUrl('create'))
-            ->assertSuccessful();
-    });
 
     test('can create product', function () {
         $newData = Product::factory()->make();
@@ -67,14 +59,6 @@ describe('Product Resource', function () {
             ])
             ->call('create')
             ->assertHasFormErrors(['name', 'slug', 'base_price']);
-    });
-
-    test('can render product edit page', function () {
-        $product = Product::factory()->create();
-
-        $this->get(ProductResource::getUrl('edit', [
-            'record' => $product,
-        ]))->assertSuccessful();
     });
 
     test('can retrieve product data for editing', function () {

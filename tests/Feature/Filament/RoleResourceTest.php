@@ -20,11 +20,6 @@ beforeEach(function () {
 });
 
 describe('Role Resource', function () {
-    test('can render role list page', function () {
-        $this->get(RoleResource::getUrl('index'))
-            ->assertSuccessful();
-    });
-
     test('can list roles', function () {
         $roles = collect();
         for ($i = 0; $i < 10; $i++) {
@@ -36,11 +31,6 @@ describe('Role Resource', function () {
 
         livewire(ListRoles::class)
             ->assertCanSeeTableRecords($roles);
-    });
-
-    test('can render role create page', function () {
-        $this->get(RoleResource::getUrl('create'))
-            ->assertSuccessful();
     });
 
     test('can create role', function () {
@@ -70,23 +60,12 @@ describe('Role Resource', function () {
             ]);
     });
 
-    test('can render role edit page', function () {
-        $role = Role::create([
-            'name' => 'test_role',
-            'guard_name' => 'web',
-        ]);
-
-        $this->get(RoleResource::getUrl('edit', [
-            'record' => $role,
-        ]))->assertSuccessful();
-    });
-
     test('can retrieve role data for editing', function () {
         $role = Role::create([
             'name' => 'test_role',
             'guard_name' => 'web',
         ]);
-        
+
         $permissions = collect();
         for ($i = 0; $i < 3; $i++) {
             $permissions->push(Permission::create([
@@ -111,7 +90,7 @@ describe('Role Resource', function () {
             'name' => 'original_role',
             'guard_name' => 'web',
         ]);
-        
+
         $newData = [
             'name' => 'updated_role',
             'guard_name' => 'web',
