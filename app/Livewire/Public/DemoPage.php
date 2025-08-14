@@ -14,6 +14,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('livewire.public.main-layout')]
+#[Title('Demander une démo - Batistack')]
 class DemoPage extends Component implements HasForms
 {
     use InteractsWithForms;
@@ -22,7 +24,9 @@ class DemoPage extends Component implements HasForms
 
     public function mount(): void
     {
-        $this->form->fill();
+        $this->form->fill([
+            'selectedPlan' => 'professional'
+        ]);
     }
 
     protected function getFormSchema(): array
@@ -82,13 +86,17 @@ class DemoPage extends Component implements HasForms
         ];
     }
 
+    // Méthode publique pour les tests
+    public function getFormSchemaForTesting(): array
+    {
+        return $this->getFormSchema();
+    }
+
     protected function getFormStatePath(): string
     {
         return 'data';
     }
 
-    #[Layout('livewire.public.main-layout')]
-    #[Title('Demander une démo - Batistack')]
     public function render()
     {
         return view('livewire.public.demo-page');
@@ -109,7 +117,9 @@ class DemoPage extends Component implements HasForms
             ->duration(5000)
             ->send();
 
-        // Réinitialiser le formulaire
-        $this->form->fill();
+        // Réinitialiser le formulaire avec les valeurs par défaut
+        $this->form->fill([
+            'selectedPlan' => 'professional'
+        ]);
     }
 }

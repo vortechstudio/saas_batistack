@@ -5,10 +5,11 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+#[Layout('livewire.public.main-layout')]
+#[Title('Tarifs et Plans - Batistack')]
 class PricingPage extends Component
 {
-    #[Layout('livewire.public.main-layout')]
-    #[Title('Tarifs et Plans - Batistack')]
+
 
     public $isAnnual = false; // Changé à false pour commencer en mode mensuel
 
