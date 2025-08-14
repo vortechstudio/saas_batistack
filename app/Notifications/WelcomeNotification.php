@@ -39,7 +39,12 @@ class WelcomeNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('Bienvenue chez BatiStack !')
-            ->markdown('emails.welcome', ['user' => $this->user]);
+            ->greeting('Bonjour ' . $this->user->name . ' !')
+            ->line('Bienvenue sur la plateforme BatiStack ! Nous sommes ravis de vous compter parmi nos utilisateurs.')
+            ->line('Vous pouvez maintenant accéder à votre tableau de bord et découvrir toutes les fonctionnalités disponibles.')
+            ->action('Accéder à mon tableau de bord', route('dashboard'))
+            ->line('Si vous avez des questions, n\'hésitez pas à nous contacter.')
+            ->salutation('L\'équipe BatiStack');
     }
 
     /**
