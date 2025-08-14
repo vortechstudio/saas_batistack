@@ -18,56 +18,68 @@ class RolePermissionSeeder extends Seeder
             'users.create',
             'users.edit',
             'users.delete',
-            
+
             // Gestion des rôles
             'roles.view',
             'roles.create',
             'roles.edit',
             'roles.delete',
-            
+
             // Gestion des permissions
             'permissions.view',
             'permissions.create',
             'permissions.edit',
             'permissions.delete',
-            
+
             // Gestion des clients
             'customers.view',
             'customers.create',
             'customers.edit',
             'customers.delete',
-            
+
             // Gestion des produits
             'products.view',
             'products.create',
             'products.edit',
             'products.delete',
-            
+
             // Gestion des modules
             'modules.view',
             'modules.create',
             'modules.edit',
             'modules.delete',
-            
+
             // Gestion des licences
             'licenses.view',
             'licenses.create',
             'licenses.edit',
             'licenses.delete',
-            
+
+            // Gestion des factures (AJOUTÉ)
+            'invoices.view',
+            'invoices.create',
+            'invoices.edit',
+            'invoices.delete',
+
+            // Gestion des sauvegardes (AJOUTÉ)
+            'backups.view',
+            'backups.create',
+            'backups.edit',
+            'backups.delete',
+
             // Gestion des notifications
             'notifications.view',
             'notifications.create',
             'notifications.edit',
             'notifications.delete',
-            
+
             // Journal d'audit
             'activity-log.view',
-            
+
             // Paramètres système
             'settings.view',
             'settings.edit',
-            
+
             // Tableau de bord
             'dashboard.view',
         ];
@@ -92,6 +104,8 @@ class RolePermissionSeeder extends Seeder
             'products.view', 'products.create', 'products.edit', 'products.delete',
             'modules.view', 'modules.create', 'modules.edit', 'modules.delete',
             'licenses.view', 'licenses.create', 'licenses.edit', 'licenses.delete',
+            'invoices.view', 'invoices.create', 'invoices.edit', 'invoices.delete', // AJOUTÉ
+            'backups.view', 'backups.create', 'backups.edit', 'backups.delete', // AJOUTÉ
             'notifications.view', 'notifications.create', 'notifications.edit', 'notifications.delete',
             'activity-log.view',
             'dashboard.view',
@@ -104,6 +118,8 @@ class RolePermissionSeeder extends Seeder
             'products.view',
             'modules.view',
             'licenses.view', 'licenses.create', 'licenses.edit',
+            'invoices.view', 'invoices.create', 'invoices.edit', // AJOUTÉ
+            'backups.view', // AJOUTÉ
             'notifications.view', 'notifications.create', 'notifications.edit',
             'dashboard.view',
         ];
@@ -115,6 +131,7 @@ class RolePermissionSeeder extends Seeder
             'products.view',
             'modules.view',
             'licenses.view',
+            'invoices.view', // AJOUTÉ
             'dashboard.view',
         ];
         $user->syncPermissions($userPermissions);
