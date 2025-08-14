@@ -31,6 +31,7 @@ Route::get('/pricing', PricingPage::class)->name('pricing');
 Route::get('/resources', ResourcesPage::class)->name('resources');
 Route::get('/support', SupportPage::class)->name('support');
 Route::get('/contact', HomePage::class)->name('contact');
+Route::get('/demo', App\Livewire\Public\DemoPage::class)->name('demo');
 
 // Route dashboard avec redirection conditionnelle
 Route::get('dashboard', function () {
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'verified', 'two.factor'])->prefix('client')->name('c
         $invoice = \App\Models\Invoice::findOrFail($invoiceId);
         return view('client.order-cancel', compact('invoice'));
     })->name('order.cancel');
+
 });
 
 require __DIR__.'/auth.php';

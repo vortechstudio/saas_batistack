@@ -5,17 +5,17 @@
             <h1 class="text-5xl font-bold mb-6">Tarifs Transparents</h1>
             <p class="text-xl mb-8 max-w-3xl mx-auto">Choisissez le plan qui correspond à vos besoins. Tous nos plans incluent un essai gratuit de 30 jours.</p>
             <div class="flex justify-center items-center space-x-4 mb-8">
-                <span class="text-lg">Mensuel</span>
+                <span class="text-lg" :class="{ 'font-bold': !$wire.isAnnual }">Mensuel</span>
                 <div class="relative">
-                    <input type="checkbox" id="billing-toggle" class="sr-only" checked>
-                    <label for="billing-toggle" class="flex items-center cursor-pointer">
+                    <input type="checkbox" id="billing-toggle" class="sr-only" wire:model.live="isAnnual">
+                    <label for="billing-toggle" class="flex items-center cursor-pointer" wire:click="toggleBilling">
                         <div class="relative">
                             <div class="block bg-white w-14 h-8 rounded-full"></div>
-                            <div class="dot absolute left-1 top-1 bg-blue-600 w-6 h-6 rounded-full transition transform translate-x-6"></div>
+                            <div class="dot absolute left-1 top-1 bg-blue-600 w-6 h-6 rounded-full transition transform" :class="{ 'translate-x-6': $wire.isAnnual, 'translate-x-0': !$wire.isAnnual }"></div>
                         </div>
                     </label>
                 </div>
-                <span class="text-lg">Annuel <span class="bg-green-500 text-white px-2 py-1 rounded-full text-sm ml-2">-17%</span></span>
+                <span class="text-lg" :class="{ 'font-bold': $wire.isAnnual }">Annuel <span class="bg-green-500 text-white px-2 py-1 rounded-full text-sm ml-2">-17%</span></span>
             </div>
         </div>
     </section>
@@ -31,9 +31,13 @@
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
                         <p class="text-gray-600 mb-6">Parfait pour les petites entreprises</p>
                         <div class="mb-6">
-                            <span class="text-4xl font-bold text-gray-900">49,99€</span>
+                            <span class="text-4xl font-bold text-gray-900">{{ number_format($this->getStarterPrice(), 2) }}€</span>
                             <span class="text-gray-600">/mois</span>
-                            <div class="text-sm text-gray-500 mt-1">ou 41,66€/mois facturé annuellement</div>
+                            @if($isAnnual)
+                                <div class="text-sm text-gray-500 mt-1">facturé annuellement</div>
+                            @else
+                                <div class="text-sm text-gray-500 mt-1">ou 41,66€/mois facturé annuellement</div>
+                            @endif
                         </div>
                         <button class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors mb-6">
                             Commencer l'essai gratuit
@@ -83,9 +87,13 @@
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
                         <p class="text-gray-600 mb-6">Idéal pour les entreprises en croissance</p>
                         <div class="mb-6">
-                            <span class="text-4xl font-bold text-orange-600">99,99€</span>
+                            <span class="text-4xl font-bold text-orange-600">{{ number_format($this->getProfessionalPrice(), 2) }}€</span>
                             <span class="text-gray-600">/mois</span>
-                            <div class="text-sm text-gray-500 mt-1">ou 83,33€/mois facturé annuellement</div>
+                            @if($isAnnual)
+                                <div class="text-sm text-gray-500 mt-1">facturé annuellement</div>
+                            @else
+                                <div class="text-sm text-gray-500 mt-1">ou 83,33€/mois facturé annuellement</div>
+                            @endif
                         </div>
                         <button class="w-full bg-orange-500 text-white py-3 px-6 rounded-lg hover:bg-orange-600 transition-colors mb-6">
                             Commencer l'essai gratuit
@@ -138,9 +146,13 @@
                         <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
                         <p class="text-gray-600 mb-6">Pour les grandes entreprises</p>
                         <div class="mb-6">
-                            <span class="text-4xl font-bold text-gray-900">199,99€</span>
+                            <span class="text-4xl font-bold text-gray-900">{{ number_format($this->getEnterprisePrice(), 2) }}€</span>
                             <span class="text-gray-600">/mois</span>
-                            <div class="text-sm text-gray-500 mt-1">ou 166,66€/mois facturé annuellement</div>
+                            @if($isAnnual)
+                                <div class="text-sm text-gray-500 mt-1">facturé annuellement</div>
+                            @else
+                                <div class="text-sm text-gray-500 mt-1">ou 166,66€/mois facturé annuellement</div>
+                            @endif
                         </div>
                         <button class="w-full bg-gray-900 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors mb-6">
                             Contactez-nous

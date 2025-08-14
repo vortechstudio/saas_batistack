@@ -6,7 +6,7 @@
             <p class="text-xl mb-8 max-w-3xl mx-auto">Batistack simplifie la gestion de vos chantiers, devis, factures et équipes. Une solution complète pensée pour les professionnels du BTP.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('solutions') }}" class="ebp-btn ebp-btn-primary text-lg px-8 py-4">Découvrir nos solutions</a>
-                <a href="#" class="ebp-btn ebp-btn-outline text-lg px-8 py-4">Démo gratuite</a>
+                <a href="{{ route('pricing') }}" class="w-full ebp-btn ebp-btn-outline">Commencer</a>
             </div>
         </div>
     </section>
@@ -33,7 +33,7 @@
                         <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Modules essentiels inclus</li>
                         <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Support standard</li>
                     </ul>
-                    <button class="w-full ebp-btn ebp-btn-outline">Commencer</button>
+                    <a href="{{ route('pricing') }}" class="w-full ebp-btn ebp-btn-outline">Commencer</a>
                 </div>
 
                 <!-- Professional (Featured) -->
@@ -55,7 +55,7 @@
                         <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Support prioritaire</li>
                         <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Toutes les options</li>
                     </ul>
-                    <button class="w-full ebp-btn ebp-btn-primary">Choisir Professional</button>
+                    <a href="{{ route('pricing') }}" class="w-full ebp-btn ebp-btn-outline">Commencer</a>
                 </div>
 
                 <!-- Enterprise -->
@@ -74,7 +74,7 @@
                         <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Support dédié 24/7</li>
                         <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Fonctionnalités avancées</li>
                     </ul>
-                    <button class="w-full ebp-btn ebp-btn-outline">Contactez-nous</button>
+                    <a href="{{ route('contact') }}" class="w-full ebp-btn ebp-btn-outline">Commencer</a>
                 </div>
             </div>
 
@@ -255,8 +255,8 @@
             <h2 class="text-4xl font-bold mb-4">Prêt à transformer votre gestion ?</h2>
             <p class="text-xl mb-8">Rejoignez les milliers d'entreprises qui font confiance à Batistack</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#" class="ebp-btn bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-4">Essai gratuit 30 jours</a>
-                <a href="#" class="ebp-btn ebp-btn-outline border-white text-white hover:bg-white hover:text-orange-600 text-lg px-8 py-4">Demander une démo</a>
+                <a href="{{ route('pricing') }}" class="ebp-btn bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-4">Essai gratuit 30 jours</a>
+                <a href="{{ route('demo') }}" class="ebp-btn ebp-btn-outline border-white text-white hover:bg-white hover:text-orange-600 text-lg px-8 py-4">Demander une démo</a>
             </div>
         </div>
     </section>
