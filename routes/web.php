@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\InvoicePdfController;
+use App\Livewire\Public\HomePage;
+use App\Livewire\Public\ResourcesPage;
+use App\Livewire\Public\SolutionsPage;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -8,9 +11,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Stripe\StripeClient;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', HomePage::class)->name('home');
+Route::get('/solutions', SolutionsPage::class)->name('solutions');
+Route::get('/resources', ResourcesPage::class)->name('resources');
+Route::get('/contact', HomePage::class)->name('contact');
 
 // Route dashboard avec redirection conditionnelle
 Route::get('dashboard', function () {
