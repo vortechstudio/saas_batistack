@@ -14,10 +14,25 @@
 
                 <ul class="ebp-nav-menu">
                     <li><a href="{{ route('home') }}" class="ebp-nav-link">Accueil</a></li>
-                    <li><a href="{{ route('solutions') }}" class="ebp-nav-link">Solutions BTP</a></li>
+                    <li class="ebp-dropdown">
+                        <a href="{{ route('solutions') }}" class="ebp-nav-link ebp-dropdown-toggle">
+                            Solutions BTP
+                            <svg class="w-4 h-4 ml-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </a>
+                        <ul class="ebp-dropdown-menu">
+                            <li><a href="{{ route('solutions.gestion-chantier') }}" class="ebp-dropdown-link">🏗️ Gestion de chantier</a></li>
+                            <li><a href="{{ route('solutions.devis-metres') }}" class="ebp-dropdown-link">📋 Devis & Métrés</a></li>
+                            <li><a href="{{ route('solutions.facturation-btp') }}" class="ebp-dropdown-link">💰 Facturation BTP</a></li>
+                            <li><a href="{{ route('solutions.planning-resources') }}" class="ebp-dropdown-link">📅 Planning & Resources</a></li>
+                            <li><a href="{{ route('solutions.comptabilite-btp') }}" class="ebp-dropdown-link">📊 Comptabilité BTP</a></li>
+                            <li><a href="{{ route('solutions.gestion-stock') }}" class="ebp-dropdown-link">📦 Gestion des Stock</a></li>
+                        </ul>
+                    </li>
                     <li><a href="{{ route('resources') }}" class="ebp-nav-link">Ressources</a></li>
-                    <li><a href="#" class="ebp-nav-link">Support Technique</a></li>
-                    <li><a href="#" class="ebp-nav-link">Tarifs</a></li>
+                    <li><a href="{{ route('support') }}" class="ebp-nav-link">Support Technique</a></li>
+                    <li><a href="{{ route('pricing') }}" class="ebp-nav-link">Tarifs</a></li>
                 </ul>
 
                 <div class="ebp-auth-buttons">
@@ -47,12 +62,12 @@
                     <div class="ebp-footer-section">
                         <h3>Modules BTP</h3>
                         <ul class="ebp-footer-links">
-                            <li><a href="{{ route('solutions') }}">Gestion de chantiers</a></li>
-                            <li><a href="{{ route('solutions') }}">Devis & Métrés</a></li>
-                            <li><a href="{{ route('solutions') }}">Facturation BTP</a></li>
-                            <li><a href="{{ route('solutions') }}">Planning & Ressources</a></li>
-                            <li><a href="{{ route('solutions') }}">Comptabilité BTP</a></li>
-                            <li><a href="{{ route('solutions') }}">Gestion des stocks</a></li>
+                            <li><a href="{{ route('solutions.gestion-chantier') }}">Gestion de chantiers</a></li>
+                            <li><a href="{{ route('solutions.devis-metres') }}">Devis & Métrés</a></li>
+                            <li><a href="{{ route('solutions.facturation-btp') }}">Facturation BTP</a></li>
+                            <li><a href="{{ route('solutions.planning-resources') }}">Planning & Ressources</a></li>
+                            <li><a href="{{ route('solutions.comptabilite-btp') }}">Comptabilité BTP</a></li>
+                            <li><a href="{{ route('solutions.gestion-stock') }}">Gestion des stocks</a></li>
                         </ul>
                     </div>
 
