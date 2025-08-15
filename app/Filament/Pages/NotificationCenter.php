@@ -199,14 +199,20 @@ class NotificationCenter extends Page implements HasTable, HasActions
 
     public static function getNavigationBadge(): ?string
     {
-        return Auth::user()?->unread_notifications_count > 0
-            ? (string) Auth::user()->unread_notifications_count
-            : null;
+        $count = Auth::user()?->notifications()->whereNull('read_at')->count() ?? 0;
+        return $count > 0 ? (string) $count : null;
     }
 
     public static function getNavigationBadgeColor(): ?string
     {
-        $count = Auth::user()?->high_priority_notifications_count ?? 0;
-        return $count > 0 ? 'danger' : 'primary';
+        $highPriorityCount = Auth::user()?->notifications()
+            ->whereNull('read_at')
+            ->whereIn('type', [
+                NotificationType::SECURITY_ALERT,
+                NotificationType::SYSTEM_ALERT,
+                NotificationType::LICENSE_EXPIRED,
+            ])
+            ->count() ?? 0;
+        return $highPriorityCount > 0 ? 'danger' : 'primary';
     }
 }

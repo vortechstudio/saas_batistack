@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Models\License;
 use App\Enums\LicenseStatus;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class LicenseCreationService
@@ -71,19 +72,28 @@ class LicenseCreationService
     public function createLicenseFromInvoice(Invoice $invoice): License
     {
         // Récupérer les données de la commande depuis les métadonnées de la facture
-        $orderData = json_decode((string) $invoice->metadata, true);
+        $orderData = $invoice->metadata ?? [];
+
+        // Vérifier que les métadonnées nécessaires sont présentes
+        if (empty($orderData['product_id']) || empty($orderData['domain'])) {
+            throw new \Exception('Missing required metadata in invoice: product_id and domain are required');
+        }
 
         // Calculer les dates
         $startsAt = now();
-        $expiresAt = $orderData['billing_cycle'] === 'yearly'
+        $expiresAt = ($orderData['billing_cycle'] ?? 'monthly') === 'yearly'
             ? $startsAt->copy()->addYear()
             : $startsAt->copy()->addMonth();
+
+        // Générer une clé de licence unique
+        $licenseKey = $this->generateUniqueLicenseKey();
 
         // Créer la licence
         $license = License::create([
             'customer_id' => $invoice->customer_id,
             'product_id' => $orderData['product_id'],
             'domain' => $orderData['domain'],
+            'license_key' => $licenseKey,
             'status' => LicenseStatus::ACTIVE,
             'starts_at' => $startsAt,
             'expires_at' => $expiresAt,
@@ -121,11 +131,15 @@ class LicenseCreationService
             ? $startsAt->copy()->addYear()
             : $startsAt->copy()->addMonth();
 
+        // Générer une clé de licence unique
+        $licenseKey = $this->generateUniqueLicenseKey();
+
         // Créer la licence
         $license = License::create([
             'customer_id' => $licenseData['customer_id'],
             'product_id' => $licenseData['product_id'],
             'domain' => $licenseData['domain'],
+            'license_key' => $licenseKey,
             'status' => LicenseStatus::ACTIVE,
             'starts_at' => $startsAt,
             'expires_at' => $expiresAt,

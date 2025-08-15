@@ -44,7 +44,7 @@ class StripeWebhookController extends Controller
 
         switch ($event->type) {
             case 'checkout.session.completed':
-                return $this->handleCheckoutSessionCompleted($event->data->toArray());
+                return $this->handleCheckoutSessionCompleted($event->data->object);
 
             case 'payment_intent.succeeded':
                 return $this->handlePaymentIntentSucceeded($event->data->object);
@@ -78,11 +78,9 @@ class StripeWebhookController extends Controller
         return $this->successMethod();
     }
 
-    public function handleCheckoutSessionCompleted(array $payload): Response
+    public function handleCheckoutSessionCompleted($session): Response
     {
-        $session = $payload['data']['object'];
-
-        if ($session['mode'] === 'subscription') {
+        if ($session->mode === 'subscription') {
             return $this->handleSubscriptionCheckoutCompleted($session);
         }
 
@@ -92,14 +90,14 @@ class StripeWebhookController extends Controller
 
     private function handleSubscriptionCheckoutCompleted($session): Response
     {
-        $customerId = $session['metadata']['customer_id'] ?? null;
-        $domain = $session['metadata']['domain'] ?? null;
-        $productId = $session['metadata']['product_id'] ?? null;
+        $customerId = $session->metadata->customer_id ?? null;
+        $domain = $session->metadata->domain ?? null;
+        $productId = $session->metadata->product_id ?? null;
 
         if (!$customerId || !$domain || !$productId) {
             Log::warning('Missing metadata in subscription checkout', [
-                'session_id' => $session['id'],
-                'metadata' => $session['metadata'] ?? []
+                'session_id' => $session->id,
+                'metadata' => $session->metadata ?? []
             ]);
             return $this->successMethod();
         }
@@ -117,13 +115,13 @@ class StripeWebhookController extends Controller
 
         try {
             // Pour les tests, créer un objet subscription mock
-            $stripeSubscription = (object) ['id' => $session['subscription']];
+            $stripeSubscription = (object) ['id' => $session->subscription];
 
             // En production, vous utiliseriez :
             // $stripeSubscription = $customer->subscription($session['subscription']);
 
             // Créer la licence associée à la subscription
-            $this->createLicenseFromSubscription($customer, $product, $stripeSubscription, $session['metadata']);
+            $this->createLicenseFromSubscription($customer, $product, $stripeSubscription, $session->metadata);
 
             Log::info('Subscription checkout completed successfully', [
                 'customer_id' => $customer->id,
@@ -132,7 +130,7 @@ class StripeWebhookController extends Controller
         } catch (\Exception $e) {
             Log::error('Error handling subscription checkout', [
                 'error' => $e->getMessage(),
-                'session_id' => $session['id'],
+                'session_id' => $session->id,  // Changé de $session['id'] à $session->id
                 'customer_id' => $customerId
             ]);
         }
@@ -142,11 +140,11 @@ class StripeWebhookController extends Controller
 
     private function handlePaymentCheckoutCompleted($session): Response
     {
-        $invoiceId = $session['metadata']['invoice_id'] ?? null;
+        $invoiceId = $session->metadata->invoice_id ?? null;
 
         if (!$invoiceId) {
             Log::warning('No invoice_id in payment checkout metadata', [
-                'session_id' => $session['id']
+                'session_id' => $session->id
             ]);
             return $this->successMethod();
         }
@@ -162,9 +160,14 @@ class StripeWebhookController extends Controller
             'status' => InvoiceStatus::PAID,
             'paid_at' => now(),
             'metadata' => array_merge($invoice->metadata ?? [], [
-                'stripe_checkout_session_id' => $session['id'],
-                'stripe_payment_intent_id' => $session['payment_intent'],
+                'stripe_checkout_session_id' => $session->id,
+                'stripe_payment_intent_id' => $session->payment_intent,
             ])
+        ]);
+
+        Log::info('Invoice status updated to paid', [
+            'invoice_id' => $invoice->id,
+            'session_id' => $session->id
         ]);
 
         // Créer l'enregistrement de paiement
@@ -175,11 +178,11 @@ class StripeWebhookController extends Controller
             'currency' => $invoice->currency,
             'method' => PaymentMethod::CARD,
             'status' => PaymentStatus::SUCCEEDED,
-            'transaction_id' => $session['payment_intent'],
-            'stripe_payment_intent_id' => $session['payment_intent'],
+            'transaction_id' => $session->payment_intent,
+            'stripe_payment_intent_id' => $session->payment_intent,
             'metadata' => [
-                'stripe_checkout_session_id' => $session['id'],
-                'stripe_customer_id' => $session['customer'],
+                'stripe_checkout_session_id' => $session->id,
+                'stripe_customer_id' => $session->customer,
             ],
         ]);
 
@@ -192,17 +195,18 @@ class StripeWebhookController extends Controller
     private function createLicenseFromSubscription($customer, $product, $stripeSubscription, $metadata): void
     {
         try {
-            $licenseCreationService = new LicenseCreationService();
+            $licenseCreationService = app(LicenseCreationService::class);
 
             // Préparer les données pour la création de licence
             $licenseData = [
                 'customer_id' => $customer->id,
                 'product_id' => $product->id,
-                'domain' => $metadata['domain'],
-                'billing_cycle' => $metadata['billing_cycle'],
+                'domain' => $metadata->domain,
+                'billing_cycle' => $metadata->billing_cycle,
                 'stripe_subscription_id' => $stripeSubscription->id,
-                'selected_modules' => json_decode($metadata['selected_modules'] ?? '[]', true),
-                'selected_options' => json_decode($metadata['selected_options'] ?? '[]', true),
+                'max_users' => $metadata->max_users ?? null,
+                'selected_modules' => json_decode($metadata->selected_modules ?? '[]', true),
+                'selected_options' => json_decode($metadata->selected_options ?? '[]', true),
             ];
 
             $license = $licenseCreationService->createLicenseFromSubscription($licenseData);

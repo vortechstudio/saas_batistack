@@ -29,21 +29,46 @@ class Backup extends Model
         'type' => BackupType::class,
         'status' => BackupStatus::class,
         'metadata' => 'array',
+        'file_size' => 'integer',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
-        'file_size' => 'integer',
     ];
 
     /**
-     * Scope pour les sauvegardes réussies
+     * Get the human-readable file size.
      */
-    public function scopeSuccessful($query)
+    protected function humanFileSize(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (!$this->file_size) {
+                    return null;
+                }
+
+                $bytes = $this->file_size;
+                $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+                for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+                    $bytes /= 1024;
+                }
+
+                return round($bytes, 2) . ' ' . $units[$i];
+            }
+        );
+    }
+
+
+
+    /**
+     * Scope a query to only include completed backups.
+     */
+    public function scopeCompleted($query)
     {
         return $query->where('status', BackupStatus::COMPLETED);
     }
 
     /**
-     * Scope pour les sauvegardes échouées
+     * Scope a query to only include failed backups.
      */
     public function scopeFailed($query)
     {
@@ -51,7 +76,7 @@ class Backup extends Model
     }
 
     /**
-     * Scope pour les sauvegardes en cours
+     * Scope a query to only include running backups.
      */
     public function scopeRunning($query)
     {
@@ -59,7 +84,7 @@ class Backup extends Model
     }
 
     /**
-     * Vérifie si la sauvegarde est terminée
+     * Check if the backup is completed.
      */
     public function isCompleted(): bool
     {
@@ -67,7 +92,7 @@ class Backup extends Model
     }
 
     /**
-     * Vérifie si la sauvegarde a échoué
+     * Check if the backup has failed.
      */
     public function isFailed(): bool
     {
@@ -75,7 +100,7 @@ class Backup extends Model
     }
 
     /**
-     * Vérifie si la sauvegarde est en cours
+     * Check if the backup is currently running.
      */
     public function isRunning(): bool
     {
@@ -83,7 +108,7 @@ class Backup extends Model
     }
 
     /**
-     * Calcule la durée de la sauvegarde
+     * Get the duration of the backup in seconds.
      */
     public function duration(): ?int
     {
@@ -95,7 +120,7 @@ class Backup extends Model
     }
 
     /**
-     * Formate la taille du fichier
+     * Get the formatted file size.
      */
     protected function formattedFileSize(): Attribute
     {
@@ -105,22 +130,20 @@ class Backup extends Model
                     return null;
                 }
 
-                $units = ['B', 'KB', 'MB', 'GB', 'TB'];
                 $bytes = $this->file_size;
-                $i = 0;
+                $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
-                while ($bytes >= 1024 && $i < count($units) - 1) {
+                for ($i = 0; $bytes >= 1024 && $i < count($units) - 1; $i++) {
                     $bytes /= 1024;
-                    $i++;
                 }
 
-                return round($bytes, 2) . ' ' . $units[$i];
+                return round($bytes, 0) . ' ' . $units[$i];
             }
         );
     }
 
     /**
-     * Obtient le chemin complet du fichier de sauvegarde
+     * Get the full path to the backup file.
      */
     public function getFullPath(): ?string
     {
@@ -132,11 +155,24 @@ class Backup extends Model
     }
 
     /**
-     * Vérifie si le fichier de sauvegarde existe
+     * Check if the backup file exists.
      */
     public function fileExists(): bool
     {
-        $path = $this->getFullPath();
-        return $path && file_exists($path);
+        $fullPath = $this->getFullPath();
+        
+        if (!$fullPath) {
+            return false;
+        }
+
+        return file_exists($fullPath);
+    }
+
+    /**
+     * Scope a query to only include successful backups.
+     */
+    public function scopeSuccessful($query)
+    {
+        return $query->where('status', BackupStatus::COMPLETED);
     }
 }
