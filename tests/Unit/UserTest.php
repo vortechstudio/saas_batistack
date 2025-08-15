@@ -2,21 +2,11 @@
 
 use App\Models\User;
 use App\Models\Customer;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-beforeEach(function () {
-    $this->user = User::factory()->create([
-        'name' => 'John Doe',
-        'email' => 'john@example.com',
-    ]);
-});
+uses(RefreshDatabase::class);
 
 describe('User Model', function () {
-    test('can create a user', function () {
-        expect($this->user)->toBeInstanceOf(User::class)
-            ->and($this->user->name)->toBe('John Doe')
-            ->and($this->user->email)->toBe('john@example.com');
-    });
-
     test('has fillable attributes', function () {
         $fillable = [
             'name',
@@ -28,7 +18,9 @@ describe('User Model', function () {
             'failed_login_attempts',
             'locked_until',
         ];
-        expect($this->user->getFillable())->toBe($fillable);
+
+        $user = new User();
+        expect($user->getFillable())->toBe($fillable);
     });
 
     test('has hidden attributes', function () {
@@ -38,117 +30,124 @@ describe('User Model', function () {
             'two_factor_secret',
             'two_factor_recovery_codes',
         ];
-        expect($this->user->getHidden())->toBe($hidden);
+
+        $user = new User();
+        expect($user->getHidden())->toBe($hidden);
     });
 
-    test('casts email_verified_at to datetime', function () {
-        expect($this->user->getCasts())->toHaveKey('email_verified_at', 'datetime');
+    test('casts attributes correctly', function () {
+        $user = new User();
+        $casts = $user->getCasts();
+
+        expect($casts['email_verified_at'])->toBe('datetime');
+        expect($casts['password'])->toBe('hashed');
+        expect($casts['two_factor_enabled'])->toBe('boolean');
+        expect($casts['last_login_at'])->toBe('datetime');
+        expect($casts['locked_until'])->toBe('datetime');
     });
 
-    test('casts password to hashed', function () {
-        expect($this->user->getCasts())->toHaveKey('password', 'hashed');
+    test('has customer relationship', function () {
+        $user = User::factory()->create();
+        $customer = Customer::factory()->create(['user_id' => $user->id]);
+
+        expect($user->customer)->toBeInstanceOf(Customer::class);
+        expect($user->customer->id)->toBe($customer->id);
     });
 
-    test('can have a customer relationship', function () {
-        $customer = Customer::factory()->create(['user_id' => $this->user->id]);
+    test('hasCustomer method works correctly', function () {
+        $userWithCustomer = User::factory()->create();
+        Customer::factory()->create(['user_id' => $userWithCustomer->id]);
 
-        expect($this->user->customer)->toBeInstanceOf(Customer::class)
-            ->and($this->user->customer->id)->toBe($customer->id);
+        $userWithoutCustomer = User::factory()->create();
+
+        expect($userWithCustomer->hasCustomer())->toBeTrue();
+        expect($userWithoutCustomer->hasCustomer())->toBeFalse();
     });
 
-    test('hasCustomer returns true when user has a customer', function () {
-        Customer::factory()->create(['user_id' => $this->user->id]);
+    test('generates initials correctly', function () {
+        $user1 = User::factory()->make(['name' => 'John Doe']);
+        $user2 = User::factory()->make(['name' => 'Jane']);
+        $user3 = User::factory()->make(['name' => 'Jean Pierre Martin']);
 
-        expect($this->user->hasCustomer())->toBeTrue();
+        expect($user1->initials())->toBe('JD');
+        expect($user2->initials())->toBe('J');
+        expect($user3->initials())->toBe('JP'); // Only first two words
     });
 
-    test('hasCustomer returns false when user has no customer', function () {
-        expect($this->user->hasCustomer())->toBeFalse();
+    test('isAdmin method works correctly', function () {
+        $admin = User::factory()->make(['email' => 'admin@batistack.com']);
+        $user = User::factory()->make(['email' => 'user@example.com']);
+
+        expect($admin->isAdmin())->toBeTrue();
+        expect($user->isAdmin())->toBeFalse();
     });
 
-    test('generates correct initials for single name', function () {
-        $user = User::factory()->create(['name' => 'John']);
-
-        expect($user->initials())->toBe('J');
-    });
-
-    test('generates correct initials for full name', function () {
-        $user = User::factory()->create(['name' => 'John Doe']);
-
-        expect($user->initials())->toBe('JD');
-    });
-
-    test('generates correct initials for multiple names', function () {
-        $user = User::factory()->create(['name' => 'John Michael Doe']);
-
-        expect($user->initials())->toBe('JM');
-    });
-
-    test('can check if user is admin', function () {
-        $adminUser = User::factory()->create(['email' => 'admin@batistack.com']);
-        $regularUser = User::factory()->create(['email' => 'user@example.com']);
-
-        expect($adminUser->isAdmin())->toBeTrue()
-            ->and($regularUser->isAdmin())->toBeFalse();
-    });
-
-    test('can check if two factor is enabled', function () {
-        $userWith2FA = User::factory()->create([
+    test('hasTwoFactorEnabled method works correctly', function () {
+        $userWith2FA = User::factory()->make([
             'two_factor_enabled' => true,
-            'two_factor_secret' => 'secret123'
+            'two_factor_secret' => 'secret'
         ]);
-        $userWithout2FA = User::factory()->create([
+
+        $userWithout2FA = User::factory()->make([
             'two_factor_enabled' => false,
             'two_factor_secret' => null
         ]);
 
-        expect($userWith2FA->hasTwoFactorEnabled())->toBeTrue()
-            ->and($userWithout2FA->hasTwoFactorEnabled())->toBeFalse();
+        expect($userWith2FA->hasTwoFactorEnabled())->toBeTrue();
+        expect($userWithout2FA->hasTwoFactorEnabled())->toBeFalse();
     });
 
-    test('can check if user is locked', function () {
+    test('isLocked method works correctly', function () {
         $lockedUser = User::factory()->create([
-            'locked_until' => now()->addMinutes(30)
+            'locked_until' => now()->addMinutes(10)
         ]);
+
         $unlockedUser = User::factory()->create([
-            'locked_until' => null
+            'locked_until' => now()->subMinutes(10)
         ]);
 
-        expect($lockedUser->isLocked())->toBeTrue()
-            ->and($unlockedUser->isLocked())->toBeFalse();
+        expect($lockedUser->isLocked())->toBeTrue();
+        expect($unlockedUser->isLocked())->toBeFalse();
     });
 
-    test('can lock and unlock user', function () {
-        $user = User::factory()->create();
+    test('lockUser method works correctly', function () {
+        $user = User::factory()->create(['failed_login_attempts' => 3]);
 
-        // Test lock
         $user->lockUser(15);
-        expect($user->fresh()->isLocked())->toBeTrue()
-            ->and($user->fresh()->failed_login_attempts)->toBe(0);
 
-        // Test unlock
-        $user->unlockUser();
-        expect($user->fresh()->isLocked())->toBeFalse()
-            ->and($user->fresh()->locked_until)->toBeNull();
-    });
-
-    test('can increment failed login attempts', function () {
-        $user = User::factory()->create(['failed_login_attempts' => 0]);
-
-        $user->incrementFailedAttempts();
-        expect($user->fresh()->failed_login_attempts)->toBe(1);
-
-        // Test auto-lock after 5 attempts
-        $user->update(['failed_login_attempts' => 4]);
-        $user->incrementFailedAttempts();
         expect($user->fresh()->isLocked())->toBeTrue();
+        expect($user->fresh()->failed_login_attempts)->toBe(0);
+        expect($user->fresh()->locked_until)->not->toBeNull();
     });
 
-    test('casts two_factor_enabled to boolean', function () {
-        expect($this->user->getCasts())->toHaveKey('two_factor_enabled', 'boolean');
+    test('unlockUser method works correctly', function () {
+        $user = User::factory()->create([
+            'locked_until' => now()->addMinutes(10),
+            'failed_login_attempts' => 5
+        ]);
+
+        $user->unlockUser();
+
+        expect($user->fresh()->isLocked())->toBeFalse();
+        expect($user->fresh()->failed_login_attempts)->toBe(0);
+        expect($user->fresh()->locked_until)->toBeNull();
     });
 
-    test('casts last_login_at to datetime', function () {
-        expect($this->user->getCasts())->toHaveKey('last_login_at', 'datetime');
+    test('incrementFailedAttempts locks user after 5 attempts', function () {
+        $user = User::factory()->create(['failed_login_attempts' => 4]);
+
+        $user->incrementFailedAttempts();
+
+        expect($user->fresh()->isLocked())->toBeTrue();
+        expect($user->fresh()->failed_login_attempts)->toBe(0);
+    });
+
+    test('incrementFailedAttempts increments counter when under limit', function () {
+        $user = User::factory()->create(['failed_login_attempts' => 2]);
+
+        $user->incrementFailedAttempts();
+
+        expect($user->fresh()->failed_login_attempts)->toBe(3);
+        expect($user->fresh()->isLocked())->toBeFalse();
     });
 });

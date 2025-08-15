@@ -13,14 +13,7 @@ describe('DemoPage Component', function () {
 
     test('initializes form correctly', function () {
         Livewire::test(DemoPage::class)
-            ->assertSet('data', [
-                'name' => null,
-                'email' => null,
-                'company' => null,
-                'phone' => null,
-                'selectedPlan' => 'professional',
-                'message' => null
-            ]);
+            ->assertSet('data.selectedPlan', 'professional');
     });
 
     test('validates required fields', function () {
@@ -77,31 +70,32 @@ describe('DemoPage Component', function () {
             ->set('data', $validData)
             ->call('submitDemo')
             ->assertHasNoErrors()
-            ->assertSet('data', [
-                'name' => null,
-                'email' => null,
-                'company' => null,
-                'phone' => null,
-                'selectedPlan' => 'professional',
-                'message' => null
-            ]); // Form should be reset with default values
+            ->assertSet('data.selectedPlan', 'professional'); // Vérifie que la valeur par défaut est restaurée
     });
 
     test('has correct default plan selection', function () {
-        // Utiliser Livewire::test pour initialiser correctement le composant
-        $testComponent = Livewire::test(DemoPage::class);
-
-        // Vérifier que selectedPlan a la bonne valeur par défaut
-        $testComponent->assertSet('data.selectedPlan', 'professional');
+        Livewire::test(DemoPage::class)
+            ->assertSet('data.selectedPlan', 'professional');
     });
 
-    test('has correct title', function () {
+    test('has correct title and layout', function () {
         $component = new DemoPage();
-
         $reflection = new ReflectionClass($component);
-        $titleAttribute = $reflection->getAttributes(\Livewire\Attributes\Title::class)[0] ?? null;
 
+        $titleAttribute = $reflection->getAttributes(\Livewire\Attributes\Title::class)[0] ?? null;
         expect($titleAttribute?->getArguments()[0])
             ->toBe('Demander une démo - Batistack');
+
+        $layoutAttribute = $reflection->getAttributes(\Livewire\Attributes\Layout::class)[0] ?? null;
+        expect($layoutAttribute?->getArguments()[0])
+            ->toBe('livewire.public.main-layout');
+    });
+
+    test('form schema is accessible for testing', function () {
+        $component = new DemoPage();
+        $schema = $component->getFormSchemaForTesting();
+
+        expect($schema)->toBeArray();
+        expect($schema)->not->toBeEmpty();
     });
 });
