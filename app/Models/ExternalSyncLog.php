@@ -82,7 +82,7 @@ class ExternalSyncLog extends Model
     public function scopeForEntity($query, string $entityType, ?int $entityId = null)
     {
         $query = $query->where('entity_type', $entityType);
-        
+
         if ($entityId) {
             $query->where('entity_id', $entityId);
         }
@@ -164,7 +164,7 @@ class ExternalSyncLog extends Model
             return null;
         }
 
-        return $this->completed_at->diffInSeconds($this->started_at);
+        return $this->started_at->diffInSeconds($this->completed_at);
     }
 
     /**

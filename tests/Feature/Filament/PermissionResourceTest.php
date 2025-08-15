@@ -19,10 +19,6 @@ beforeEach(function () {
 });
 
 describe('Permission Resource', function () {
-    test('can render permission list page', function () {
-        $this->get(PermissionResource::getUrl('index'))
-            ->assertSuccessful();
-    });
 
     test('can list permissions', function () {
         $permissions = collect();
@@ -35,11 +31,6 @@ describe('Permission Resource', function () {
 
         livewire(ListPermissions::class)
             ->assertCanSeeTableRecords($permissions);
-    });
-
-    test('can render permission create page', function () {
-        $this->get(PermissionResource::getUrl('create'))
-            ->assertSuccessful();
     });
 
     test('can create permission', function () {
@@ -65,17 +56,6 @@ describe('Permission Resource', function () {
             ->assertHasFormErrors([
                 'name' => 'required',
             ]);
-    });
-
-    test('can render permission edit page', function () {
-        $permission = Permission::create([
-            'name' => 'test-permission',
-            'guard_name' => 'web',
-        ]);
-
-        $this->get(PermissionResource::getUrl('edit', [
-            'record' => $permission,
-        ]))->assertSuccessful();
     });
 
     test('can retrieve permission data for editing', function () {

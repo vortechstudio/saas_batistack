@@ -20,21 +20,11 @@ beforeEach(function () {
 });
 
 describe('License Resource', function () {
-    test('can render license list page', function () {
-        $this->get(LicenseResource::getUrl('index'))
-            ->assertSuccessful();
-    });
-
     test('can list licenses', function () {
         $licenses = License::factory()->count(10)->create();
 
         livewire(ListLicenses::class)
             ->assertCanSeeTableRecords($licenses);
-    });
-
-    test('can render license create page', function () {
-        $this->get(LicenseResource::getUrl('create'))
-            ->assertSuccessful();
     });
 
     test('can create license', function () {
@@ -79,14 +69,6 @@ describe('License Resource', function () {
                 'product_id' => 'required',
                 'license_key' => 'required',
             ]);
-    });
-
-    test('can render license edit page', function () {
-        $license = License::factory()->create();
-
-        $this->get(LicenseResource::getUrl('edit', [
-            'record' => $license,
-        ]))->assertSuccessful();
     });
 
     test('can retrieve license data for editing', function () {

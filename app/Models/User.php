@@ -3,23 +3,17 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, LogsActivity;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -59,36 +53,48 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'two_factor_confirmed_at' => 'datetime',
             'two_factor_enabled' => 'boolean',
             'last_login_at' => 'datetime',
             'locked_until' => 'datetime',
-            'two_factor_recovery_codes' => 'encrypted:array',
         ];
     }
 
     /**
-     * Relation avec le client associé
+     * Relation avec le profil client
      */
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class);
     }
 
-    /**
-     * Relation avec les notifications
-     */
-    public function notifications(): MorphMany
+    public function country(): BelongsTo
     {
-        return $this->morphMany(Notification::class, 'notifiable');
+        return $this->belongsTo(Country::class);
+    }
+
+    public function languages(): BelongsToMany
+    {
+        return $this->belongsToMany(Language::class);
     }
 
     /**
-     * Vérifie si l'utilisateur a un client associé
+     * Vérifie si l'utilisateur a un profil client
      */
     public function hasCustomer(): bool
     {
         return $this->customer()->exists();
+    }
+
+    /**
+     * Génère les initiales de l'utilisateur
+     */
+    public function initials(): string
+    {
+        $words = explode(' ', $this->name);
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+        return strtoupper(substr($this->name, 0, 1));
     }
 
     /**
@@ -100,58 +106,11 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Get unread notifications count
-     */
-    public function getUnreadNotificationsCountAttribute(): int
-    {
-        return $this->notifications()->whereNull('read_at')->count();
-    }
-
-    /**
-     * Get high priority unread notifications count
-     */
-    public function getHighPriorityNotificationsCountAttribute(): int
-    {
-        return $this->notifications()
-            ->whereNull('read_at')
-            ->where('priority', '<=', 3)
-            ->count();
-    }
-
-    /**
-     * Get the user's initials
-     */
-    public function initials(): string
-    {
-        return Str::of($this->name)
-            ->explode(' ')
-            ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
-            ->implode('');
-    }
-
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return str_ends_with($this->email, '@batistack.com') && $this->hasVerifiedEmail();
-    }
-
-    /**
-     * Configuration pour l'audit log
-     */
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logOnly(['name', 'email', 'two_factor_enabled'])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
-
-    /**
-     * Vérifie si l'utilisateur a la 2FA activée
+     * Vérifie si l'authentification à deux facteurs est activée
      */
     public function hasTwoFactorEnabled(): bool
     {
-        return $this->two_factor_enabled && !is_null($this->two_factor_secret);
+        return $this->two_factor_enabled && !empty($this->two_factor_secret);
     }
 
     /**
@@ -163,13 +122,13 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Verrouille l'utilisateur pour une durée donnée
+     * Verrouille l'utilisateur pour une durée donnée (en minutes)
      */
-    public function lockUser(int $minutes = 30): void
+    public function lockUser(int $minutes = 15): void
     {
         $this->update([
             'locked_until' => now()->addMinutes($minutes),
-            'failed_login_attempts' => 0
+            'failed_login_attempts' => 0,
         ]);
     }
 
@@ -180,40 +139,21 @@ class User extends Authenticatable implements FilamentUser
     {
         $this->update([
             'locked_until' => null,
-            'failed_login_attempts' => 0
+            'failed_login_attempts' => 0,
         ]);
     }
 
     /**
-     * Incrémente les tentatives de connexion échouées
+     * Incrémente le nombre de tentatives de connexion échouées
      */
     public function incrementFailedAttempts(): void
     {
-        $this->increment('failed_login_attempts');
-        
-        // Verrouille après 5 tentatives
-        if ($this->failed_login_attempts >= 5) {
-            $this->lockUser();
+        $attempts = $this->failed_login_attempts + 1;
+
+        if ($attempts >= 5) {
+            $this->lockUser(15); // Verrouille pour 15 minutes après 5 tentatives
+        } else {
+            $this->update(['failed_login_attempts' => $attempts]);
         }
-    }
-
-    /**
-     * Remet à zéro les tentatives de connexion échouées
-     */
-    public function resetFailedAttempts(): void
-    {
-        $this->update(['failed_login_attempts' => 0]);
-    }
-
-    /**
-     * Met à jour les informations de dernière connexion
-     */
-    public function updateLastLogin(string $ip): void
-    {
-        $this->update([
-            'last_login_at' => now(),
-            'last_login_ip' => $ip,
-            'failed_login_attempts' => 0
-        ]);
     }
 }

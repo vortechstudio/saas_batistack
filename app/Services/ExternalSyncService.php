@@ -116,7 +116,7 @@ class ExternalSyncService
     protected function syncWithCRM(ExternalSyncLog $syncLog): array
     {
         $config = $this->config['crm'] ?? [];
-        
+
         if (!isset($config['api_url']) || !isset($config['api_key'])) {
             return ['success' => false, 'error' => 'Configuration CRM manquante'];
         }
@@ -150,7 +150,7 @@ class ExternalSyncService
     protected function syncWithERP(ExternalSyncLog $syncLog): array
     {
         $config = $this->config['erp'] ?? [];
-        
+
         if (!isset($config['api_url']) || !isset($config['api_key'])) {
             return ['success' => false, 'error' => 'Configuration ERP manquante'];
         }
@@ -184,7 +184,7 @@ class ExternalSyncService
     protected function syncWithAccounting(ExternalSyncLog $syncLog): array
     {
         $config = $this->config['accounting'] ?? [];
-        
+
         if (!isset($config['api_url']) || !isset($config['username']) || !isset($config['password'])) {
             return ['success' => false, 'error' => 'Configuration comptabilité manquante'];
         }
@@ -217,7 +217,7 @@ class ExternalSyncService
     protected function syncWithAnalytics(ExternalSyncLog $syncLog): array
     {
         $config = $this->config['analytics'] ?? [];
-        
+
         if (!isset($config['api_url']) || !isset($config['api_key'])) {
             return ['success' => false, 'error' => 'Configuration analytics manquante'];
         }
@@ -301,7 +301,7 @@ class ExternalSyncService
         }
 
         $syncLog->incrementRetryCount();
-        
+
         return $this->executeSync($syncLog);
     }
 
@@ -322,7 +322,7 @@ class ExternalSyncService
         }
 
         $query = $modelClass::query();
-        
+
         if (!empty($entityIds)) {
             $query->whereIn('id', $entityIds);
         }
@@ -332,7 +332,7 @@ class ExternalSyncService
         foreach ($entities as $entity) {
             $syncLog = $this->syncEntity($systemName, $operation, $entity);
             $success = $this->executeSync($syncLog);
-            
+
             $results[] = [
                 'entity_id' => $entity->id,
                 'sync_id' => $syncLog->id,
@@ -390,18 +390,18 @@ class ExternalSyncService
      */
     public function getSyncStats(string $systemName = null): array
     {
-        $query = ExternalSyncLog::query();
-        
+        $baseQuery = ExternalSyncLog::query();
+
         if ($systemName) {
-            $query->where('system_name', $systemName);
+            $baseQuery->where('system_name', $systemName);
         }
 
         return [
-            'total' => $query->count(),
-            'successful' => $query->where('status', SyncStatus::SUCCESS)->count(),
-            'failed' => $query->where('status', SyncStatus::FAILED)->count(),
-            'running' => $query->where('status', SyncStatus::RUNNING)->count(),
-            'last_sync' => $query->where('status', SyncStatus::SUCCESS)
+            'total' => (clone $baseQuery)->count(),
+            'successful' => (clone $baseQuery)->where('status', SyncStatus::SUCCESS)->count(),
+            'failed' => (clone $baseQuery)->where('status', SyncStatus::FAILED)->count(),
+            'running' => (clone $baseQuery)->where('status', SyncStatus::RUNNING)->count(),
+            'last_sync' => (clone $baseQuery)->where('status', SyncStatus::SUCCESS)
                 ->orderBy('completed_at', 'desc')
                 ->first()?->completed_at,
             'by_system' => ExternalSyncLog::selectRaw('system_name, COUNT(*) as count')
