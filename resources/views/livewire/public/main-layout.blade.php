@@ -44,7 +44,11 @@
 
         <!-- Main Content -->
         <main class="ebp-main flex-1">
-            {{ $slot }}
+            @isset($slot)
+                {{ $slot }}
+            @else
+                @yield('content')
+            @endif
         </main>
 
         <!-- Footer ERP Bâtiment -->
