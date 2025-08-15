@@ -26,7 +26,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $completed_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read mixed $duration
+ * @property-read mixed $formatted_file_size
  * @property-read mixed $human_file_size
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Backup completed()
  * @method static \Database\Factories\BackupFactory factory($count = null, $state = [])
@@ -35,6 +35,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Backup newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Backup query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Backup running()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Backup successful()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Backup whereCompletedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Backup whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Backup whereErrorMessage($value)

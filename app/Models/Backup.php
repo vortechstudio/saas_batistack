@@ -57,21 +57,7 @@ class Backup extends Model
         );
     }
 
-    /**
-     * Get the duration of the backup process.
-     */
-    protected function duration(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                if (!$this->started_at || !$this->completed_at) {
-                    return null;
-                }
 
-                return $this->started_at->diffForHumans($this->completed_at, true);
-            }
-        );
-    }
 
     /**
      * Scope a query to only include completed backups.
@@ -108,7 +94,7 @@ class Backup extends Model
     /**
      * Check if the backup has failed.
      */
-    public function hasFailed(): bool
+    public function isFailed(): bool
     {
         return $this->status === BackupStatus::FAILED;
     }
@@ -120,72 +106,73 @@ class Backup extends Model
     {
         return $this->status === BackupStatus::RUNNING;
     }
-}
 
-use App\Filament\Resources\Backups;
-
-use App\Filament\Resources\Backups\Pages\CreateBackup;
-use App\Filament\Resources\Backups\Pages\EditBackup;
-use App\Filament\Resources\Backups\Pages\ListBackups;
-use App\Filament\Resources\Backups\Schemas\BackupForm;
-use App\Filament\Resources\Backups\Tables\BackupsTable;
-use App\Models\Backup;
-use BackedEnum;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Table;
-use UnitEnum;
-
-class BackupResource extends Resource
-{
-    protected static ?string $model = Backup::class;
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
-    protected static ?string $recordTitleAttribute = 'name';
-
-    protected static ?string $navigationLabel = 'Sauvegardes';
-
-    protected static ?string $modelLabel = 'Sauvegarde';
-
-    protected static ?string $pluralModelLabel = 'Sauvegardes';
-
-    protected static string | UnitEnum | null $navigationGroup = 'Sauvegarde/Synchronisation';
-
-    public static function form(Schema $schema): Schema
+    /**
+     * Get the duration of the backup in seconds.
+     */
+    public function duration(): ?int
     {
-        return BackupForm::configure($schema);
+        if (!$this->started_at || !$this->completed_at) {
+            return null;
+        }
+
+        return $this->started_at->diffInSeconds($this->completed_at);
     }
 
-    public static function table(Table $table): Table
+    /**
+     * Get the formatted file size.
+     */
+    protected function formattedFileSize(): Attribute
     {
-        return BackupsTable::configure($table);
+        return Attribute::make(
+            get: function () {
+                if (!$this->file_size) {
+                    return null;
+                }
+
+                $bytes = $this->file_size;
+                $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+                for ($i = 0; $bytes >= 1024 && $i < count($units) - 1; $i++) {
+                    $bytes /= 1024;
+                }
+
+                return round($bytes, 0) . ' ' . $units[$i];
+            }
+        );
     }
 
-    public static function getRelations(): array
+    /**
+     * Get the full path to the backup file.
+     */
+    public function getFullPath(): ?string
     {
-        return [
-            //
-        ];
+        if (!$this->file_path) {
+            return null;
+        }
+
+        return storage_path('app/backups/' . $this->file_path);
     }
 
-    public static function getPages(): array
+    /**
+     * Check if the backup file exists.
+     */
+    public function fileExists(): bool
     {
-        return [
-            'index' => ListBackups::route('/'),
-            'create' => CreateBackup::route('/create'),
-            'edit' => EditBackup::route('/{record}/edit'),
-        ];
+        $fullPath = $this->getFullPath();
+        
+        if (!$fullPath) {
+            return false;
+        }
+
+        return file_exists($fullPath);
     }
 
-    public static function getNavigationBadge(): ?string
+    /**
+     * Scope a query to only include successful backups.
+     */
+    public function scopeSuccessful($query)
     {
-        return static::getModel()::count();
-    }
-
-    public static function getGloballySearchableAttributes(): array
-    {
-        return ['name', 'file_path'];
+        return $query->where('status', BackupStatus::COMPLETED);
     }
 }
