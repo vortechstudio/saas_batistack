@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\InvoicePdfController;
+use App\Livewire\Client\OrderLicense;
 use App\Livewire\Public\HomePage;
 use App\Livewire\Public\ResourcesPage;
 use App\Livewire\Public\SolutionsPage;
@@ -71,7 +72,7 @@ Route::middleware(['auth', 'verified', 'two.factor'])->prefix('client')->name('c
     Route::get('/support', function() { return 'Support à venir'; })->name('support');
 
     // Nouvelles routes pour la commande
-    Route::get('/order', App\Livewire\Client\OrderLicense::class)->name('order');
+    Route::get('/order', OrderLicense::class)->name('order');
     Route::get('/order/success/{invoice}', function($invoiceId) {
         $invoice = \App\Models\Invoice::findOrFail($invoiceId);
         return view('client.order-success', compact('invoice'));

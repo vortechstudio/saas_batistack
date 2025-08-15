@@ -35,10 +35,16 @@
                     <li><a href="{{ route('pricing') }}" class="ebp-nav-link">Tarifs</a></li>
                 </ul>
 
-                <div class="ebp-auth-buttons">
-                    <a href="{{ route('login') }}" class="ebp-btn ebp-btn-outline">Connexion</a>
-                    <a href="{{ route('register') }}" class="ebp-btn ebp-btn-primary">Démo gratuite</a>
-                </div>
+                @auth
+                    <div class="ebp-auth-buttons">
+                        <a href="{{ route('dashboard') }}" class="ebp-btn ebp-btn-primary">Mon compte</a>
+                    </div>
+                @else
+                    <div class="ebp-auth-buttons">
+                        <a href="{{ route('login') }}" class="ebp-btn ebp-btn-outline">Connexion</a>
+                        <a href="{{ route('register') }}" class="ebp-btn ebp-btn-primary">Démo gratuite</a>
+                    </div>
+                @endauth
             </nav>
         </header>
 

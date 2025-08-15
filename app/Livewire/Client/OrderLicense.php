@@ -6,10 +6,11 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
+
+#[Layout('components.layouts.app')]
+#[Title('Commander une license')]
 class OrderLicense extends Component
 {
-    #[Title('Commander une licence')]
-    #[Layout('components.layouts.app')]
     public function render()
     {
         return view('livewire.client.order-license');
