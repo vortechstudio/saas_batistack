@@ -28003,6 +28003,352 @@ namespace Livewire\Features\SupportTesting {
             }
     }
 
+namespace App\Filament\Resources\ActivityLogs\Pages {
+    /**
+     */
+    class CreateActivityLog extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditActivityLog extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListActivityLogs extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace Filament\Resources\Pages {
+    /**
+     * @property-read Schema $form
+     */
+    class CreateRecord extends \Filament\Resources\Pages\Page {
+            }
+    /**
+     */
+    class Page extends \Filament\Pages\Page {
+            }
+    /**
+     * @property-read Schema $form
+     */
+    class EditRecord extends \Filament\Resources\Pages\Page {
+            }
+    /**
+     */
+    class ListRecords extends \Filament\Resources\Pages\Page {
+            }
+    }
+
+namespace Filament\Pages {
+    /**
+     */
+    class Page extends \Filament\Pages\BasePage {
+            }
+    /**
+     */
+    class BasePage extends \Livewire\Component {
+            }
+    /**
+     */
+    class Dashboard extends \Filament\Pages\Page {
+            }
+    /**
+     */
+    class SimplePage extends \Filament\Pages\BasePage {
+            }
+    }
+
+namespace App\Filament\Resources\Backups\Pages {
+    /**
+     */
+    class CreateBackup extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditBackup extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListBackups extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Customers\Pages {
+    /**
+     */
+    class CreateCustomer extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditCustomer extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListCustomers extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\ExternalSyncLogs\Pages {
+    /**
+     */
+    class CreateExternalSyncLog extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditExternalSyncLog extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListExternalSyncLogs extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Invoices\Pages {
+    /**
+     */
+    class CreateInvoice extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditInvoice extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListInvoices extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Licenses\Pages {
+    /**
+     */
+    class CreateLicense extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditLicense extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListLicenses extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Modules\Pages {
+    /**
+     */
+    class CreateModule extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditModule extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListModules extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Options\Pages {
+    /**
+     */
+    class CreateOption extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditOption extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListOptions extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Payments\Pages {
+    /**
+     */
+    class CreatePayment extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditPayment extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListPayments extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Permissions\Pages {
+    /**
+     */
+    class CreatePermission extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditPermission extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListPermissions extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Products\Pages {
+    /**
+     */
+    class CreateProduct extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditProduct extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListProducts extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Resources\Roles\Pages {
+    /**
+     */
+    class CreateRole extends \Filament\Resources\Pages\CreateRecord {
+            }
+    /**
+     */
+    class EditRole extends \Filament\Resources\Pages\EditRecord {
+            }
+    /**
+     */
+    class ListRoles extends \Filament\Resources\Pages\ListRecords {
+            }
+    }
+
+namespace App\Filament\Pages {
+    /**
+     */
+    class NotificationCenter extends \Filament\Pages\Page {
+            }
+    /**
+     */
+    class TwoFactorSettings extends \Filament\Pages\Page {
+            }
+    }
+
+namespace App\Filament\Widgets {
+    /**
+     */
+    class ExpiringLicensesWidget extends \Filament\Widgets\TableWidget {
+            }
+    /**
+     */
+    class LicenseStatusWidget extends \Filament\Widgets\ChartWidget {
+            }
+    /**
+     */
+    class NavigationStatsWidget extends \Filament\Widgets\StatsOverviewWidget {
+            }
+    /**
+     */
+    class PopularModulesWidget extends \Filament\Widgets\TableWidget {
+            }
+    /**
+     */
+    class PopularProductsWidget extends \Filament\Widgets\TableWidget {
+            }
+    /**
+     */
+    class RecentLicensesWidget extends \Filament\Widgets\TableWidget {
+            }
+    /**
+     */
+    class RevenueChartWidget extends \Filament\Widgets\ChartWidget {
+            }
+    /**
+     */
+    class StatsOverviewWidget extends \Filament\Widgets\StatsOverviewWidget {
+            }
+    }
+
+namespace Filament\Widgets {
+    /**
+     */
+    class TableWidget extends \Filament\Widgets\Widget {
+            }
+    /**
+     */
+    class Widget extends \Livewire\Component {
+            }
+    /**
+     */
+    class ChartWidget extends \Filament\Widgets\Widget {
+            }
+    /**
+     */
+    class StatsOverviewWidget extends \Filament\Widgets\Widget {
+            }
+    /**
+     */
+    class AccountWidget extends \Filament\Widgets\Widget {
+            }
+    /**
+     */
+    class FilamentInfoWidget extends \Filament\Widgets\Widget {
+            }
+    }
+
+namespace Filament\Livewire {
+    /**
+     */
+    class DatabaseNotifications extends \Filament\Notifications\Livewire\DatabaseNotifications {
+            }
+    /**
+     */
+    class GlobalSearch extends \Livewire\Component {
+            }
+    /**
+     */
+    class Notifications extends \Filament\Notifications\Livewire\Notifications {
+            }
+    /**
+     */
+    class Sidebar extends \Livewire\Component {
+            }
+    /**
+     */
+    class SimpleUserMenu extends \Livewire\Component {
+            }
+    /**
+     */
+    class Topbar extends \Livewire\Component {
+            }
+    }
+
+namespace Filament\Notifications\Livewire {
+    /**
+     */
+    class DatabaseNotifications extends \Livewire\Component {
+            }
+    /**
+     */
+    class Notifications extends \Livewire\Component {
+            }
+    }
+
+namespace Filament\Auth\Pages {
+    /**
+     * @property-read Schema $form
+     */
+    class EditProfile extends \Filament\Pages\Page {
+            }
+    /**
+     * @property-read Action $registerAction
+     * @property-read Schema $form
+     * @property-read Schema $multiFactorChallengeForm
+     */
+    class Login extends \Filament\Pages\SimplePage {
+            }
+    }
+
 namespace Illuminate\View {
     /**
      */
@@ -28184,6 +28530,134 @@ namespace Illuminate\Testing {
             return \Illuminate\Testing\TestResponse::assertDontSeeVolt($component);
         }
 
+            }
+    }
+
+namespace App\Livewire\Public {
+    /**
+     */
+    class HomePage extends \Livewire\Component {
+            }
+    /**
+     */
+    class SolutionsPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class GestionChantierPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class DevisMetresPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class FacturationBtpPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class PlanningResourcesPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class ComptabiliteBtpPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class GestionStockPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class PricingPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class ResourcesPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class SupportPage extends \Livewire\Component {
+            }
+    /**
+     */
+    class DemoPage extends \Livewire\Component {
+            }
+    }
+
+namespace App\Livewire\Settings {
+    /**
+     */
+    class Profile extends \Livewire\Component {
+            }
+    /**
+     */
+    class Password extends \Livewire\Component {
+            }
+    /**
+     */
+    class Appearance extends \Livewire\Component {
+            }
+    }
+
+namespace App\Livewire\Client {
+    /**
+     */
+    class Dashboard extends \Livewire\Component {
+            }
+    /**
+     */
+    class Licenses extends \Livewire\Component {
+            }
+    /**
+     */
+    class Invoices extends \Livewire\Component {
+            }
+    /**
+     */
+    class OrderLicense extends \Livewire\Component {
+            }
+    /**
+     */
+    class OrderSuccess extends \Livewire\Component {
+            }
+    /**
+     */
+    class OrderCancel extends \Livewire\Component {
+            }
+    }
+
+namespace App\Livewire\Auth {
+    /**
+     */
+    class Login extends \Livewire\Component {
+            }
+    /**
+     */
+    class Register extends \Livewire\Component {
+            }
+    /**
+     */
+    class ForgotPassword extends \Livewire\Component {
+            }
+    /**
+     */
+    class ResetPassword extends \Livewire\Component {
+            }
+    /**
+     */
+    class VerifyEmail extends \Livewire\Component {
+            }
+    /**
+     */
+    class ConfirmPassword extends \Livewire\Component {
+            }
+    /**
+     */
+    class TwoFactorSetup extends \Livewire\Component {
+            }
+    /**
+     */
+    class TwoFactorVerify extends \Livewire\Component {
             }
     }
 

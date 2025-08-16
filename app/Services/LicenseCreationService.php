@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Invoice;
 use App\Models\License;
 use App\Enums\LicenseStatus;
+use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -88,6 +89,8 @@ class LicenseCreationService
         // Générer une clé de licence unique
         $licenseKey = $this->generateUniqueLicenseKey();
 
+        $product = Product::find($orderData['product_id']);
+
         // Créer la licence
         $license = License::create([
             'customer_id' => $invoice->customer_id,
@@ -97,7 +100,7 @@ class LicenseCreationService
             'status' => LicenseStatus::ACTIVE,
             'starts_at' => $startsAt,
             'expires_at' => $expiresAt,
-            'max_users' => $orderData['max_users'] ?? null,
+            'max_users' => $product->max_users,
         ]);
 
         // Attacher les modules

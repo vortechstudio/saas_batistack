@@ -32,9 +32,10 @@ class OrderSuccess extends Component
         try {
             // Récupérer la facture
             $this->invoice = Invoice::with(['customer', 'invoiceItems.product', 'payments'])
-                ->where('id', $invoice)
+                ->where('id', $invoice->id)
                 ->where('customer_id', Auth::user()->customer->id)
                 ->firstOrFail();
+
 
             // Récupérer l'ID de session Stripe depuis l'URL
             $this->sessionId = request()->get('session_id');
@@ -53,9 +54,6 @@ class OrderSuccess extends Component
 
             // Vérifier si une licence existe déjà
             $this->license = License::where('customer_id', $this->invoice->customer_id)
-                ->whereHas('invoiceItems', function($query) {
-                    $query->where('invoice_id', $this->invoice->id);
-                })
                 ->first();
 
             if ($this->license) {
