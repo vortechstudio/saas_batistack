@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\InvoicePdfController;
+use App\Livewire\Client\OrderCancel;
 use App\Livewire\Client\OrderLicense;
+use App\Livewire\Client\OrderSuccess;
 use App\Livewire\Public\HomePage;
 use App\Livewire\Public\ResourcesPage;
 use App\Livewire\Public\SolutionsPage;
@@ -73,14 +75,8 @@ Route::middleware(['auth', 'verified', 'two.factor'])->prefix('client')->name('c
 
     // Nouvelles routes pour la commande
     Route::get('/order', OrderLicense::class)->name('order');
-    Route::get('/order/success/{invoice}', function($invoiceId) {
-        $invoice = \App\Models\Invoice::findOrFail($invoiceId);
-        return view('client.order-success', compact('invoice'));
-    })->name('order.success');
-    Route::get('/order/cancel/{invoice}', function($invoiceId) {
-        $invoice = \App\Models\Invoice::findOrFail($invoiceId);
-        return view('client.order-cancel', compact('invoice'));
-    })->name('order.cancel');
+    Route::get('/order/success/{invoice}', OrderSuccess::class)->name('order.success');
+    Route::get('/order/cancel/{invoice}', OrderCancel::class)->name('order.cancel');
 
 });
 
