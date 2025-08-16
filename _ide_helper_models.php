@@ -320,6 +320,8 @@ namespace App\Models{
  * @property int $sort_order
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $version
+ * @property string|null $composer_path
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\License> $licenses
  * @property-read int|null $licenses_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
@@ -333,6 +335,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereBasePrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereCategory($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereComposerPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereId($value)
@@ -343,6 +346,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereStripePriceIdMonthly($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereStripePriceIdYearly($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Module whereVersion($value)
  */
 	class Module extends \Eloquent {}
 }

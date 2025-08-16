@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\LicenseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\NotificationController;
@@ -37,4 +38,13 @@ Route::middleware(['auth:web'])->prefix('admin')->group(function () {
 
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
         ->name('api.notifications.mark-all-read');
+});
+
+Route::prefix('license')->group(function () {
+    Route::get('validate', [LicenseController::class, 'validate']);
+    Route::get('info', [LicenseController::class, 'info']);
+});
+
+Route::prefix('modules')->group(function () {
+    Route::get('/list');
 });

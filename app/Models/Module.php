@@ -19,6 +19,8 @@ class Module extends Model
         'base_price',
         'is_active',
         'sort_order',
+        'version',
+        'composer_path',
     ];
 
     protected $casts = [
