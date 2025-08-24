@@ -32,7 +32,7 @@ class Product extends Model
     protected static function booted(): void
     {
         static::creating(function (Product $product) {
-            $product->slug = Str::slug($$product->name);
+            $product->slug = Str::slug($product->name);
         });
     }
 }

@@ -10,6 +10,6 @@ class StripeService
 
     public function __construct()
     {
-        $this->client = new StripeClient(config('services.stripe.key'));
+        $this->client = new StripeClient(config('services.stripe.secret'));
     }
 }

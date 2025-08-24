@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('category')->default('license')->comment('license, modules, options, support');
             $table->text('description')->nullable();
             $table->boolean('active')->default(true);
+
+            $table->string('stripe_product_id')->nullable();
             $table->timestamps();
         });
     }

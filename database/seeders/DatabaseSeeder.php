@@ -16,8 +16,15 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'Test User',
+            'nom' => 'Test',
+            'prenom' => 'User',
             'email' => 'test@example.com',
         ]);
+
+        if (config('app.env') == 'local' || config('app.env') == 'testing') {
+            $this->call([
+                ProductSeeder::class,
+            ]);
+        }
     }
 }
