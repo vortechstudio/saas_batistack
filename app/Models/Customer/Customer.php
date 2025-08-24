@@ -33,4 +33,14 @@ class Customer extends Model
             $customerService->create($customer);
         });
     }
+
+    public function listPaymentMethods()
+    {
+        return app(CustomerService::class)->listPaymentMethods($this);
+    }
+
+    public function hasPaymentMethods(): bool
+    {
+        return $this->listPaymentMethods()->count() > 0;
+    }
 }

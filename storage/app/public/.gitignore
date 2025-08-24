@@ -1,6 +1,7 @@
 !.gitignore
 !modules/
 !modules/**
-
+!logos/
+!logos/**
 !product
 !product/**

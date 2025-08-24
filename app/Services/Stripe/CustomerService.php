@@ -32,4 +32,14 @@ class CustomerService extends StripeService
             throw $e;
         }
     }
+
+    public function listPaymentMethods(Customer $customer)
+    {
+        try {
+            return collect($this->client->customers->allPaymentMethods($customer->stripe_customer_id));
+        }catch(\Throwable $e) {
+            report($e);
+            throw $e;
+        }
+    }
 }

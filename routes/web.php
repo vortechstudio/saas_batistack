@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Customer\Customer;
+use App\Services\Stripe\CustomerService;
 use App\Services\Stripe\ProductService;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -9,8 +11,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $product = new ProductService();
-    dd($product->listWithModules());
+    $customer = Customer::find(1);
+    $methods = app(CustomerService::class)->listPaymentMethods($customer);
+    dd($methods);
 });
 
 Route::view('dashboard', 'dashboard')
