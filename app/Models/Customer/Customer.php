@@ -2,6 +2,7 @@
 
 namespace App\Models\Customer;
 
+use App\Enum\Customer\CustomerSupportTypeEnum;
 use App\Enum\Customer\CustomerTypeEnum;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,7 @@ class Customer extends Model
 
     protected $casts = [
         'type_compte' => CustomerTypeEnum::class,
+        'support_type' => CustomerSupportTypeEnum::class,
     ];
 
     public function user(): BelongsTo
