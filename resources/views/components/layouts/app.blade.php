@@ -64,7 +64,7 @@
         </x-slot:actions>
     </x-mary-nav>
     <x-mary-main with-nav full-width>
-        <x-slot:sidebar drawer="main-drawer" collapsible class="bg-blue-800 text-white">
+        <x-slot:sidebar drawer="main-drawer" collapsible collapse-text="Réduire" class="bg-blue-800 text-white">
             <div class="text-white text-2xl font-bold m-5">Hub de données</div>
 
             <x-mary-menu activate-by-route active-bg-color="bg-blue-900">
