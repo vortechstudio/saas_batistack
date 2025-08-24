@@ -5,6 +5,7 @@ namespace App\Models\Customer;
 use App\Enum\Customer\CustomerSupportTypeEnum;
 use App\Enum\Customer\CustomerTypeEnum;
 use App\Models\User;
+use App\Services\Stripe\CustomerService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,8 +28,9 @@ class Customer extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (Customer $customer) {
+        static::creating(function (Customer $customer, CustomerService $customerService) {
             $customer->code_client = 'CLI' . str_pad($customer->id, 4, '0', STR_PAD_LEFT);
+            $customerService->create($customer);
         });
     }
 }

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('tel')->nullable();
             $table->string('portable')->nullable();
             $table->string('support_type')->default('standard')->comment('Type de support (standard, Premium, Business, Entreprise)');
+            $table->string('stripe_customer_id')->nullable();
 
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
