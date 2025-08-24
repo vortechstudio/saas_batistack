@@ -10,7 +10,7 @@ Route::get('/', function () {
 
 Route::get('/test', function () {
     $product = new ProductService();
-    dd($product->listWithPrices());
+    dd($product->listWithModules());
 });
 
 Route::view('dashboard', 'dashboard')

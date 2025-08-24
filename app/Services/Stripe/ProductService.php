@@ -24,4 +24,11 @@ class ProductService extends StripeService
             return $product;
         });
     }
+
+    public function listWithModules()
+    {
+        return $this->listWithPrices()->filter(function ($product) {
+            return $product->metadata->category === 'modules';
+        });
+    }
 }

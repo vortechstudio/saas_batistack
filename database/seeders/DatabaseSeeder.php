@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         if (config('app.env') == 'local' || config('app.env') == 'testing') {
             $this->call([
                 ProductSeeder::class,
+                FeatureSeeder::class,
             ]);
         }
     }
