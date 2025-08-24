@@ -6,6 +6,7 @@ use App\Enum\Product\ProductCategoryEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -21,5 +22,12 @@ class Product extends Model
     public function prices(): HasMany
     {
         return $this->hasMany(ProductPrice::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Product $product) {
+            $product->slug = Str::slug($$product->name);
+        });
     }
 }

@@ -19,6 +19,7 @@ class ProductFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
+            'slug' => $this->faker->slug(),
             'category' => $this->faker->randomElement(ProductCategoryEnum::cases()),
             'description' => $this->faker->sentence(),
             'active' => $this->faker->boolean(),
