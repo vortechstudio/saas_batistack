@@ -1,25 +1,73 @@
 <?php
+namespace Hamcrest\Arrays;
 
-namespace App\Models\Product;
+/*
+ Copyright (c) 2009 hamcrest.org
+ */
+use Hamcrest\Core\DescribedAs;
+use Hamcrest\Core\IsNot;
+use Hamcrest\FeatureMatcher;
+use Hamcrest\Matcher;
+use Hamcrest\Util;
 
-use App\Enum\Product\ProductPriceFrequencyEnum;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
-class ProductPrice extends Model
+/**
+ * Matches if array size satisfies a nested matcher.
+ */
+class IsArrayWithSize extends FeatureMatcher
 {
-    /** @use HasFactory<\Database\Factories\Product\ProductPriceFactory> */
-    use HasFactory;
-    protected $guarded = [];
 
-    protected $casts = [
-        'frequency' => ProductPriceFrequencyEnum::class,
-        'price' => 'float',
-    ];
-
-    public function product(): BelongsTo
+    public function __construct(Matcher $sizeMatcher)
     {
-        return $this->belongsTo(Product::class);
+        parent::__construct(
+            self::TYPE_ARRAY,
+            null,
+            $sizeMatcher,
+            'an array with size',
+            'array size'
+        );
+    }
+
+    protected function featureValueOf($array)
+    {
+        return count($array);
+    }
+
+    /**
+     * Does array size satisfy a given matcher?
+     *
+     * @param \Hamcrest\Matcher|int $size as a {@link Hamcrest\Matcher} or a value.
+     *
+     * @return \Hamcrest\Arrays\IsArrayWithSize
+     * @factory
+     */
+    public static function arrayWithSize($size)
+    {
+        return new self(Util::wrapValueWithIsEqual($size));
+    }
+
+    /**
+     * Matches an empty array.
+     *
+     * @factory
+     */
+    public static function emptyArray()
+    {
+        return DescribedAs::describedAs(
+            'an empty array',
+            self::arrayWithSize(0)
+        );
+    }
+
+    /**
+     * Matches an empty array.
+     *
+     * @factory
+     */
+    public static function nonEmptyArray()
+    {
+        return DescribedAs::describedAs(
+            'a non-empty array',
+            self::arrayWithSize(IsNot::not(0))
+        );
     }
 }

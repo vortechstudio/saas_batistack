@@ -21,7 +21,12 @@ class Product extends Model
 
     public function prices(): HasMany
     {
-        return $this->hasMany(ProductPrice::class);
+        return $this->hasMany(\App\Models\Product\ProductPrice::class);
+    }
+
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class, 'feature_product');
     }
 
     protected static function booted(): void
