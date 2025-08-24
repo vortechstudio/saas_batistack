@@ -13,7 +13,7 @@ Route::get('/', function () {
 Route::get('/test', function () {
     $customer = Customer::find(1);
     $methods = app(CustomerService::class)->listPaymentMethods($customer);
-    dd($methods);
+    dd($customer->support_type->color());
 });
 
 Route::view('dashboard', 'dashboard')

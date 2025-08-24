@@ -26,6 +26,12 @@ class Customer extends Model
         return $this->belongsTo(User::class);
     }
 
+    /** Attributes */
+    protected function getSupportTypeColorAttributes()
+    {
+        return $this->support_type;
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Customer $customer, CustomerService $customerService) {

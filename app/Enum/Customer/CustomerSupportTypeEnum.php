@@ -29,7 +29,7 @@ enum CustomerSupportTypeEnum: string
             self::STANDARD => 'info',
             self::PREMIUM => 'success',
             self::BUSINESS => 'warning',
-            self::ENTERPRISE => 'danger',
+            self::ENTERPRISE => 'error',
         };
     }
 

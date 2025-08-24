@@ -7,9 +7,9 @@
     <x-mary-nav sticky full-width>
         <x-slot:brand>
             <label for="main-drawer" class="lg:hidden mr-3">
-                <x-app-logo-icon />
+                <x-app-logo />
             </label>
-            <div>{{ config('app.name') }}</div>
+            <x-app-logo />
         </x-slot:brand>
         <x-slot:actions>
             <div class="drawer drawer-end">
@@ -36,30 +36,38 @@
                     <div class="text-sm text-gray-500">Identifiant: <strong>{{ auth()->user()->customer->code_client }}</strong></div>
                 </div>
                 <x-mary-menu-separator />
-                <div class="flex flex-col">
+                <div class="flex flex-col m-5">
                     <div class="flex flex-row justify-between items-center mb-1">
                         <div class="text-gray-500">Connexion</div>
-                        <div class="text-gray-500">{{ auth()->user()->customer->code_client }}</div>
+                        <div class="text-gray-500 font-black">{{ auth()->user()->customer->entreprise }}</div>
                     </div>
                     <div class="flex flex-row justify-between items-center mb-1">
                         <div class="text-gray-500">Moyens de paiement</div>
                         <div class="text-gray-500">
                             @if(auth()->user()->customer->hasPaymentMethods())
-                                <div class="badge badge-xl badge-success text-white">Validé</div>
+                                <div class="badge badge-lg badge-success text-white">Valide</div>
                             @else
-                                <div class="badge badge-xl badge-error text-white">Non validé</div>
+                                <div class="badge badge-lg badge-error text-white">Non Valide</div>
                             @endif
                         </div>
                     </div>
+                    <div class="flex flex-row justify-between items-center mb-1">
+                        <div class="text-gray-500">Support</div>
+                        <div class="text-gray-500">
+                            <div class="badge badge-lg badge-{{ auth()->user()->customer->support_type->color() }} text-white">{{ auth()->user()->customer->support_type->label() }}</div>
+                        </div>
+                    </div>
                 </div>
+                <x-mary-menu-separator />
+                <x-mary-button label="Mon compte" icon="o-user" class="btn-wide" link="{{ route('settings.profile') }}" />
             </x-mary-dropdown>
         </x-slot:actions>
     </x-mary-nav>
     <x-mary-main with-nav full-width>
-        <x-slot:sidebar drawer="main-drawer" collapsible class="bg-blue-900 text-white">
+        <x-slot:sidebar drawer="main-drawer" collapsible class="bg-blue-800 text-white">
             <div class="text-white text-2xl font-bold m-5">Hub de données</div>
 
-            <x-mary-menu activate-by-route>
+            <x-mary-menu activate-by-route active-bg-color="bg-blue-900">
                 <x-mary-menu-item title="Acceuil" icon="o-home" link="{{ route('dashboard') }}" />
                 <x-mary-menu-item title="Messages" icon="o-envelope" link="###" />
                 <x-mary-menu-sub title="Settings" icon="o-cog-6-tooth">
