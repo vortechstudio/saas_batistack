@@ -56,6 +56,11 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
+    public function getFullnameAttribute(): string
+    {
+        return "{$this->prenom} {$this->nom}";
+    }
+
     /**
      * Get the user's initials
      */

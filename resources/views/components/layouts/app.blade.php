@@ -20,6 +20,10 @@
             <x-slot:actions>
                 <x-mary-button label="Messages" icon="o-envelope" link="###" class="btn-ghost btn-sm" responsive />
                 <x-mary-button label="Notifications" icon="o-bell" link="###" class="btn-ghost btn-sm" responsive />
+                <x-mary-dropdown :label="auth()->user()->fullname" icon="o-user" class="btn-outline btn-primary">
+                    <x-mary-menu-item title="It should align correctly on right side" />
+                    <x-mary-menu-item title="Yes!" />
+                </x-mary-dropdown>
             </x-slot:actions>
         </x-mary-nav>
         <x-mary-main with-nav full-width>
@@ -35,6 +39,15 @@
                         <x-mary-menu-item title="Mes logiciels & Services" link="####" />
                         <x-mary-menu-item title="Sauvegarde en ligne" link="####" />
                         <x-mary-menu-item title="Catalogue" link="####" />
+                    </x-mary-menu-sub>
+                    <x-mary-menu-sub title="Formations" icon="o-book-open">
+                        <x-mary-menu-item title="Mes formations" link="####" />
+                        <x-mary-menu-item title="Catalogue" link="####" />
+                    </x-mary-menu-sub>
+                    <x-mary-menu-sub title="Assistance" icon="o-lifebuoy">
+                        <x-mary-menu-item title="Contact" link="####" />
+                        <x-mary-menu-item title="Centre d'aide" link="####" />
+                        <x-mary-menu-item title="Mes Tickets" link="####" />
                     </x-mary-menu-sub>
                 </x-mary-menu>
             </x-slot:sidebar>
