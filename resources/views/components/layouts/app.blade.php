@@ -13,7 +13,7 @@
                 </label>
     
                 {{-- Brand --}}
-                <div>App</div>
+                <x-app-logo />
             </x-slot:brand>
     
             {{-- Right side actions --}}
@@ -26,26 +26,15 @@
  
             {{-- This is a sidebar that works also as a drawer on small screens --}}
             {{-- Notice the `main-drawer` reference here --}}
-            <x-slot:sidebar drawer="main-drawer" collapsible class="bg-base-200">
-    
-                {{-- User --}}
-                @if($user = auth()->user())
-                    <x-mary-list-item :item="$user" value="name" sub-value="email" no-separator no-hover class="pt-2">
-                        <x-slot:actions>
-                            <x-mary-button icon="o-power" class="btn-circle btn-ghost btn-xs" tooltip-left="logoff" no-wire-navigate link="/logout" />
-                        </x-slot:actions>
-                    </x-mary-list-item>
-    
-                    <x-mary-menu-separator />
-                @endif
+            <x-slot:sidebar drawer="main-drawer" collapsible collapse-text="Réduire" class="bg-blue-800 text-white">                
     
                 {{-- Activates the menu item when a route matches the `link` property --}}
-                <x-mary-menu activate-by-route>
-                    <x-mary-menu-item title="Home" icon="o-home" link="###" />
-                    <x-mary-menu-item title="Messages" icon="o-envelope" link="###" />
-                    <x-mary-menu-sub title="Settings" icon="o-cog-6-tooth">
-                        <x-mary-menu-item title="Wifi" icon="o-wifi" link="####" />
-                        <x-mary-menu-item title="Archives" icon="o-archive-box" link="####" />
+                <x-mary-menu activate-by-route active-bg-color="bg-blue-900 text-white font-black">
+                    <x-mary-menu-item title="Accueil" icon="o-home" link="{{ route('dashboard') }}" />
+                    <x-mary-menu-sub title="Logiciels & Services" icon="o-adjustments-horizontal">
+                        <x-mary-menu-item title="Mes logiciels & Services" link="####" />
+                        <x-mary-menu-item title="Sauvegarde en ligne" link="####" />
+                        <x-mary-menu-item title="Catalogue" link="####" />
                     </x-mary-menu-sub>
                 </x-mary-menu>
             </x-slot:sidebar>
