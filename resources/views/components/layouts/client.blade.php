@@ -77,7 +77,7 @@
 
                 {{-- Activates the menu item when a route matches the `link` property --}}
                 <x-mary-menu activate-by-route active-bg-color="bg-blue-900 text-white font-black">
-                    <x-mary-menu-item title="Accueil" icon="o-home" link="{{ route('dashboard') }}" />
+                    <x-mary-menu-item title="Accueil" icon="o-home" link="{{ route('client.dashboard') }}" />
                     <x-mary-menu-sub title="Logiciels & Services" icon="o-adjustments-horizontal">
                         <x-mary-menu-item title="Mes logiciels & Services" link="####" />
                         <x-mary-menu-item title="Sauvegarde en ligne" link="####" />

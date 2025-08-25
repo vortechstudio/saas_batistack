@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Client\Dashboard;
 use App\Models\Customer\Customer;
 use App\Services\Stripe\CustomerService;
 use App\Services\Stripe\ProductService;
@@ -16,9 +17,9 @@ Route::get('/test', function () {
     dd($customer->support_type->color());
 });
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', Dashboard::class)->name('client.dashboard');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
