@@ -18,13 +18,30 @@
 
             {{-- Right side actions --}}
             <x-slot:actions>
-                <x-mary-button label="Messages" icon="o-envelope" link="###" class="btn-ghost btn-sm" responsive />
-                <x-mary-button label="Notifications" icon="o-bell" link="###" class="btn-ghost btn-sm" responsive />
+                <div class="drawer drawer-end">
+                    <input id="my-drawer" type="checkbox" class="drawer-toggle" />
+                    <div class="drawer-content indicator">
+                        <!-- Page content here -->
+                        <label for="my-drawer" class="btn-circle btn-sm drawer-button">@svg('heroicon-o-bell')</label>
+                        <x-mary-badge :value="auth()->user()->unreadNotifications()->count()" class="badge badge-primary badge-xs indicator-item" />
+                    </div>
+                    <div class="drawer-side">
+                        <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+                        <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+                        <!-- Sidebar content here -->
+                            @foreach (auth()->user()->unreadNotifications as $notification)
+                                <li>
+                                    <x-mary-alert :title="$notification->data['message']" />
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
                 <x-mary-dropdown :label="auth()->user()->fullname" icon="o-user" class="btn-outline btn-primary">
                     <div class="flex flex-col w-[250px] text-lg m-5">
                         <span class="font-black text-blue-800 pb-1">{{ auth()->user()->fullname }}</span>
                         <span class="text-sm text-gray-400">{{ auth()->user()->email }}</span>
-                        <span class="text-sm text-gray-400">Identifiant: {{ auth()->user()->customer->code_client }}</span>
+                        <span class="text-sm text-gray-400">Identifiant: <strong>{{ auth()->user()->customer->code_client }}</strong></span>
                     </div>
                     <x-separator />
                     <div class="flex flex-col w-[250px] m-5">
@@ -36,6 +53,18 @@
                             <span>Moyen de paiement</span>
                             <x-mary-badge value="{{ auth()->user()->customer->hasPaymentMethods() ? 'Oui' : 'Non' }}" :class="auth()->user()->customer->hasPaymentMethods() ? 'text-white badge-success' : 'text-white badge-error'" />
                         </div>
+                        <div class="flex flex-row justify-between items-center">
+                            <span>Support</span>
+                            <x-mary-badge value="{{ auth()->user()->customer->support_type->label() }}" class="badge text-white badge-{{ auth()->user()->customer->support_type->color() }}" />
+                        </div>
+                    </div>
+                    <x-separator />
+                    <div class="m-5">
+                        <x-mary-menu-item title="Mon Compte" link="###" />
+                        <x-mary-menu-item title="Mes factures" link="###" />
+                        <x-mary-menu-item title="Mes moyens de paiements" link="###" />
+                        <x-mary-menu-item title="Mes commandes" link="###" />
+                        <x-mary-menu-item title="Mes Services & Contrats" link="###" />
                     </div>
                 </x-mary-dropdown>
             </x-slot:actions>
