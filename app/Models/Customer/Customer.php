@@ -68,6 +68,28 @@ class Customer extends Model
 
     public function getListInvoices()
     {
-        return app(StripeCustomerService::class)->listInvoices($this);
+        return app(StripeCustomerService::class)->listInvoices($this)
+            ->map(function ($invoice) {
+                return [
+                    'id' => $invoice->id,
+                    'metadata' => $invoice->metadata ? $invoice->metadata->toArray() : [],
+                    'created' => $invoice->created,
+                    'subtotal' => $this->calcHorsTaxe($invoice->subtotal/100, 20),
+                    'total' => $invoice->total/100,
+                    'amount_due' => $invoice->amount_due/100,
+                    'status' => $invoice->status,
+                ];
+            })
+            ->toArray();
+    }
+
+    public function getInvoice($id)
+    {
+        return app(StripeCustomerService::class)->getInvoice($id);
+    }
+
+    private function calcHorsTaxe(float $total, float $taxe): float
+    {
+        return $total - ($total * $taxe / 100);
     }
 }

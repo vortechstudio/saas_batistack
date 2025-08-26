@@ -60,8 +60,8 @@
                     </div>
                     <x-separator />
                     <div class="m-5">
-                        <x-mary-menu-item title="Mon Compte" link="###" />
-                        <x-mary-menu-item title="Mes factures" link="###" />
+                        <x-mary-menu-item title="Mon Compte" link="{{ route('client.account.dashboard') }}" />
+                        <x-mary-menu-item title="Mes factures" link="{{ route('client.account.invoice') }}" />
                         <x-mary-menu-item title="Mes moyens de paiements" link="###" />
                         <x-mary-menu-item title="Mes commandes" link="###" />
                         <x-mary-menu-item title="Mes Services & Contrats" link="###" />

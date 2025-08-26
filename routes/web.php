@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Client\Account\Dashboard as AccountDashboard;
 use App\Livewire\Client\Dashboard;
 use App\Models\Customer\Customer;
 use App\Services\Stripe\CustomerService;
@@ -19,6 +20,11 @@ Route::get('/test', function () {
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('client.dashboard');
+
+    Route::prefix('account')->group(function () {
+        Route::get('/', AccountDashboard::class)->name('client.account.dashboard');
+        Route::get('/invoice', \App\Livewire\Client\Account\Invoice::class)->name('client.account.invoice');
+    });
 });
 
 Route::middleware(['auth'])->group(function () {
