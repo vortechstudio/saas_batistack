@@ -4,11 +4,12 @@ namespace App\Models\Customer;
 
 use App\Enum\Customer\CustomerSupportTypeEnum;
 use App\Enum\Customer\CustomerTypeEnum;
+use App\Models\Commerce\Order;
 use App\Models\User;
-use App\Services\Stripe\CustomerService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Services\Stripe\CustomerService as StripeCustomerService;
 
 class Customer extends Model
 {
@@ -26,6 +27,21 @@ class Customer extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function restrictedIps()
+    {
+        return $this->hasMany(CustomerRestrictedIp::class);
+    }
+
+    public function services()
+    {
+        return $this->hasMany(CustomerService::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
     /** Attributes */
     protected function getSupportTypeColorAttributes()
     {
@@ -34,7 +50,7 @@ class Customer extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (Customer $customer, CustomerService $customerService) {
+        static::creating(function (Customer $customer, StripeCustomerService $customerService) {
             $customer->code_client = 'CLI' . str_pad($customer->id, 4, '0', STR_PAD_LEFT);
             $customerService->create($customer);
         });
@@ -42,7 +58,7 @@ class Customer extends Model
 
     public function listPaymentMethods()
     {
-        return app(CustomerService::class)->listPaymentMethods($this);
+        return app(StripeCustomerService::class)->listPaymentMethods($this);
     }
 
     public function hasPaymentMethods(): bool
@@ -52,6 +68,6 @@ class Customer extends Model
 
     public function getListInvoices()
     {
-        return app(CustomerService::class)->listInvoices($this);
+        return app(StripeCustomerService::class)->listInvoices($this);
     }
 }
