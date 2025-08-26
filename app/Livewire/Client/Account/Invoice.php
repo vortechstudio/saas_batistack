@@ -143,7 +143,11 @@ class Invoice extends Component implements HasActions, HasSchemas, HasTable
                                         ->toDatabase();
                                 }
                             } else {
-                                $this->redirect($invoice->hosted_invoice_url);
+                                Notification::make()
+                                    ->warning()
+                                    ->title('Aucun moyen de paiement enregistré')
+                                    ->body('Veuillez ajouter un moyen de paiement pour payer la facture.')
+                                    ->send();
                             }
                         }),
                 ]),
