@@ -49,4 +49,9 @@ class Customer extends Model
     {
         return $this->listPaymentMethods()->count() > 0;
     }
+
+    public function getListInvoices()
+    {
+        return app(CustomerService::class)->listInvoices($this);
+    }
 }
