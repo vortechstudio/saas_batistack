@@ -10,6 +10,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\TextColumn;
@@ -120,7 +121,27 @@ class Invoice extends Component implements HasActions, HasSchemas, HasTable
                             $invoice = Customer::find(Auth::user()->customer->id)->getInvoice($record['id']);
                             if($paymentMethods->count() > 0) {
                                 $pay = app(CustomerService::class)->payInvoice($record['id']);
-                                dd($pay);
+                                if ($pay->status === 'paid') {
+                                    Notification::make()
+                                        ->success()
+                                        ->title('Facture payée avec succès')
+                                        ->toDatabase();
+
+                                } else {
+                                    Notification::make()
+                                        ->danger()
+                                        ->title('Erreur de paiement')
+                                        ->body("{$pay->payment_intent->last_payment_error->message}")
+                                        ->actions([
+                                            Action::make('retry')
+                                                ->label('Réessayer')
+                                                ->url($invoice->hosted_invoice_url),
+                                            Action::make('contact')
+                                                ->label('Contacter le support')
+                                                ->url('mailto:support@batistack.com'),
+                                        ])
+                                        ->toDatabase();
+                                }
                             } else {
                                 $this->redirect($invoice->hosted_invoice_url);
                             }
