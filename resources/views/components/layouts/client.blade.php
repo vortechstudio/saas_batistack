@@ -63,7 +63,7 @@
                         <x-mary-menu-item title="Mon Compte" link="{{ route('client.account.dashboard') }}" />
                         <x-mary-menu-item title="Mes factures" link="{{ route('client.account.invoice') }}" />
                         <x-mary-menu-item title="Mes moyens de paiements" link="{{ route('client.account.method-payment') }}" />
-                        <x-mary-menu-item title="Mes commandes" link="###" />
+                        <x-mary-menu-item title="Mes commandes" link="{{ route('client.account.orders') }}" />
                         <x-mary-menu-item title="Mes Services & Contrats" link="###" />
                     </div>
                 </x-mary-dropdown>
