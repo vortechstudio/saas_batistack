@@ -31,6 +31,16 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(OrderPayment::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
     // Scopes
     /**
      * Scope pour filtrer par statut
@@ -123,5 +133,30 @@ class Order extends Model
     public function calculateTotal(): float
     {
         return $this->subtotal + $this->tax_amount - $this->discount_amount;
+    }
+
+    public function getLatestPayment(): ?OrderPayment
+    {
+        return $this->payments()->latest()->first();
+    }
+
+    public function getTotalPaidAmount(): float
+    {
+        return (float) $this->payments()->completed()->sum('amount');
+    }
+
+    public function getTotalRefundedAmount(): float
+    {
+        return (float) $this->payments()->sum('refunded_amount');
+    }
+
+    public function isFullyPaid(): bool
+    {
+        return $this->getTotalPaidAmount() >= $this->total;
+    }
+
+    public function hasFailedPayments(): bool
+    {
+        return $this->payments()->failed()->exists();
     }
 }
