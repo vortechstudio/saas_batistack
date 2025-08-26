@@ -10,8 +10,8 @@
                 <div class="card card-border bg-blue-100 rounded-lg mt-5">
                     <div class="card-body justify-center items-center gap-3">
                         <span class="font-black text-blue-600 text-xl">Dernière commande</span>
-                        <span class="badge badge-info text-white">N° 12585632</span>
-                        <span class="text-blue-600"><strong>25/08/2025</strong> Votre facture est disponible @svg('heroicon-o-check', "text-blue-600 w-1 h-1")</span>
+                        <span class="badge badge-info text-white">N° {{ $latestOrder->order_number }}</span>
+                        <span class="text-blue-600"><strong>{{ $latestOrder->delivered_at->format('d/m/Y') }}</strong> Votre facture est disponible @svg('heroicon-o-check', "text-blue-600 w-1 h-1")</span>
                         <a href="#">Voir mes commandes</a>
                     </div>
                 </div>

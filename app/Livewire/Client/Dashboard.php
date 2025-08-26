@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Client;
 
+use App\Models\Commerce\Order;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -10,6 +12,13 @@ use Livewire\Component;
 #[Title('Tableau de bord')]
 class Dashboard extends Component
 {
+    public $latestOrder;
+
+    public function mount()
+    {
+        $this->latestOrder = Order::where('customer_id', Auth::user()->customer->id)->latest()->first();
+    }
+
     public function render()
     {
         return view('livewire.client.dashboard');
