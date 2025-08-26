@@ -18,6 +18,7 @@ return new class extends Migration
             $table->date('expirationDate');
             $table->date('nextBillingDate');
             $table->string('status')->default('ok')->comment('expired┃ok┃pending┃unpaid');
+            $table->string('stripe_subscription_id')->nullable();
 
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
