@@ -26,6 +26,8 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
         Route::get('/invoice', \App\Livewire\Client\Account\Invoice::class)->name('client.account.invoice');
         Route::get('/method-payment', \App\Livewire\Client\Account\MethodPayment::class)->name('client.account.method-payment');
         Route::get('/orders', \App\Livewire\Client\Account\Orders::class)->name('client.account.orders');
+
+        Route::get('/cart', \App\Livewire\Client\Account\CartIndex::class)->name('client.account.cart.index');
     });
 });
 

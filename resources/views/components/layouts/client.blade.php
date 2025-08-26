@@ -93,6 +93,7 @@
                         <x-mary-menu-item title="Mes Tickets" link="####" />
                     </x-mary-menu-sub>
                 </x-mary-menu>
+                <x-mary-button label="Souscrire" icon="o-shopping-bag" class="btn-outline btn-wide mt-10 mx-2" link="{{ route('client.account.cart.index') }}" />
             </x-slot:sidebar>
 
             {{-- The `$slot` goes here --}}
