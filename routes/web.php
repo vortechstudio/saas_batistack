@@ -24,6 +24,7 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
     Route::prefix('account')->group(function () {
         Route::get('/', AccountDashboard::class)->name('client.account.dashboard');
         Route::get('/invoice', \App\Livewire\Client\Account\Invoice::class)->name('client.account.invoice');
+        Route::get('/method-payment', \App\Livewire\Client\Account\MethodPayment::class)->name('client.account.method-payment');
     });
 });
 
