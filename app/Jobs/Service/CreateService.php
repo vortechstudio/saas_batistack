@@ -45,7 +45,7 @@ class CreateService implements ShouldQueue
             $this->order->logs()->create(['libelle' => 'Service ' . $product->product->name . ' créé']);
 
             match ($product->product->category->value) {
-                'license' => '', // Déploiement de la license,
+                'license' => dispatch(new InitService($service, $this->order)), // Déploiement de la license,
                 'modules' => '', // Activation du module pour le service
                 'options' => '', // Ajout et activation de l'option pour le service
                 'support' => '', // Mise à jour du support de service

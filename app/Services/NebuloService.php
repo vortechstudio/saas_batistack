@@ -115,7 +115,7 @@ class NebuloService
         }
     }
 
-    public function createBucket(User $user, string $nameBucket, int $limit_size)
+    public function createBucket($user, string $nameBucket, int $limit_size)
     {
         try {
             $response = Http::withoutVerifying()
