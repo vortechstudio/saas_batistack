@@ -50,9 +50,12 @@ class Customer extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (Customer $customer, StripeCustomerService $customerService) {
+        static::created(function (Customer $customer) {
             $customer->code_client = 'CLI' . str_pad($customer->id, 4, '0', STR_PAD_LEFT);
-            $customerService->create($customer);
+            $customer->save();
+
+            //$customerService = app(\App\Services\Stripe\StripeCustomerService::class);
+            //$customerService->create($customer);
         });
     }
 

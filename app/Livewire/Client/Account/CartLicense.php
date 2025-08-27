@@ -166,7 +166,7 @@ class CartLicense extends Component implements HasSchemas
             $order->logs()->create([
                 'libelle' => 'Création de votre commande',
             ]);
-            dispatch(new CreateInvoiceByOrder($this->order));
+            dispatch(new CreateInvoiceByOrder($order));
             return $this->redirect(route('client.account.order.show', $order->id));
         }catch (\Exception $e) {
             Log::error("Erreur lors de la création de la commande : " . $e->getMessage());

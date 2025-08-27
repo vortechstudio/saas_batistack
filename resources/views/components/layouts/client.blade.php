@@ -31,7 +31,17 @@
                         <!-- Sidebar content here -->
                             @foreach (auth()->user()->unreadNotifications as $notification)
                                 <li>
-                                    <x-mary-alert :title="$notification->data['message']" />
+                                    <div role="alert" class="alert alert-vertical sm:alert-horizontal alert-{{ $notification->data['iconColor'] }}">
+                                        @php
+                                        $icon = $notification->data['icon'];
+                                        @endphp
+                                        @svg($icon, 'w-6 h-6')
+                                        <div>
+                                            <h3 class="font-bold">{{ $notification->data['title'] }}</h3>
+                                            <div class="text-xs">{{ $notification->data['body'] }}</div>
+                                        </div>
+                                        <button class="btn btn-sm">See</button>
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>

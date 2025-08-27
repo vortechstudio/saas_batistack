@@ -18,14 +18,14 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'type_compte' => $this->faker->randomElement(CustomerTypeEnum::array()->pluck('value')->toArray()),
-            'entreprise' => $this->faker->company(),
-            'adresse' => $this->faker->address(),
-            'code_postal' => $this->faker->postcode(),
-            'ville' => $this->faker->city(),
-            'pays' => $this->faker->country(),
-            'tel' => $this->faker->phoneNumber(),
-            'portable' => $this->faker->phoneNumber(),
+            'type_compte' => fake()->randomElement(CustomerTypeEnum::array()->pluck('value')->toArray()),
+            'entreprise' => fake()->company(),
+            'adresse' => fake()->address(),
+            'code_postal' => fake()->postcode(),
+            'ville' => fake()->city(),
+            'pays' => fake()->country(),
+            'tel' => fake()->phoneNumber(),
+            'portable' => fake()->phoneNumber(),
             'user_id' => \App\Models\User::factory(),
         ];
     }

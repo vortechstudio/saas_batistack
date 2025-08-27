@@ -61,10 +61,31 @@ class CreateInvoiceByOrder implements ShouldQueue
         $items = collect();
 
         foreach ($this->order->items as $item) {
-            $items->push([
-                "price" => $item->product->stripe_price_id,
-                "quantity" => $item->quantity,
-            ]);
+            // Vérifier si stripe_price_id est non vide dans productPrice
+            if (!empty($item->productPrice->stripe_price_id) && !is_null($item->productPrice->stripe_price_id)) {
+                $items->push([
+                    "price" => trim($item->productPrice->stripe_price_id), // Accès via productPrice
+                    "quantity" => $item->quantity,
+                ]);
+            } else {
+                // Journaliser une erreur si un produit n'a pas de stripe_price_id valide
+                logger()->warning("Produit avec ID {$item->product->id} (ProductPrice ID: {$item->productPrice->id}) n'a pas de stripe_price_id valide. Ignoré pour la souscription Stripe.");
+            }
+        }
+
+        // Vérifier si la collection items est vide avant l'appel à Stripe
+        if ($items->isEmpty()) {
+            $errorMessage = "Aucun produit valide avec stripe_price_id trouvé pour la commande {$this->order->id}";
+            logger()->error($errorMessage);
+
+            // Notifier l'administrateur
+            Notification::make()
+                ->title('Erreur de configuration produit')
+                ->body("La commande #{$this->order->id} ne contient aucun produit avec un stripe_price_id valide.")
+                ->danger()
+                ->sendToDatabase(User::find(1));
+
+            throw new \Exception($errorMessage);
         }
 
         try {
@@ -87,7 +108,7 @@ class CreateInvoiceByOrder implements ShouldQueue
                 return $subscription; // Retourne la souscription même si elle n'est pas active/trialing
             }
         } catch (Throwable $th) {
-            logger()->error($th->getMessage());
+            logger()->error("Erreur Stripe pour la commande {$this->order->id}: " . $th->getMessage());
             throw $th;
         }
     }
