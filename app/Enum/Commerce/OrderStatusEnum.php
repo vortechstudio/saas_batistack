@@ -17,12 +17,12 @@ enum OrderStatusEnum: string
     public function label(): string
     {
         return match ($this) {
-            self::PENDING => 'Pending',
-            self::CONFIRMED => 'Confirmed',
-            self::PROCESSING => 'Processing',
-            self::DELIVERED => 'Delivered',
-            self::CANCELLED => 'Cancelled',
-            self::REFUNDED => 'Refunded',
+            self::PENDING => 'En attente',
+            self::CONFIRMED => 'Confirmée',
+            self::PROCESSING => 'En cours de traitement',
+            self::DELIVERED => 'Livrée',
+            self::CANCELLED => 'Annulée',
+            self::REFUNDED => 'Remboursée',
         };
     }
 

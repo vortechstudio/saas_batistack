@@ -41,6 +41,11 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function logs()
+    {
+        return $this->hasMany(OrderLog::class);
+    }
+
     // Scopes
     /**
      * Scope pour filtrer par statut
@@ -123,7 +128,7 @@ class Order extends Model
             // Format: ORD-YYYYMMDD-XXXXX (ex: ORD-20250126-A1B2C)
             $number = 'ORD-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
         } while (self::where('order_number', $number)->exists());
-        
+
         return $number;
     }
 

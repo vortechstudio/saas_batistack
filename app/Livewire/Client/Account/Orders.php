@@ -69,7 +69,7 @@ class Orders extends Component implements HasActions, HasSchemas, HasTable
                 ActionGroup::make([
                     Action::make('suivi')
                         ->label('Suivi de commande')
-                        //->url(fn (Order $record) => route('client.account.orders.track', $record))
+                        ->url(fn (Order $record) => route('client.account.order.show', $record->id))
                         ->openUrlInNewTab(),
                 ]),
             ]);
