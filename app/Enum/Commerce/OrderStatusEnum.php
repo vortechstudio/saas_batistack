@@ -49,4 +49,16 @@ enum OrderStatusEnum: string
             self::REFUNDED => 'o-arrow-left',
         };
     }
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::PENDING => 'La commande est en attente de confirmation.',
+            self::CONFIRMED => 'La commande a été confirmée.',
+            self::PROCESSING => 'La commande est en cours de traitement.',
+            self::DELIVERED => 'La commande a été livrée.',
+            self::CANCELLED => 'La commande a été annulée.',
+            self::REFUNDED => 'La commande a été remboursée.',
+        };
+    }
 }
