@@ -3,6 +3,7 @@
 namespace App\Jobs\Commerce;
 
 use App\Enum\Commerce\OrderStatusEnum;
+use App\Jobs\Service\CreateService;
 use App\Models\Commerce\Order;
 use App\Models\User;
 use App\Notifications\Commerce\CreateSubscription;
@@ -106,6 +107,7 @@ class CreateInvoiceByOrder implements ShouldQueue
                     'stripe_payment_intent_id' => $invoiceStripe->payment_intent
                 ]);
                 $this->order->logs()->create(['libelle' => "Paiement Effectuer"]);
+                dispatch(new CreateService($this->order, $subscription->id));
                 return $subscription;
             } else {
                 logger()->error("Erreur lors de la création de la souscription sur stripe pour la commande {$this->order->id}. Statut: {$subscription->status}");

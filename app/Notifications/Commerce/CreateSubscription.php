@@ -35,7 +35,11 @@ class CreateSubscription extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->markdown('mail.commerce.create_subscription');
+        return (new MailMessage)
+            ->markdown('mail.commerce.create_subscription', [
+                'order' => $this->order,
+                'subscription' => $this->subscription
+            ]);
     }
 
     /**
