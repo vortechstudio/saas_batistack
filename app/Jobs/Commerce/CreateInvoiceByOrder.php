@@ -97,10 +97,12 @@ class CreateInvoiceByOrder implements ShouldQueue
             // Simplification de la condition: vérifier si le statut est 'active' ou 'trialing'
             if (in_array($subscription->status, ['active', 'trialing'])) {
                 // Met à jour l'état de la commande
+                $invoiceStripe = app(StripeService::class)->client->invoices->retrieve($subscription->latest_invoice);
                 $this->order->update([
                     'status' => OrderStatusEnum::CONFIRMED,
                     'confirmed_at' => now(),
-                    'stripe_invoice_id' => $subscription->latest_invoice
+                    'stripe_invoice_id' => $subscription->latest_invoice,
+                    'stripe_payment_intent_id' => $invoiceStripe->payment_intent
                 ]);
                 return $subscription;
             } else {
