@@ -42,6 +42,11 @@ class Customer extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function paymentMethods()
+    {
+        return $this->hasMany(CustomerPaymentMethod::class);
+    }
+
     /** Attributes */
     protected function getSupportTypeColorAttributes()
     {

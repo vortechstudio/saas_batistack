@@ -9,7 +9,7 @@
                 @livewire('dashboard.total_invoice_amount_widget')
                 <div class="card card-border bg-blue-100 rounded-lg mt-5">
                     <div class="card-body justify-center items-center gap-3">
-                        @if($countOrder > 0)
+                        @if($countOrder > 0 && $latestOrder->delivered_at)
                             <span class="font-black text-blue-600 text-xl">Dernière commande</span>
                             <span class="badge badge-info text-white">N° {{ $latestOrder->order_number }}</span>
                             <span class="text-blue-600"><strong>{{ $latestOrder->delivered_at->format('d/m/Y') }}</strong> Votre facture est disponible @svg('heroicon-o-check', "text-blue-600 w-1 h-1")</span>

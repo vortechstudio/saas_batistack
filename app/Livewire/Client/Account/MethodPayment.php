@@ -3,6 +3,7 @@
 namespace App\Livewire\Client\Account;
 
 use App\Services\Stripe\PaymentMethodService;
+use App\Services\Stripe\StripeService;
 use Auth;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup as ActionsActionGroup;
@@ -81,7 +82,7 @@ class MethodPayment extends Component implements HasActions, HasSchemas, HasTabl
                     ->label('Ajouté le')
                     ->dateTime('d/m/Y H:i'),
             ])
-            ->actions([
+            ->recordActions([
                 ActionsActionGroup::make([
                     Action::make('setDefault')
                         ->label('Définir par défaut')
@@ -146,6 +147,8 @@ class MethodPayment extends Component implements HasActions, HasSchemas, HasTabl
                                 Auth::user()->customer,
                                 route('client.account.method-payment')
                             );
+
+
 
                             return redirect($session->url);
                         } catch (\Exception $e) {
@@ -218,6 +221,31 @@ class MethodPayment extends Component implements HasActions, HasSchemas, HasTabl
         // Gérer les retours de Stripe Checkout
         if (request()->has('setup')) {
             if (request()->get('setup') === 'success') {
+                $paymentMethods = Auth::user()->customer->listPaymentMethods();
+                $existingPaymentMethodIds = Auth::user()->customer->paymentMethods()->pluck('stripe_payment_method_id')->toArray();
+
+                foreach ($paymentMethods as $method) {
+                    $isNewPaymentMethod = !in_array($method->id, $existingPaymentMethodIds);
+
+                    Auth::user()->customer->paymentMethods()->updateOrCreate(
+                        ['stripe_payment_method_id' => $method->id],
+                        [
+                            "is_active" => true,
+                            "is_default" => false,
+                            "customer_id" => Auth::user()->customer->id,
+                        ]
+                    );
+
+                    // Définir comme moyen de paiement par défaut uniquement lors de la création
+                    if ($isNewPaymentMethod) {
+                        app(StripeService::class)->client->customers->update(Auth::user()->customer->stripe_customer_id, [
+                            'invoice_settings' => [
+                                'default_payment_method' => $method->id,
+                            ]
+                        ]);
+                    }
+                }
+
                 Notification::make()
                     ->success()
                     ->title('Moyen de paiement ajouté avec succès')

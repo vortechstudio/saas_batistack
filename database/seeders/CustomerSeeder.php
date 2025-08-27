@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Stripe\CustomerService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class CustomerSeeder extends Seeder
 {
@@ -16,6 +17,7 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
+        Artisan::call('purge:stripe-data');
         User::factory(10)->create();
 
         foreach (User::all() as $user) {
