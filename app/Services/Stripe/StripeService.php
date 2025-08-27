@@ -6,7 +6,7 @@ use Stripe\StripeClient;
 
 class StripeService
 {
-    protected $client;
+    public $client;
 
     public function __construct()
     {

@@ -6,6 +6,7 @@ use App\Enum\Commerce\OrderStatusEnum;
 use App\Enum\Commerce\OrderTypeEnum;
 use App\Enum\Product\ProductCategoryEnum;
 use App\Enum\Product\ProductPriceFrequencyEnum;
+use App\Jobs\Commerce\CreateInvoiceByOrder;
 use App\Models\Commerce\Order;
 use App\Models\Product\Product;
 use Filament\Forms\Components\CheckboxList;
@@ -165,6 +166,7 @@ class CartLicense extends Component implements HasSchemas
             $order->logs()->create([
                 'libelle' => 'Création de votre commande',
             ]);
+            dispatch(new CreateInvoiceByOrder($this->order));
             return $this->redirect(route('client.account.order.show', $order->id));
         }catch (\Exception $e) {
             Log::error("Erreur lors de la création de la commande : " . $e->getMessage());
