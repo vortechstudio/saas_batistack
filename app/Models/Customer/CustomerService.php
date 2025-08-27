@@ -31,10 +31,15 @@ class CustomerService extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function steps()
+    {
+        return $this->hasMany(CustomerServiceStep::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($customerService) {
             if (empty($customerService->service_code)) {
                 $customerService->service_code = $customerService->generateServiceCode();
@@ -51,7 +56,7 @@ class CustomerService extends Model
             // Format: SRV-YYYYMMDD-XXXXX (ex: SRV-20250126-A1B2C)
             $code = 'SRV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
         } while (self::where('service_code', $code)->exists());
-        
+
         return $code;
     }
 
@@ -69,9 +74,9 @@ class CustomerService extends Model
                 strtoupper(Str::random(4))
             );
         } while (self::where('service_code', $code)->exists());
-        
+
         return $code;
     }
 
-    
+
 }

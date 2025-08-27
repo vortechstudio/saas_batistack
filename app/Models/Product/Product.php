@@ -3,6 +3,7 @@
 namespace App\Models\Product;
 
 use App\Enum\Product\ProductCategoryEnum;
+use App\Services\Stripe\StripeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,6 +28,11 @@ class Product extends Model
     public function features()
     {
         return $this->belongsToMany(Feature::class, 'feature_product');
+    }
+
+    public function getInfoProductStripe()
+    {
+        return app(StripeService::class)->client->products->retrieve($this->stripe_product_id);
     }
 
     protected static function booted(): void

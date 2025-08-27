@@ -7,7 +7,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "alfikripayakumbuh/aapanel-api": "^1.0",
         "filament/filament": "~4.0",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.33",
@@ -18,7 +17,8 @@
         "opcodesio/log-viewer": "^3.19",
         "predis/predis": "^3.2",
         "robsontenorio/mary": "^2.4",
-        "stripe/stripe-php": "^17.5"
+        "stripe/stripe-php": "^17.5",
+        "vortechstudio/aapanel-api": "^1.1"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.6",
