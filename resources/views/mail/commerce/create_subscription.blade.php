@@ -14,15 +14,19 @@ Nous vous confirmons la création de votre abonnement suite à votre commande N�
 ## Détails de votre abonnement
 - **ID Stripe :** {{ $subscription->id }}
 - **Statut :** {{ ucfirst($subscription->status) }}
+@if(isset($subscription->items->data[0]->price->recurring))
 - **Période de facturation :** {{ $subscription->items->data[0]->price->recurring->interval === 'month' ? 'Mensuel' : 'Annuel' }}
+@endif
+@if($subscription->current_period_end)
 - **Prochaine facturation :** {{ \Carbon\Carbon::createFromTimestamp($subscription->current_period_end)->format('d/m/Y') }}
+@endif
 
 ## Articles inclus
 @foreach($order->items as $item)
 - {{ $item->product->name }} ({{ $item->quantity }}x) - {{ number_format($item->unit_price / 100, 2, ',', ' ') }} €
 @endforeach
 
-<x-mail::button :url="route('client.account.orders.show', $order)">
+<x-mail::button :url="route('client.account.order.show', $order)">
 Voir ma commande
 </x-mail::button>
 
