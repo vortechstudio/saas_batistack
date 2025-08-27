@@ -3,6 +3,8 @@
 use App\Livewire\Client\Account\Dashboard as AccountDashboard;
 use App\Livewire\Client\Dashboard;
 use App\Models\Customer\Customer;
+use App\Services\Panel\PanelService;
+use App\Services\PanelService as ServicesPanelService;
 use App\Services\Stripe\CustomerService;
 use App\Services\Stripe\ProductService;
 use Illuminate\Support\Facades\Route;
@@ -13,9 +15,8 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $customer = Customer::find(1);
-    $methods = app(CustomerService::class)->listPaymentMethods($customer);
-    dd($customer->support_type->color());
+    $panelService = new ServicesPanelService();
+    dd($panelService->client->fetchSites());
 });
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
