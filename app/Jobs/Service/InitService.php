@@ -19,7 +19,6 @@ class InitService implements ShouldQueue
 {
     use Queueable;
     private $panel;
-    private $nebulo;
 
     /**
      * Create a new job instance.
@@ -27,7 +26,6 @@ class InitService implements ShouldQueue
     public function __construct(public CustomerService $service, public Order $order)
     {
         $this->panel = new PanelService();
-        $this->nebulo = new NebuloService();
     }
 
     /**
@@ -55,7 +53,6 @@ class InitService implements ShouldQueue
         $this->initDomain();
         $this->verifyDomain();
         $this->verifyDatabase();
-        $this->openStorageRight();
         $this->installMainApps();
         $this->verifyInstallation();
         $this->verifyServiceConnection();
@@ -87,10 +84,6 @@ class InitService implements ShouldQueue
             [
                 'type' => 'license',
                 'step' => 'Vérification de la base de donnée',
-            ],
-            [
-                'type' => 'license',
-                'step' => 'Ouverture des droits de stockages pour le service',
             ],
             [
                 'type' => 'license',
@@ -171,34 +164,6 @@ class InitService implements ShouldQueue
             ]);
         } catch (\Exception $e) {
             $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
-                'done' => false,
-                'comment' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    private function openStorageRight()
-    {
-        // Création de l'utilisateur, clé API et bucket
-        $bucketName = Str::slug($this->service->customer->entreprise.'-bucket');
-
-        try {
-            $userBucket = $this->nebulo->createUser($this->service->customer->user);
-            $this->nebulo->createBucket(
-                user: $userBucket,
-                nameBucket: $bucketName,
-                limit_size: $this->service->product->getInfoProductStripe()->metadata->storage_limit
-            );
-            $this->service->customer->storage->create([
-                'bucket' => $bucketName,
-                'quota' => $this->service->product->getInfoProductStripe()->metadata->storage_limit,
-                'token' => Crypt::encrypt($this->nebulo->getApiKeyUser($this->service->customer->user)),
-            ]);
-            $this->service->steps()->where('step', 'Ouverture des droits de stockages pour le service')->first()->update([
-                'done' => true,
-            ]);
-        } catch (\Exception $e) {
-            $this->service->steps()->where('step', 'Ouverture des droits de stockages pour le service')->first()->update([
                 'done' => false,
                 'comment' => $e->getMessage(),
             ]);
