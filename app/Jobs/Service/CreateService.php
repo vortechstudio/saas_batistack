@@ -44,6 +44,9 @@ class CreateService implements ShouldQueue
             ]);
             $this->order->logs()->create(['libelle' => 'Service ' . $product->product->name . ' créé']);
 
+            $this->order->customer_service_id = $service->id;
+            $this->order->save();
+
             match ($product->product->category->value) {
                 'license' => dispatch(new InitService($service, $this->order)), // Déploiement de la license,
                 'modules' => '', // Activation du module pour le service

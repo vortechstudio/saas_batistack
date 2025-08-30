@@ -72,6 +72,7 @@ class InitService implements ShouldQueue
     {
         $this->order->update([
             'status' => OrderStatusEnum::DELIVERED,
+            'delivered_at' => now(),
         ]);
     }
 

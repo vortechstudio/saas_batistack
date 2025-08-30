@@ -5,6 +5,7 @@ namespace App\Models\Commerce;
 use App\Enum\Commerce\OrderStatusEnum;
 use App\Enum\Commerce\OrderTypeEnum;
 use App\Models\Customer\Customer;
+use App\Models\Customer\CustomerService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -44,6 +45,11 @@ class Order extends Model
     public function logs()
     {
         return $this->hasMany(OrderLog::class);
+    }
+
+    public function customerService()
+    {
+        return $this->belongsTo(CustomerService::class);
     }
 
     // Scopes
