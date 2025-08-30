@@ -67,7 +67,6 @@ class InitService implements ShouldQueue
         $this->order->update([
             'status' => OrderStatusEnum::DELIVERED,
         ]);
-        $this->order->logs()->create(['libelle' => 'Commande passée à livré, service en cours installation']);
     }
 
     private function initServiceSteps()
@@ -182,25 +181,28 @@ class InitService implements ShouldQueue
         $sshKey = config('batistack.ssh.private_key_path');
 
         try {
+
             // Commandes à exécuter séquentiellement
             $commands = [
                 ['cd', $domainPath],
                 ['git', 'clone', $gitRepo, '.'],
-                ['make', 'install-prod']
+                ['php', 'artisan', 'app:install', '--license='.$this->service->service_code]
             ];
 
             foreach ($commands as $command) {
                 // Construction de la commande SSH avec Process
                 $sshCommand = [
+                    'sshpass',
+                    '-p', 'rbU89a-4',
                     'ssh',
-                    '-i', $sshKey,
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
+                    '-p', '22',
                     implode(' ', array_map('escapeshellarg', $command))
                 ];
 
                 // Exécution avec Process
-                $result = Process::run($sshCommand, timeout: 300); // 5 minutes timeout
+                $result = Process::timeout(300)->run($sshCommand); // 5 minutes timeout
 
                 if ($result->failed()) {
                     throw new \Exception(
@@ -224,23 +226,11 @@ class InitService implements ShouldQueue
                 'comment' => 'Application installée avec succès via Process'
             ]);
 
-            // Log de succès global
-            $this->service->logs()->create([
-                'libelle' => 'Installation de l\'application principale réussie',
-                'details' => 'Installation complétée avec Process Laravel 11'
-            ]);
-
         } catch (\Exception $e) {
             // Gestion des erreurs
             $this->service->steps()->where('step', 'Installation de l\'application principal')->first()->update([
                 'done' => false,
                 'comment' => $e->getMessage()
-            ]);
-
-            // Log d'erreur
-            $this->service->logs()->create([
-                'libelle' => 'Erreur lors de l\'installation de l\'application principale',
-                'details' => $e->getMessage()
             ]);
 
             Log::error('Erreur installation application', [
@@ -286,12 +276,28 @@ class InitService implements ShouldQueue
 
             // 1. Vérification des fichiers essentiels
             foreach ($verifications['files'] as $file) {
-                $checkFileCommand = [
-                    'ssh', '-i', $sshKey, '-o', 'StrictHostKeyChecking=no',
-                    "$sshUser@$sshHost", "test -f $domainPath/$file && echo 'EXISTS' || echo 'MISSING'"
+                // Construction de la commande SSH avec Process
+                $sshCommand = [
+                    'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+
                 ];
 
-                $result = Process::run($checkFileCommand, timeout: 30);
+                $checkFileCommand = [
+                    'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+                    "test -f $domainPath/$file && echo 'EXISTS' || echo 'MISSING'"
+                ];
+
+                $result = Process::timeout(30)->run($checkFileCommand);
 
                 if ($result->failed() || trim($result->output()) !== 'EXISTS') {
                     throw new \Exception("Fichier manquant ou inaccessible: $file");
@@ -301,11 +307,16 @@ class InitService implements ShouldQueue
             // 2. Vérification des dossiers essentiels
             foreach ($verifications['directories'] as $directory) {
                 $checkDirCommand = [
-                    'ssh', '-i', $sshKey, '-o', 'StrictHostKeyChecking=no',
-                    "$sshUser@$sshHost", "test -d $domainPath/$directory && echo 'EXISTS' || echo 'MISSING'"
+                    'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+                    "test -d $domainPath/$directory && echo 'EXISTS' || echo 'MISSING'"
                 ];
 
-                $result = Process::run($checkDirCommand, timeout: 30);
+                $result = Process::timeout(30)->run($checkDirCommand);
 
                 if ($result->failed() || trim($result->output()) !== 'EXISTS') {
                     throw new \Exception("Dossier manquant ou inaccessible: $directory");
@@ -314,11 +325,16 @@ class InitService implements ShouldQueue
 
             // 3. Vérifier que les permissions sont correctes
             $permissionsCommand = [
-                'ssh', '-i', $sshKey, '-o', 'StrictHostKeyChecking=no',
-                "$sshUser@$sshHost", "ls -la $domainPath/storage && ls -la $domainPath/bootstrap/cache"
+                'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+                "ls -la $domainPath/storage && ls -la $domainPath/bootstrap/cache"
             ];
 
-            $permissionsResult = Process::run($permissionsCommand, timeout: 30);
+            $permissionsResult = Process::timeout(30)->run($permissionsCommand);
 
             if ($permissionsResult->failed()) {
                 throw new \Exception("Impossible de vérifier les permissions des dossiers storage et bootstrap/cache");
@@ -326,11 +342,16 @@ class InitService implements ShouldQueue
 
             // 4. Vérifier que l'application Laravel fonctionne
             $artisanCommand = [
-                'ssh', '-i', $sshKey, '-o', 'StrictHostKeyChecking=no',
-                "$sshUser@$sshHost", "cd $domainPath && php artisan --version"
+                'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+                "cd $domainPath && php artisan --version"
             ];
 
-            $artisanResult = Process::run($artisanCommand, timeout: 60);
+            $artisanResult = Process::timeout(60)->run($artisanCommand);
 
             if ($artisanResult->failed()) {
                 throw new \Exception("L'application Laravel ne répond pas correctement: " . $artisanResult->errorOutput());
@@ -347,11 +368,16 @@ class InitService implements ShouldQueue
 
             // 6. Vérifier la base de données
             $dbCheckCommand = [
-                'ssh', '-i', $sshKey, '-o', 'StrictHostKeyChecking=no',
-                "$sshUser@$sshHost", "cd $domainPath && php artisan migrate:status"
+                'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+                "cd $domainPath && php artisan migrate:status"
             ];
 
-            $dbResult = Process::run($dbCheckCommand, timeout: 60);
+            $dbResult = Process::timeout(60)->run($dbCheckCommand);
 
             if ($dbResult->failed()) {
                 throw new \Exception("Impossible de vérifier l'état de la base de données: " . $dbResult->errorOutput());
@@ -361,12 +387,6 @@ class InitService implements ShouldQueue
             $this->service->steps()->where('step', 'Vérification de l\'installation')->first()->update([
                 'done' => true,
                 'comment' => 'Installation vérifiée avec succès. Laravel version: ' . trim($artisanResult->output())
-            ]);
-
-            // Log de succès
-            $this->service->logs()->create([
-                'libelle' => 'Vérification de l\'installation réussie',
-                'details' => 'Tous les fichiers, dossiers et fonctionnalités essentiels sont présents et fonctionnels'
             ]);
 
             Log::info("Installation vérifiée avec succès pour le service", [
@@ -380,12 +400,6 @@ class InitService implements ShouldQueue
             $this->service->steps()->where('step', 'Vérification de l\'installation')->first()->update([
                 'done' => false,
                 'comment' => $e->getMessage()
-            ]);
-
-            // Log d'erreur
-            $this->service->logs()->create([
-                'libelle' => 'Erreur lors de la vérification de l\'installation',
-                'details' => $e->getMessage()
             ]);
 
             Log::error('Erreur vérification installation', [
@@ -490,12 +504,6 @@ class InitService implements ShouldQueue
                 'comment' => 'Service SAAS accessible et fonctionnel. HTTP: ' . $httpCheck['http_code'] . ', DB: OK'
             ]);
 
-            // Log de succès
-            $this->service->logs()->create([
-                'libelle' => 'Vérification de la connexion au service SAAS réussie',
-                'details' => 'Le service est accessible et tous les composants essentiels fonctionnent correctement'
-            ]);
-
             Log::info("Connexion au service SAAS vérifiée avec succès", [
                 'service_id' => $this->service->id,
                 'domain' => $domain,
@@ -507,12 +515,6 @@ class InitService implements ShouldQueue
             $this->service->steps()->where('step', 'Vérification de la connexion au service (SAAS)')->first()->update([
                 'done' => false,
                 'comment' => $e->getMessage()
-            ]);
-
-            // Log d'erreur
-            $this->service->logs()->create([
-                'libelle' => 'Erreur lors de la vérification de la connexion au service SAAS',
-                'details' => $e->getMessage()
             ]);
 
             Log::error('Erreur vérification connexion service SAAS', [
@@ -590,11 +592,16 @@ class InitService implements ShouldQueue
         try {
             // Commande pour tester la connexion DB via artisan
             $dbTestCommand = [
-                'ssh', '-i', $sshKey, '-o', 'StrictHostKeyChecking=no',
-                "$sshUser@$sshHost", "cd $domainPath && php artisan tinker --execute='DB::connection()->getPdo(); echo \"DB_OK\";'"
+                'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+                "cd $domainPath && php artisan tinker --execute='DB::connection()->getPdo(); echo \"DB_OK\";'"
             ];
 
-            $result = Process::run($dbTestCommand, timeout: 60);
+            $result = Process::timeout(60)->run($dbTestCommand);
 
             if ($result->failed()) {
                 return [
@@ -635,20 +642,30 @@ class InitService implements ShouldQueue
 
             // Vérifier que les queues fonctionnent
             $queueCommand = [
-                'ssh', '-i', $sshKey, '-o', 'StrictHostKeyChecking=no',
-                "$sshUser@$sshHost", "cd $domainPath && php artisan queue:work --once --timeout=5 || echo 'QUEUE_ERROR'"
+                'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+                "cd $domainPath && php artisan queue:work --once --timeout=5 || echo 'QUEUE_ERROR'"
             ];
 
-            $queueResult = Process::run($queueCommand, timeout: 30);
+            $queueResult = Process::timeout(30)->run($queueCommand);
             $checks['queue'] = !str_contains($queueResult->output(), 'QUEUE_ERROR');
 
             // Vérifier que le cache fonctionne
             $cacheCommand = [
-                'ssh', '-i', $sshKey, '-o', 'StrictHostKeyChecking=no',
-                "$sshUser@$sshHost", "cd $domainPath && php artisan tinker --execute='Cache::put(\"test\", \"ok\", 60); echo Cache::get(\"test\");'"
+                'sshpass',
+                    '-p', 'rbU89a-4',
+                    'ssh',
+                    '-o', 'StrictHostKeyChecking=no',
+                    "$sshUser@$sshHost",
+                    '-p', '22',
+                "cd $domainPath && php artisan tinker --execute='Cache::put(\"test\", \"ok\", 60); echo Cache::get(\"test\");'"
             ];
 
-            $cacheResult = Process::run($cacheCommand, timeout: 30);
+            $cacheResult = Process::timeout(30)->run($cacheCommand);
             $checks['cache'] = str_contains($cacheResult->output(), 'ok');
 
             return [
@@ -729,12 +746,6 @@ class InitService implements ShouldQueue
                 'comment' => 'Licence valide. Produit: ' . $this->service->product->name . ', Expiration: ' . $this->service->expirationDate->format('d/m/Y')
             ]);
 
-            // Log de succès
-            $this->service->logs()->create([
-                'libelle' => 'Vérification des informations de licence réussie',
-                'details' => 'Toutes les informations de licence sont valides et cohérentes'
-            ]);
-
             Log::info("Informations de licence vérifiées avec succès", [
                 'service_id' => $this->service->id,
                 'service_code' => $this->service->service_code,
@@ -747,12 +758,6 @@ class InitService implements ShouldQueue
             $this->service->steps()->where('step', 'Vérification des informations relatives à la license')->first()->update([
                 'done' => false,
                 'comment' => $e->getMessage()
-            ]);
-
-            // Log d'erreur
-            $this->service->logs()->create([
-                'libelle' => 'Erreur lors de la vérification des informations de licence',
-                'details' => $e->getMessage()
             ]);
 
             Log::error('Erreur vérification informations licence', [
