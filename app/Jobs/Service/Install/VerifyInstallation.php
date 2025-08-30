@@ -3,9 +3,11 @@
 namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
+use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
@@ -195,6 +197,12 @@ class VerifyInstallation implements ShouldQueue
                 'domain' => $domain,
                 'error' => $e->getMessage()
             ]);
+
+            Notification::make()
+                ->danger()
+                ->title("Installation d'un service en erreur !")
+                ->body($e->getMessage())
+                ->sendToDatabase(Auth::user()->where('email', 'admin@'.config('batistack.domain'))->first());
 
             throw $e;
         }

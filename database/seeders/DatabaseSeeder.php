@@ -21,6 +21,12 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
+        User::factory()->create([
+            'nom' => 'Admin',
+            'prenom' => 'User',
+            'email' => 'admin@'.config('batistack.domain'),
+        ]);
+
         if (config('app.env') == 'local' || config('app.env') == 'testing') {
             $this->call([
                 ProductSeeder::class,

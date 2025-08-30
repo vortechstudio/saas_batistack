@@ -18,7 +18,8 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    dd(Product::find(1)->info_stripe);
+    $db = app(ServicesPanelService::class)->fetchDatabases(1,1,'db_c2me');
+    dd($db);
 });
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {

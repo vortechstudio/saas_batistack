@@ -4,9 +4,11 @@ namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
 use App\Services\PanelService;
+use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class InitDomain implements ShouldQueue
@@ -65,6 +67,11 @@ class InitDomain implements ShouldQueue
                 'done' => false,
                 'comment' => $e->getMessage(),
             ]);
+            Notification::make()
+                ->danger()
+                ->title("Installation d'un service en erreur !")
+                ->body($e->getMessage())
+                ->sendToDatabase(Auth::user()->where('email', 'admin@'.config('batistack.domain'))->first());
         }
     }
 }

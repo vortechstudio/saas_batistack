@@ -3,9 +3,11 @@
 namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
+use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class VerifyLicenseInformation implements ShouldQueue
@@ -96,6 +98,12 @@ class VerifyLicenseInformation implements ShouldQueue
             $this->service->update([
                 'status' => 'error',
             ]);
+
+            Notification::make()
+                ->danger()
+                ->title("Installation d'un service en erreur !")
+                ->body($e->getMessage())
+                ->sendToDatabase(Auth::user()->where('email', 'admin@'.config('batistack.domain'))->first());
 
             Log::error('Erreur vérification informations licence', [
                 'service_id' => $this->service->id,
