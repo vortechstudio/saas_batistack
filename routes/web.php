@@ -1,8 +1,11 @@
 <?php
 
 use App\Livewire\Client\Account\Dashboard as AccountDashboard;
+use App\Livewire\Client\Account\Service;
+use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Dashboard;
 use App\Models\Customer\Customer;
+use App\Models\Product\Product;
 use App\Services\Panel\PanelService;
 use App\Services\PanelService as ServicesPanelService;
 use App\Services\Stripe\CustomerService;
@@ -15,8 +18,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $panelService = new ServicesPanelService();
-    dd($panelService->uploadCert('test.batistack.test', file_get_contents(storage_path('ssl/certificat.key')), file_get_contents(storage_path('ssl/certificat.crt'))));
+    dd(Product::find(1)->info_stripe);
 });
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
@@ -29,8 +31,14 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
         Route::get('/orders', \App\Livewire\Client\Account\Orders::class)->name('client.account.orders');
         Route::get('/order/{id}', \App\Livewire\Client\Account\OrderShow::class)->name('client.account.order.show');
 
+
         Route::get('/cart', \App\Livewire\Client\Account\CartIndex::class)->name('client.account.cart.index');
         Route::get('/cart/license', \App\Livewire\Client\Account\CartLicense::class)->name('client.account.cart.license');
+    });
+
+    Route::prefix('services')->group(function () {
+        Route::get('/', Service::class)->name('client.services');
+        Route::get('/{service_code}', ServiceShow::class)->name('client.service.show');
     });
 });
 

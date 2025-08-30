@@ -52,6 +52,9 @@ class NotifyClientByMail implements ShouldQueue
             ]);
 
         } catch (\Exception $e) {
+            $this->service->update([
+                'status' => 'error',
+            ]);
             Log::error('Erreur lors de l\'envoi de la notification email', [
                 'service_id' => $this->service->id,
                 'error' => $e->getMessage(),

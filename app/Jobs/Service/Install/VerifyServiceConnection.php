@@ -79,6 +79,10 @@ class VerifyServiceConnection implements ShouldQueue
                 'comment' => $e->getMessage()
             ]);
 
+            $this->service->update([
+                'status' => 'error',
+            ]);
+
             Log::error('Erreur vérification connexion service SAAS', [
                 'service_id' => $this->service->id,
                 'domain' => $domain,

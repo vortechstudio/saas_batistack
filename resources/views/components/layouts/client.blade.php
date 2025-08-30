@@ -74,7 +74,7 @@
                         <x-mary-menu-item title="Mes factures" link="{{ route('client.account.invoice') }}" />
                         <x-mary-menu-item title="Mes moyens de paiements" link="{{ route('client.account.method-payment') }}" />
                         <x-mary-menu-item title="Mes commandes" link="{{ route('client.account.orders') }}" />
-                        <x-mary-menu-item title="Mes Services & Contrats" link="###" />
+                        <x-mary-menu-item title="Mes Services & Contrats" link="{{ route('client.services') }}" />
                     </div>
                 </x-mary-dropdown>
             </x-slot:actions>
@@ -89,7 +89,7 @@
                 <x-mary-menu activate-by-route active-bg-color="bg-blue-900 text-white font-black">
                     <x-mary-menu-item title="Accueil" icon="o-home" link="{{ route('client.dashboard') }}" />
                     <x-mary-menu-sub title="Logiciels & Services" icon="o-adjustments-horizontal">
-                        <x-mary-menu-item title="Mes logiciels & Services" link="####" />
+                        <x-mary-menu-item title="Mes logiciels & Services" link="{{ route('client.services') }}" />
                         <x-mary-menu-item title="Sauvegarde en ligne" link="####" />
                         <x-mary-menu-item title="Catalogue" link="####" />
                     </x-mary-menu-sub>

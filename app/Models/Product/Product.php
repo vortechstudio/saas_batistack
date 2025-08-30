@@ -35,6 +35,11 @@ class Product extends Model
         return app(StripeService::class)->client->products->retrieve($this->stripe_product_id);
     }
 
+    public function getInfoStripeAttribute()
+    {
+        return $this->getInfoProductStripe();
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Product $product) {

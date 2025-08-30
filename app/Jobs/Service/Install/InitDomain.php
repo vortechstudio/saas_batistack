@@ -58,6 +58,9 @@ class InitDomain implements ShouldQueue
             ]);
             dispatch(new VerifyDomain($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } catch (\Exception $e) {
+            $this->service->update([
+                'status' => 'error',
+            ]);
             $this->service->steps()->where('step', 'Création de domaine')->first()->update([
                 'done' => false,
                 'comment' => $e->getMessage(),

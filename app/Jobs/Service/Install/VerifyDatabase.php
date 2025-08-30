@@ -41,6 +41,9 @@ class VerifyDatabase implements ShouldQueue
                 'done' => false,
                 'comment' => $e->getMessage(),
             ]);
+            $this->service->update([
+                'status' => 'error',
+            ]);
         }
     }
 }

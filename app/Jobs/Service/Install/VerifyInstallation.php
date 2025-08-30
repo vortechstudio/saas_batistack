@@ -186,6 +186,10 @@ class VerifyInstallation implements ShouldQueue
                 'comment' => $e->getMessage()
             ]);
 
+            $this->service->update([
+                'status' => 'error',
+            ]);
+
             Log::error('Erreur vérification installation', [
                 'service_id' => $this->service->id,
                 'domain' => $domain,

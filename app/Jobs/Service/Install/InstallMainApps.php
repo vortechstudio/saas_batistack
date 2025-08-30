@@ -61,6 +61,10 @@ class InstallMainApps implements ShouldQueue
                 'comment' => $e->getMessage()
             ]);
 
+            $this->service->update([
+                'status' => 'error',
+            ]);
+
             Log::error('Erreur installation application', [
                 'service_id' => $this->service->id,
                 'error' => $e->getMessage()

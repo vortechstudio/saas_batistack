@@ -93,6 +93,10 @@ class VerifyLicenseInformation implements ShouldQueue
                 'comment' => $e->getMessage()
             ]);
 
+            $this->service->update([
+                'status' => 'error',
+            ]);
+
             Log::error('Erreur vérification informations licence', [
                 'service_id' => $this->service->id,
                 'service_code' => $this->service->service_code,
