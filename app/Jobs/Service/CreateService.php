@@ -16,7 +16,7 @@ class CreateService implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public Order $order, public string $subscription_id)
+    public function __construct(private Order $order, private string $subscription_id)
     {
     }
 

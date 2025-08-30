@@ -25,3 +25,5 @@ _ide_helper.php
 _ide_helper_models.php
 /public/*.cookie
 /storage/ssh
+/storage/ssl
+/storage/ssl/*.*

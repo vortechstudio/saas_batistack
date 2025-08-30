@@ -21,7 +21,7 @@ class CreateInvoiceByOrder implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public Order $order)
+    public function __construct(private Order $order)
     {
         $this->stripe = new StripeService();
     }
