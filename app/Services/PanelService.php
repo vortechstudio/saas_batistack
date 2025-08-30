@@ -318,6 +318,20 @@ class PanelService
         return json_decode($result, true);
     }
 
+    public function addDatabase($domain, $databaseUsername, $databasePassword)
+    {
+        $url = $this->baseUrl . '/v2/database?action=AddDB';
+
+        $requestData = $this->generateRequestData();
+        $requestData['name'] = $databaseUsername;
+        $requestData['password'] = $databasePassword;
+        $requestData['domain'] = $domain;
+
+        $result = $this->httpPostWithCookie($url, $requestData);
+
+        return json_decode($result, true);
+    }
+
     /**
      * Delete an FTP account.
      *
@@ -480,11 +494,6 @@ class PanelService
         // Make POST request with cookie authentication
         $resultUpload = $this->httpPostWithCookie($urlUpload, $requestUpload);
         $hash = json_decode($resultUpload, true)['message']['hash'];
-
-        // Check if index was retrieved successfully
-        if (!$hash) {
-            return "hash is not found"; // Return null if hash is not found
-        }
 
         // API endpoint URL for certificate save
         $urlDeploy = $this->baseUrl . '/v2/ssl_domain?action=cert_deploy_sites';

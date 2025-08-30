@@ -37,13 +37,16 @@ class InitDomain implements ShouldQueue
                     runPath: '/public',
                     phpVersion: '83',
                     sql: true,
-                    databaseUsername: 'db_'.$domain,
-                    databasePassword: 'db_'.$domain,
-                    setSsl: 1,
-                    forceSsl: 1
+                    databaseUsername: 'db_'.Str::slug($this->service->customer->entreprise),
+                    databasePassword: 'db_'.Str::slug($this->service->customer->entreprise),
                 );
 
                 $this->panel->checkRunPath($domain);
+                $this->panel->uploadCert(
+                    domain: $domain,
+                    key: file_get_contents(storage_path('ssl/certificat.key')),
+                    cert: file_get_contents(storage_path('ssl/certificat.crt')),
+                );
 
                 if(config('app.env') == 'local') {
                     $this->panel->uploadCert($domain, storage_path('ssl/certificat.key'), storage_path('ssl/certificat.crt'));

@@ -16,7 +16,7 @@ Route::get('/', function () {
 
 Route::get('/test', function () {
     $panelService = new ServicesPanelService();
-    dd($panelService->client->fetchSites());
+    dd($panelService->uploadCert('test.batistack.test', file_get_contents(storage_path('ssl/certificat.key')), file_get_contents(storage_path('ssl/certificat.crt'))));
 });
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
