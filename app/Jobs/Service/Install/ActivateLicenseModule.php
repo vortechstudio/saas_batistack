@@ -6,8 +6,8 @@ use App\Models\Customer\CustomerService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
-use Log;
-use Process;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 
 class ActivateLicenseModule implements ShouldQueue
 {

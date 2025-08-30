@@ -4,7 +4,7 @@ namespace App\Livewire\Client\Account;
 
 use App\Services\Stripe\PaymentMethodService;
 use App\Services\Stripe\StripeService;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup as ActionsActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;

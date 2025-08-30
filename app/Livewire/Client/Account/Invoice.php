@@ -5,7 +5,7 @@ namespace App\Livewire\Client\Account;
 use App\Models\Customer\Customer;
 use App\Services\Stripe\CustomerService;
 use App\Services\Stripe\StripeCheckoutService;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
