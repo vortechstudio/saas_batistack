@@ -7,7 +7,7 @@ use Filament\Actions\Action;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class NotifyClientByMail implements ShouldQueue
 {

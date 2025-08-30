@@ -106,16 +106,13 @@ class CreateInvoiceByOrder implements ShouldQueue
                     'stripe_invoice_id' => $subscription->latest_invoice,
                     'stripe_payment_intent_id' => $invoiceStripe->payment_intent
                 ]);
-                $paymentStripe = app(StripeService::class)->client->paymentIntents->retrieve($invoiceStripe->payment_intent);
+
                 $this->order->payments()->create([
                     'order_id' => $this->order->id,
                     'payment_method' => 'stripe',
                     'status' => 'completed',
-                    'amount' => $paymentStripe->amount_received / 100,
-                    'stripe_payment_intent_id' => $paymentStripe->id,
-                    'stripe_payment_method_id' => $paymentStripe->payment_method,
-                    'stripe_customer_id' => $paymentStripe->customer,
-                    'processed_at' => $paymentStripe->created,
+                    'amount' => $this->order->total_amount,
+                    'processed_at' => now(),
                 ]);
                 $this->order->logs()->create(['libelle' => "Paiement Effectuer"]);
                 dispatch(new CreateService($this->order, $subscription->id));

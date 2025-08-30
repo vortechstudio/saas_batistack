@@ -29,7 +29,7 @@ class VerifyDomain implements ShouldQueue
     {
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
         try {
-            $this->panel->client->fetchSites(10, 1, $domain);
+            $this->panel->fetchSites(10, 1, $domain);
             $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
                 'done' => true,
             ]);

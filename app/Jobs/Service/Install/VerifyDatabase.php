@@ -31,7 +31,7 @@ class VerifyDatabase implements ShouldQueue
         $database = 'db_'.$domain;
         try {
             // Comment vérifier qu'une base de donnée existe pour le domaine
-            $this->panel->client->fetchDatabases(10, 1, $database);
+            $this->panel->fetchDatabases(10, 1, $database);
             $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
                 'done' => true,
             ]);

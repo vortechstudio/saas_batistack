@@ -30,8 +30,8 @@ class InitDomain implements ShouldQueue
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
 
         try {
-            if(count($this->panel->client->fetchSites(10,1, $domain)['message']['data']) == 0) {
-                $this->panel->client->addSite(
+            if(count($this->panel->fetchSites(10,1, $domain)['message']['data']) == 0) {
+                $this->panel->addSite(
                     domain: $domain,
                     path: '/www/wwwroot/'.$domain,
                     runPath: '/public',
@@ -43,10 +43,10 @@ class InitDomain implements ShouldQueue
                     forceSsl: 1
                 );
 
-                $this->panel->client->checkRunPath($domain);
+                $this->panel->checkRunPath($domain);
 
                 if(config('app.env') == 'local') {
-                    $this->panel->client->uploadCert($domain, storage_path('ssl/certificat.key'), storage_path('ssl/certificat.crt'));
+                    $this->panel->uploadCert($domain, storage_path('ssl/certificat.key'), storage_path('ssl/certificat.crt'));
                 }
             }
 

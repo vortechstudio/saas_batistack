@@ -6,9 +6,9 @@ use App\Models\Customer\CustomerService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
-use Log;
-use Process;
-use Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Str;
 
 class VerifyServiceConnection implements ShouldQueue
 {

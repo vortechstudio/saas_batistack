@@ -7,8 +7,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
-use Log;
-use Process;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 
 class VerifyInstallation implements ShouldQueue
 {
