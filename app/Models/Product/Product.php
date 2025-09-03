@@ -14,6 +14,7 @@ class Product extends Model
     /** @use HasFactory<\Database\Factories\Product\ProductFactory> */
     use HasFactory;
     protected $guarded = [];
+    protected $appends = ['info_stripe'];
 
     protected $casts = [
         'category' => ProductCategoryEnum::class,
