@@ -33,7 +33,7 @@ class InstallMainApps implements ShouldQueue
     {
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
         $domainPath = '/www/wwwroot/'.$domain;
-        $gitRepo = 'https://github.com/vortechstudio/batistack2.git';
+        $gitRepo = 'https://github.com/vortechstudio/Batistack.git';
 
         // Configuration SSH
         $sshHost = config('batistack.ssh.host');
