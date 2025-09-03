@@ -5,6 +5,7 @@ namespace App\Models\Commerce;
 use App\Enum\Commerce\OrderStatusEnum;
 use App\Enum\Commerce\OrderTypeEnum;
 use App\Models\Customer\Customer;
+use App\Models\Customer\CustomerService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -39,6 +40,16 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(OrderLog::class);
+    }
+
+    public function customerService()
+    {
+        return $this->belongsTo(CustomerService::class);
     }
 
     // Scopes
@@ -123,7 +134,7 @@ class Order extends Model
             // Format: ORD-YYYYMMDD-XXXXX (ex: ORD-20250126-A1B2C)
             $number = 'ORD-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
         } while (self::where('order_number', $number)->exists());
-        
+
         return $number;
     }
 

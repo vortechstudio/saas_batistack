@@ -17,12 +17,12 @@ enum OrderStatusEnum: string
     public function label(): string
     {
         return match ($this) {
-            self::PENDING => 'Pending',
-            self::CONFIRMED => 'Confirmed',
-            self::PROCESSING => 'Processing',
-            self::DELIVERED => 'Delivered',
-            self::CANCELLED => 'Cancelled',
-            self::REFUNDED => 'Refunded',
+            self::PENDING => 'En attente',
+            self::CONFIRMED => 'Confirmée',
+            self::PROCESSING => 'En cours de traitement',
+            self::DELIVERED => 'Livrée',
+            self::CANCELLED => 'Annulée',
+            self::REFUNDED => 'Remboursée',
         };
     }
 
@@ -47,6 +47,18 @@ enum OrderStatusEnum: string
             self::DELIVERED => 'o-check-circle',
             self::CANCELLED => 'o-x-circle',
             self::REFUNDED => 'o-arrow-left',
+        };
+    }
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::PENDING => 'La commande est en attente de confirmation.',
+            self::CONFIRMED => 'La commande a été confirmée.',
+            self::PROCESSING => 'La commande est en cours de traitement.',
+            self::DELIVERED => 'La commande a été livrée.',
+            self::CANCELLED => 'La commande a été annulée.',
+            self::REFUNDED => 'La commande a été remboursée.',
         };
     }
 }

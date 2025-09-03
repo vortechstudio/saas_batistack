@@ -13,10 +13,12 @@ use Livewire\Component;
 class Dashboard extends Component
 {
     public $latestOrder;
+    public $countOrder;
 
     public function mount()
     {
         $this->latestOrder = Order::where('customer_id', Auth::user()->customer->id)->latest()->first();
+        $this->countOrder = Order::where('customer_id', Auth::user()->customer->id)->count();
     }
 
     public function render()
