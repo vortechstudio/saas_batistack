@@ -3,6 +3,7 @@
 namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
+use App\Models\User;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -76,7 +77,7 @@ class InstallMainApps implements ShouldQueue
                 ->danger()
                 ->title("Installation d'un service en erreur !")
                 ->body($e->getMessage())
-                ->sendToDatabase(Auth::user()->where('email', 'admin@'.config('batistack.domain'))->first());
+                ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
 
             throw $e;
         }

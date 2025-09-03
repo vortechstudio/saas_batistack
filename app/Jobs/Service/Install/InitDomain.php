@@ -3,6 +3,7 @@
 namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
+use App\Models\User;
 use App\Services\PanelService;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,6 +31,7 @@ class InitDomain implements ShouldQueue
     public function handle(): void
     {
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
+        $database = 'db_'.Str::slug($this->service->customer->entreprise);
 
         try {
             if(count($this->panel->fetchSites(10,1, $domain)['message']['data']) == 0) {
@@ -38,21 +40,14 @@ class InitDomain implements ShouldQueue
                     path: '/www/wwwroot/'.$domain,
                     runPath: '/public',
                     phpVersion: '83',
-                    sql: true,
+                    sql: false,
                     databaseUsername: 'db_'.Str::slug($this->service->customer->entreprise),
                     databasePassword: 'db_'.Str::slug($this->service->customer->entreprise),
                 );
 
-                $this->panel->checkRunPath($domain);
-                $this->panel->uploadCert(
-                    domain: $domain,
-                    key: file_get_contents(storage_path('ssl/certificat.key')),
-                    cert: file_get_contents(storage_path('ssl/certificat.crt')),
-                );
+                $this->panel->addDatabase($domain, $database, $database);
 
-                if(config('app.env') == 'local') {
-                    $this->panel->uploadCert($domain, storage_path('ssl/certificat.key'), storage_path('ssl/certificat.crt'));
-                }
+                $this->panel->checkRunPath($domain);
             }
 
             $this->service->steps()->where('step', 'Création de domaine')->first()->update([
@@ -71,7 +66,7 @@ class InitDomain implements ShouldQueue
                 ->danger()
                 ->title("Installation d'un service en erreur !")
                 ->body($e->getMessage())
-                ->sendToDatabase(Auth::user()->where('email', 'admin@'.config('batistack.domain'))->first());
+                ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
         }
     }
 }

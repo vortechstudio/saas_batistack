@@ -3,6 +3,7 @@
 namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
+use App\Models\User;
 use App\Services\PanelService;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,8 +30,7 @@ class VerifyDatabase implements ShouldQueue
      */
     public function handle(): void
     {
-        $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
-        $database = 'db_'.$domain;
+        $database = 'db_'.Str::slug($this->service->customer->entreprise);
         try {
             // Comment vérifier qu'une base de donnée existe pour le domaine
             if(count($this->panel->fetchDatabases(10, 1, $database)['message']['data']) > 0){
@@ -63,7 +63,7 @@ class VerifyDatabase implements ShouldQueue
                 ->danger()
                 ->title("Installation d'un service en erreur !")
                 ->body($e->getMessage())
-                ->sendToDatabase(Auth::user()->where('email', 'admin@'.config('batistack.domain'))->first());
+                ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
             $this->service->update([
                 'status' => 'error',
             ]);

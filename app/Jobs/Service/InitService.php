@@ -65,7 +65,7 @@ class InitService implements ShouldQueue
          * Passage du service à OK
          */
         $this->passOrderToDelivered();
-        dispatch(new InitServiceSteps($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+        dispatch(new InitServiceSteps($this->service))->onQueue('installApp');
     }
 
     private function passOrderToDelivered()
