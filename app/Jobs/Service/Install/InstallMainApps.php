@@ -91,6 +91,7 @@ class InstallMainApps implements ShouldQueue
         $envTemplate = file_get_contents(base_path('.env.example'));
 
         $replacements = [
+            'DB_CONNECTION=sqlite' => 'DB_CONNECTION=mysql',
             'DB_DATABASE=localhost' => 'DB_DATABASE=db_'.$domain,
             'DB_USERNAME=root' => 'DB_USERNAME=db_'.$domain,
             'DB_PASSWORD=' => 'DB_PASSWORD=db_'.$domain,
@@ -157,6 +158,7 @@ class InstallMainApps implements ShouldQueue
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            php artisan migrate:fresh --seed --force
             php artisan app:install --license={$this->service->service_code}
         ";
     }
