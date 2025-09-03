@@ -45,7 +45,7 @@ class InitDomain implements ShouldQueue
                     databasePassword: 'db_'.Str::slug($this->service->customer->entreprise),
                 );
 
-                $this->panel->addDatabase($domain, $database, $database);
+                $this->panel->addDatabase($database, $database);
 
                 $this->panel->checkRunPath($domain);
             }

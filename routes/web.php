@@ -18,7 +18,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $db = app(ServicesPanelService::class)->fetchDatabases(1,1,'db_c2me');
+    $db = app(ServicesPanelService::class)->addDatabase('db_c2me', 'db_c2me');
     dd($db);
 });
 

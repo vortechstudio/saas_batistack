@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use CURLFile;
+use Exception;
 
 class PanelService
 {
@@ -318,18 +319,28 @@ class PanelService
         return json_decode($result, true);
     }
 
-    public function addDatabase($domain, $databaseUsername, $databasePassword)
+    public function addDatabase($databaseUsername, $databasePassword)
     {
-        $url = $this->baseUrl . '/v2/database?action=AddDB';
+        $url = $this->baseUrl . '/v2/database?action=AddDatabase';
 
         $requestData = $this->generateRequestData();
-        $requestData['name'] = $databaseUsername;
+        $requestData['sid'] = 0;
+        $requestData['codeing'] = 'utf8';
+        $requestData['db_user'] = $databaseUsername;
         $requestData['password'] = $databasePassword;
-        $requestData['domain'] = $domain;
+        $requestData['dataAccess'] = '127.0.0.1';
+        $requestData['address'] = '127.0.0.1';
+        $requestData['active'] = 'false';
+        $requestData['ps'] = $databaseUsername;
+        $requestData['dtype'] = 'MySQL';
+        $requestData['name'] = $databaseUsername;
 
-        $result = $this->httpPostWithCookie($url, $requestData);
-
-        return json_decode($result, true);
+        try {
+            $result = $this->httpPostWithCookie($url, $requestData);
+            return json_decode($result, true);
+        } catch(Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     /**

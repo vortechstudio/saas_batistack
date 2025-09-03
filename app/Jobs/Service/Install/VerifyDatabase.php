@@ -43,7 +43,7 @@ class VerifyDatabase implements ShouldQueue
                     ->danger()
                     ->title("Installation d'un service en erreur !")
                     ->body("La base de donnée $database n'existe pas !")
-                    ->sendToDatabase(Auth::user()->where('email', 'admin@'.config('batistack.domain'))->first());
+                    ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
 
                 $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
                     'done' => false,
