@@ -32,6 +32,7 @@ class InstallMainApps implements ShouldQueue
     public function handle(): void
     {
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
+        $database = 'db_'.Str::slug($this->service->customer->entreprise);
         $domainPath = '/www/wwwroot/'.$domain;
         $gitRepo = 'https://github.com/vortechstudio/Batistack.git';
 
@@ -42,7 +43,7 @@ class InstallMainApps implements ShouldQueue
 
         try {
             // Optimisation : génération directe du contenu .env sans fichier temporaire
-            $envContent = $this->generateEnvContent($domain);
+            $envContent = $this->generateEnvContent($domain, $database);
             $envTempPath = base_path('.env.temp');
             file_put_contents($envTempPath, $envContent);
 
@@ -86,18 +87,22 @@ class InstallMainApps implements ShouldQueue
     /**
      * Génère le contenu du fichier .env de manière optimisée
      */
-    private function generateEnvContent(string $domain): string
+    private function generateEnvContent(string $domain, string $database): string
     {
-        $envTemplate = file_get_contents(base_path('.env.example'));
+        $envTemplate = file_get_contents(base_path('.env.batistack'));
 
         $replacements = [
             'DB_CONNECTION=sqlite' => 'DB_CONNECTION=mysql',
-            'DB_DATABASE=localhost' => 'DB_DATABASE=db_'.$domain,
-            'DB_USERNAME=root' => 'DB_USERNAME=db_'.$domain,
-            'DB_PASSWORD=' => 'DB_PASSWORD=db_'.$domain,
+            'DB_DATABASE=laravel' => 'DB_DATABASE='.$database,
+            'DB_USERNAME=root' => 'DB_USERNAME='.$database,
+            'DB_PASSWORD=' => 'DB_PASSWORD='.$database,
             'APP_URL=http://localhost' => 'APP_URL=https://'.$domain,
             'APP_DOMAIN=' => 'APP_DOMAIN='.config('batistack.domain'),
             '# REDIS_PASSWORD=null' => 'REDIS_PASSWORD='.config('batistack.ssh.password', 'rbU89a-4'),
+            'MAIL_HOST=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_HOST=127.0.0.1' : 'MAIL_HOST=functions.o2switch.net',
+            'MAIL_PORT=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PORT=1025' : 'MAIL_PORT=465',
+            'MAIL_USERNAME=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_USERNAME=' : 'MAIL_USERNAME=contact@batistack.ovh',
+            'MAIL_PASSWORD=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PASSWORD=' : 'MAIL_PASSWORD=1992_Maxime_rbU89a-4',
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $envTemplate);
@@ -159,6 +164,8 @@ class InstallMainApps implements ShouldQueue
             php artisan route:cache
             php artisan view:cache
             php artisan migrate:fresh --seed --force
+            php artisan storage:link
+            chmod -R 777 storage/ bootstrap/
             php artisan app:install --license={$this->service->service_code}
         ";
     }

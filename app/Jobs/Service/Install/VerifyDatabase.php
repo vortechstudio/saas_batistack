@@ -4,6 +4,8 @@ namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
 use App\Models\User;
+use App\Services\AaPanel\DatabaseService;
+use App\Services\AaPanel\FetchService;
 use App\Services\PanelService;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,14 +17,14 @@ use Illuminate\Support\Str;
 class VerifyDatabase implements ShouldQueue
 {
     use Queueable, SerializesModels;
-    public $panel;
+    public $fetch;
 
     /**
      * Create a new job instance.
      */
     public function __construct(private CustomerService $service)
     {
-        $this->panel = new PanelService();
+        $this->fetch = new FetchService();
     }
 
     /**
@@ -33,7 +35,7 @@ class VerifyDatabase implements ShouldQueue
         $database = 'db_'.Str::slug($this->service->customer->entreprise);
         try {
             // Comment vérifier qu'une base de donnée existe pour le domaine
-            if(count($this->panel->fetchDatabases(10, 1, $database)['message']['data']) > 0){
+            if(count($this->fetch->databases(10, 1, $database)['message']['data']) > 0){
                 $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
                     'done' => true,
                 ]);
