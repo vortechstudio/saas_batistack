@@ -31,7 +31,7 @@
                         <!-- Sidebar content here -->
                             @foreach (auth()->user()->unreadNotifications as $notification)
                                 <li>
-                                    <div role="alert" class="alert alert-vertical sm:alert-horizontal alert-{{ $notification->data['iconColor'] }}">
+                                    <div role="alert" class="alert alert-vertical sm:alert-horizontal alert-{{ $notification->data['iconColor'] }} mb-2">
                                         @php
                                         $icon = $notification->data['icon'];
                                         @endphp
@@ -40,7 +40,9 @@
                                             <h3 class="font-bold">{{ $notification->data['title'] }}</h3>
                                             <div class="text-xs">{{ $notification->data['body'] }}</div>
                                         </div>
-                                        <button class="btn btn-sm">See</button>
+                                        @if(count($notification->data['actions']) > 0)
+                                            <button class="btn btn-sm">See</button>
+                                        @endif
                                     </div>
                                 </li>
                             @endforeach
