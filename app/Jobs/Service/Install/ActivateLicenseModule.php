@@ -159,7 +159,7 @@ class ActivateLicenseModule implements ShouldQueue
             'scp -i %s -o StrictHostKeyChecking=no %s %s@%s:%s',
             escapeshellarg($sshConfig['private_key_path']),
             escapeshellarg($localFile),
-            escapeshellarg($sshConfig['username']),
+            escapeshellarg($sshConfig['user']),
             escapeshellarg($sshConfig['host']),
             escapeshellarg($remoteConfigPath)
         );

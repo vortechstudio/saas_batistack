@@ -36,6 +36,15 @@ class PurgeStripeData extends Command
             return Command::FAILURE;
         }
 
+        // Check if using live Stripe key without force flag
+        $stripeSecret = config('services.stripe.secret') ?? env('STRIPE_SECRET');
+        if ($stripeSecret && str_starts_with($stripeSecret, 'sk_live_') && !$this->option('force')) {
+            $this->error('This command is configured with a LIVE Stripe key (sk_live_*).');
+            $this->error('Running this command would delete REAL customer data from your live Stripe account.');
+            $this->error('Use --force flag if you really need to run this with a live key.');
+            return Command::FAILURE;
+        }
+
         $isDryRun = $this->option('dry-run');
         $isForced = $this->option('force');
 
