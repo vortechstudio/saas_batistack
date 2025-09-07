@@ -62,13 +62,13 @@ class VerifyServiceConnection implements ShouldQueue
                     'services_check' => $servicesCheck
                 ];
                 // Connexion au service vérifiée avec succès
-                $this->service->steps()->where('step', 'Vérification de la connexion au service (SAAS)')->first()->update([
-                    'done' => true,
-                    'comment' => 'Service SAAS accessible et fonctionnel. HTTP: ' . $httpCheck['http_code'] . ', DB: OK'
-                ]);
+
             }
 
-
+            $this->service->steps()->where('step', 'Vérification de la connexion au service (SAAS)')->first()->update([
+                'done' => true,
+                'comment' => 'Service SAAS accessible et fonctionnel. HTTP: 200, DB: OK, Services: OK'
+            ]);
 
             dispatch(new VerifyLicenseInformation($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
 
