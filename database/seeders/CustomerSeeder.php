@@ -17,7 +17,7 @@ class CustomerSeeder extends Seeder
      */
     public function run(): void
     {
-        Artisan::call('purge:stripe-data');
+        Artisan::call('purge:stripe-data --force');
         User::factory(10)->create();
 
         foreach (User::all() as $user) {
