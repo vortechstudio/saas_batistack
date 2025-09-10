@@ -13,6 +13,7 @@
                     <div><span class="loading loading-spinner loading-xs"></span> Etape <span>{{ $stateInstallCurrent }}</span> / {{ $stateInstallTotal }}</div>
                 </div>
             </div>
+            <progress class="progress w-[100%]" value="{{ $stateInstallCurrent }}" max="{{ $stateInstallTotal }}"></progress>
         @endif
         @if(isset($comment))
             <div role="alert" class="alert alert-vertical sm:alert-horizontal alert-error mt-3">

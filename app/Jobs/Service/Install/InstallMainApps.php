@@ -32,18 +32,26 @@ class InstallMainApps implements ShouldQueue
     public function handle(): void
     {
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
+        $database = 'db_'.Str::slug($this->service->customer->entreprise);
         $domainPath = '/www/wwwroot/'.$domain;
         $gitRepo = 'https://github.com/vortechstudio/Batistack.git';
 
         // Configuration SSH
         $sshHost = config('batistack.ssh.host');
         $sshUser = config('batistack.ssh.user');
-        $sshPassword = config('batistack.ssh.password', 'rbU89a-4');
+        $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
 
+        // Créer le répertoire tmp sécurisé s'il n'existe pas
+        $tmpDir = storage_path('tmp');
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0700, true);
+        }
+
+        // Génération du fichier temporaire sécurisé
+        $envContent = $this->generateEnvContent($domain, $database);
+        $envTempPath = $tmpDir . DIRECTORY_SEPARATOR . '.env.temp.' . uniqid();
+        
         try {
-            // Optimisation : génération directe du contenu .env sans fichier temporaire
-            $envContent = $this->generateEnvContent($domain);
-            $envTempPath = base_path('.env.temp');
             file_put_contents($envTempPath, $envContent);
 
             // Optimisation : commandes groupées et plus efficaces
@@ -80,23 +88,44 @@ class InstallMainApps implements ShouldQueue
                 ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
 
             throw $e;
+        } finally {
+            // Suppression sécurisée du fichier temporaire
+            if (isset($envTempPath) && file_exists($envTempPath)) {
+                try {
+                    unlink($envTempPath);
+                    Log::info('Fichier temporaire .env supprimé avec succès', ['path' => $envTempPath]);
+                } catch (\Exception $deleteException) {
+                    Log::error('Erreur lors de la suppression du fichier temporaire .env', [
+                        'path' => $envTempPath,
+                        'error' => $deleteException->getMessage()
+                    ]);
+                    // Ne pas relancer l\'exception pour éviter de masquer l\'erreur principale
+                }
+            }
         }
     }
 
     /**
      * Génère le contenu du fichier .env de manière optimisée
      */
-    private function generateEnvContent(string $domain): string
+    private function generateEnvContent(string $domain, string $database): string
     {
-        $envTemplate = file_get_contents(base_path('.env.example'));
+        $envTemplate = file_get_contents(base_path('.env.batistack'));
 
         $replacements = [
-            'DB_DATABASE=localhost' => 'DB_DATABASE=db_'.$domain,
-            'DB_USERNAME=root' => 'DB_USERNAME=db_'.$domain,
-            'DB_PASSWORD=' => 'DB_PASSWORD=db_'.$domain,
+            'DB_CONNECTION=sqlite' => 'DB_CONNECTION=mysql',
+            'DB_DATABASE=laravel' => 'DB_DATABASE='.$database,
+            'DB_USERNAME=root' => 'DB_USERNAME='.$database,
+            'DB_PASSWORD=' => 'DB_PASSWORD='.$database,
             'APP_URL=http://localhost' => 'APP_URL=https://'.$domain,
             'APP_DOMAIN=' => 'APP_DOMAIN='.config('batistack.domain'),
-            '# REDIS_PASSWORD=null' => 'REDIS_PASSWORD='.config('batistack.ssh.password', 'rbU89a-4'),
+            '# REDIS_PASSWORD=null' => 'REDIS_PASSWORD='.(config('services.redis.password') ?? env('REDIS_PASSWORD', '')),
+            'MAIL_HOST=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_HOST=127.0.0.1' : 'MAIL_HOST='.(config('services.mail.host') ?? env('MAIL_HOST', 'functions.o2switch.net')),
+            'MAIL_PORT=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PORT=1025' : 'MAIL_PORT='.(config('services.mail.port') ?? env('MAIL_PORT', '465')),
+            'MAIL_USERNAME=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_USERNAME=' : 'MAIL_USERNAME='.(config('services.mail.username') ?? env('MAIL_USERNAME', 'contact@'.config('batistack.domain'))),
+            'MAIL_PASSWORD=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PASSWORD=' : 'MAIL_PASSWORD='.(config('services.mail.password') ?? env('MAIL_PASSWORD', '')),
+            'MAIL_FROM_ADDRESS=' => 'MAIL_FROM_ADDRESS='.(config('mail.from.address') ?? env('MAIL_FROM_ADDRESS', 'noreply@'.config('batistack.domain'))),
+            'SAAS_API_ENDPOINT=' => 'SAAS_API_ENDPOINT='.(config('batistack.api_endpoint') ?? env('SAAS_API_ENDPOINT', 'https://api.'.config('batistack.domain')))
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $envTemplate);
@@ -157,6 +186,23 @@ class InstallMainApps implements ShouldQueue
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+            # Migration sécurisée - non destructive
+            php artisan migrate --force
+            
+            # Seeding conditionnel - seulement si première installation
+            if [ ! -f .env.installed ]; then
+                php artisan db:seed --force
+                touch .env.installed
+            fi
+            
+            php artisan storage:link
+            
+            # Permissions sécurisées - propriétaire www-data et permissions minimales
+            chown -R www-data:www-data storage/ bootstrap/cache/
+            find storage/ -type d -exec chmod 755 {} \;
+            find storage/ -type f -exec chmod 644 {} \;
+            find bootstrap/cache/ -type d -exec chmod 755 {} \;
+            find bootstrap/cache/ -type f -exec chmod 644 {} \;
             php artisan app:install --license={$this->service->service_code}
         ";
     }

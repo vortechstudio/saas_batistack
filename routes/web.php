@@ -4,12 +4,7 @@ use App\Livewire\Client\Account\Dashboard as AccountDashboard;
 use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Dashboard;
-use App\Models\Customer\Customer;
-use App\Models\Product\Product;
-use App\Services\Panel\PanelService;
-use App\Services\PanelService as ServicesPanelService;
-use App\Services\Stripe\CustomerService;
-use App\Services\Stripe\ProductService;
+use App\Services\AaPanel\DatabaseService;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -18,7 +13,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $db = app(ServicesPanelService::class)->addDatabase('db_c2me', 'db_c2me');
+    $db = app(DatabaseService::class)->backupsList('db_pineau');
     dd($db);
 });
 

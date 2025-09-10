@@ -4,7 +4,7 @@ namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
 use App\Models\User;
-use App\Services\PanelService;
+use App\Services\AaPanel\FetchService;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -15,14 +15,14 @@ use Illuminate\Support\Str;
 class VerifyDomain implements ShouldQueue
 {
     use Queueable, SerializesModels;
-    public $panel;
+    public $fetch;
 
     /**
      * Create a new job instance.
      */
     public function __construct(private CustomerService $service)
     {
-        $this->panel = new PanelService();
+        $this->fetch = new FetchService();
     }
 
     /**
@@ -32,7 +32,7 @@ class VerifyDomain implements ShouldQueue
     {
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
         try {
-            if(count($this->panel->fetchSites(1, 1, $domain)['message']['data']) > 0) {
+            if(count($this->fetch->sites(1, 1, $domain)['message']['data']) > 0) {
                 $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
                     'done' => true,
                 ]);

@@ -63,9 +63,10 @@ class VerifyInstallation implements ShouldQueue
             // 1. Vérification des fichiers essentiels
             foreach ($verifications['files'] as $file) {
                 // Construction de la commande SSH avec Process
+                $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
                 $sshCommand = [
                     'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -75,7 +76,7 @@ class VerifyInstallation implements ShouldQueue
 
                 $checkFileCommand = [
                     'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -94,7 +95,7 @@ class VerifyInstallation implements ShouldQueue
             foreach ($verifications['directories'] as $directory) {
                 $checkDirCommand = [
                     'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -112,7 +113,7 @@ class VerifyInstallation implements ShouldQueue
             // 3. Vérifier que les permissions sont correctes
             $permissionsCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -129,7 +130,7 @@ class VerifyInstallation implements ShouldQueue
             // 4. Vérifier que l'application Laravel fonctionne
             $artisanCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -155,7 +156,7 @@ class VerifyInstallation implements ShouldQueue
             // 6. Vérifier la base de données
             $dbCheckCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",

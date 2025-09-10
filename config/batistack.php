@@ -17,4 +17,6 @@ return [
         'private_key_path' => env('SSH_PRIVATE_KEY_PATH', storage_path('ssh/id_rsa')),
         'password' => env('SSH_PASSWORD'),
     ],
+
+    'api_endpoint' => env('SAAS_API_ENDPOINT'),
 ];

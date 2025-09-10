@@ -33,6 +33,15 @@ class Service extends Component implements HasActions, HasSchemas, HasTable
     {
         return $table
             ->query(CustomerService::with('product')->where('customer_id', Auth::user()->customer->id))
+            ->emptyStateHeading("Vous n'avez pas encore de service")
+            ->emptyStateDescription('Achetez un service pour commencer à l\'utiliser.')
+            ->emptyStateIcon(Heroicon::PlusCircle)
+            ->emptyStateActions([
+                Action::make('create')
+                    ->label('Acheter un service')
+                    ->icon(Heroicon::PlusCircle)
+                    ->url(route('client.account.cart.index'))
+            ])
             ->columns([
                 TextColumn::make('service_code')
                     ->label('Code du service')

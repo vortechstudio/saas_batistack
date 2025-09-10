@@ -4,7 +4,9 @@ namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
 use App\Models\User;
-use App\Services\PanelService;
+use App\Services\AaPanel\DatabaseService;
+use App\Services\AaPanel\DomainService;
+use App\Services\AaPanel\FetchService;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -15,14 +17,18 @@ use Illuminate\Support\Str;
 class InitDomain implements ShouldQueue
 {
     use Queueable, SerializesModels;
-    public $panel;
+    public $domain;
+    public $fetch;
+    public $database;
 
     /**
      * Create a new job instance.
      */
     public function __construct(private CustomerService $service)
     {
-        $this->panel = new PanelService();
+        $this->domain = new DomainService();
+        $this->fetch = new FetchService();
+        $this->database = new DatabaseService();
     }
 
     /**
@@ -34,20 +40,20 @@ class InitDomain implements ShouldQueue
         $database = 'db_'.Str::slug($this->service->customer->entreprise);
 
         try {
-            if(count($this->panel->fetchSites(10,1, $domain)['message']['data']) == 0) {
-                $this->panel->addSite(
+            if(count($this->fetch->sites(10,1, $domain)['message']['data']) == 0) {
+                $this->domain->add(
                     domain: $domain,
                     path: '/www/wwwroot/'.$domain,
                     runPath: '/public',
                     phpVersion: '83',
-                    sql: false,
-                    databaseUsername: 'db_'.Str::slug($this->service->customer->entreprise),
-                    databasePassword: 'db_'.Str::slug($this->service->customer->entreprise),
                 );
 
-                $this->panel->addDatabase($database, $database);
+                $this->database->add(
+                    databaseUsername: $database,
+                    databasePassword: $database,
+                );
 
-                $this->panel->checkRunPath($domain);
+                $this->domain->checkRunPath($domain);
             }
 
             $this->service->steps()->where('step', 'Création de domaine')->first()->update([

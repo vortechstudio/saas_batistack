@@ -156,10 +156,10 @@ class ActivateLicenseModule implements ShouldQueue
 
         // Commande SCP pour transférer le fichier
         $scpCommand = sprintf(
-            'scp -i %s -o StrictHostKeyChecking=no %s %s@%s:%s',
-            escapeshellarg($sshConfig['private_key_path']),
+            'sshpass -p %s scp -o StrictHostKeyChecking=no %s %s@%s:%s',
+            escapeshellarg($sshConfig['password']),
             escapeshellarg($localFile),
-            escapeshellarg($sshConfig['username']),
+            escapeshellarg($sshConfig['user']),
             escapeshellarg($sshConfig['host']),
             escapeshellarg($remoteConfigPath)
         );

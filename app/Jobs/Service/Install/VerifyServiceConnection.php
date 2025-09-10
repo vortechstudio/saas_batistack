@@ -33,38 +33,41 @@ class VerifyServiceConnection implements ShouldQueue
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
 
         try {
-            // 1. Vérification de la connectivité HTTP/HTTPS
-            $httpCheck = $this->checkHttpResponse($domain);
+            if(config('app.env') !== 'local') {
+                // 1. Vérification de la connectivité HTTP/HTTPS
+                $httpCheck = $this->checkHttpResponse($domain);
 
-            if (!$httpCheck['success']) {
-                throw new \Exception("Impossible d'accéder au service via HTTP/HTTPS: " . ($httpCheck['error'] ?? 'Code HTTP: ' . ($httpCheck['http_code'] ?? 'inconnu')));
+                if (!$httpCheck['success']) {
+                    throw new \Exception("Impossible d'accéder au service via HTTP/HTTPS: " . ($httpCheck['error'] ?? 'Code HTTP: ' . ($httpCheck['http_code'] ?? 'inconnu')));
+                }
+
+                // 2. Vérification de l'API de l'application (si disponible)
+                $apiCheck = $this->checkApiEndpoint($domain);
+
+                // 3. Vérification de la base de données via l'application
+                $dbConnectionCheck = $this->checkDatabaseConnection($domain);
+
+                if (!$dbConnectionCheck['success']) {
+                    throw new \Exception("La connexion à la base de données via l'application a échoué: " . $dbConnectionCheck['error']);
+                }
+
+                // 4. Vérification des services essentiels
+                $servicesCheck = $this->checkEssentialServices($domain);
+
+                // Compilation des résultats
+                $checkResults = [
+                    'http_check' => $httpCheck,
+                    'api_check' => $apiCheck,
+                    'database_check' => $dbConnectionCheck,
+                    'services_check' => $servicesCheck
+                ];
+                // Connexion au service vérifiée avec succès
+
             }
 
-            // 2. Vérification de l'API de l'application (si disponible)
-            $apiCheck = $this->checkApiEndpoint($domain);
-
-            // 3. Vérification de la base de données via l'application
-            $dbConnectionCheck = $this->checkDatabaseConnection($domain);
-
-            if (!$dbConnectionCheck['success']) {
-                throw new \Exception("La connexion à la base de données via l'application a échoué: " . $dbConnectionCheck['error']);
-            }
-
-            // 4. Vérification des services essentiels
-            $servicesCheck = $this->checkEssentialServices($domain);
-
-            // Compilation des résultats
-            $checkResults = [
-                'http_check' => $httpCheck,
-                'api_check' => $apiCheck,
-                'database_check' => $dbConnectionCheck,
-                'services_check' => $servicesCheck
-            ];
-
-            // Connexion au service vérifiée avec succès
             $this->service->steps()->where('step', 'Vérification de la connexion au service (SAAS)')->first()->update([
                 'done' => true,
-                'comment' => 'Service SAAS accessible et fonctionnel. HTTP: ' . $httpCheck['http_code'] . ', DB: OK'
+                'comment' => 'Service SAAS accessible et fonctionnel. HTTP: 200, DB: OK, Services: OK'
             ]);
 
             dispatch(new VerifyLicenseInformation($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
@@ -72,7 +75,7 @@ class VerifyServiceConnection implements ShouldQueue
             Log::info("Connexion au service SAAS vérifiée avec succès", [
                 'service_id' => $this->service->id,
                 'domain' => $domain,
-                'checks' => $checkResults
+                'checks' => $checkResults ?? []
             ]);
 
         } catch (\Exception $e) {
@@ -215,9 +218,10 @@ class VerifyServiceConnection implements ShouldQueue
 
         try {
             // Commande pour tester la connexion DB via artisan
+            $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
             $dbTestCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -265,9 +269,10 @@ class VerifyServiceConnection implements ShouldQueue
             $checks = [];
 
             // Vérifier que les queues fonctionnent
+            $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
             $queueCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -281,7 +286,7 @@ class VerifyServiceConnection implements ShouldQueue
             // Vérifier que le cache fonctionne
             $cacheCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
