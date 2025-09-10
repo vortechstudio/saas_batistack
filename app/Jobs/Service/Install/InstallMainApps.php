@@ -119,11 +119,13 @@ class InstallMainApps implements ShouldQueue
             'DB_PASSWORD=' => 'DB_PASSWORD='.$database,
             'APP_URL=http://localhost' => 'APP_URL=https://'.$domain,
             'APP_DOMAIN=' => 'APP_DOMAIN='.config('batistack.domain'),
-            '# REDIS_PASSWORD=null' => 'REDIS_PASSWORD='.config('batistack.ssh.password', 'rbU89a-4'),
+            '# REDIS_PASSWORD=null' => 'REDIS_PASSWORD='.(config('services.redis.password') ?? env('REDIS_PASSWORD', '')),
             'MAIL_HOST=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_HOST=127.0.0.1' : 'MAIL_HOST=functions.o2switch.net',
             'MAIL_PORT=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PORT=1025' : 'MAIL_PORT=465',
             'MAIL_USERNAME=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_USERNAME=' : 'MAIL_USERNAME=contact@batistack.ovh',
-            'MAIL_PASSWORD=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PASSWORD=' : 'MAIL_PASSWORD=1992_Maxime_rbU89a-4',
+            'MAIL_PASSWORD=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PASSWORD=' : 'MAIL_PASSWORD='.(config('services.mail.password') ?? env('MAIL_PASSWORD', '')),
+            'MAIL_FROM_ADDRESS=' => 'MAIL_FROM_ADDRESS='.(config('mail.from.address') ?? env('MAIL_FROM_ADDRESS', 'noreply@'.config('batistack.domain'))),
+            'SAAS_API_ENDPOINT=' => 'SAAS_API_ENDPOINT='.(config('batistack.api_endpoint') ?? env('SAAS_API_ENDPOINT', 'https://api.'.config('batistack.domain'))),
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $envTemplate);
@@ -184,9 +186,23 @@ class InstallMainApps implements ShouldQueue
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            php artisan migrate:fresh --seed --force
+            # Migration sécurisée - non destructive
+            php artisan migrate --force
+            
+            # Seeding conditionnel - seulement si première installation
+            if [ ! -f .env.installed ]; then
+                php artisan db:seed --force
+                touch .env.installed
+            fi
+            
             php artisan storage:link
-            chmod -R 777 storage/ bootstrap/
+            
+            # Permissions sécurisées - propriétaire www-data et permissions minimales
+            chown -R www-data:www-data storage/ bootstrap/cache/
+            find storage/ -type d -exec chmod 755 {} \;
+            find storage/ -type f -exec chmod 644 {} \;
+            find bootstrap/cache/ -type d -exec chmod 755 {} \;
+            find bootstrap/cache/ -type f -exec chmod 644 {} \;
             php artisan app:install --license={$this->service->service_code}
         ";
     }

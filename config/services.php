@@ -40,4 +40,12 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+    'redis' => [
+        'password' => env('REDIS_PASSWORD', ''),
+    ],
+
+    'mail' => [
+        'password' => env('MAIL_PASSWORD'),
+    ]
+
 ];
