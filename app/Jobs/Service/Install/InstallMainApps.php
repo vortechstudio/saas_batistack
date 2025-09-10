@@ -41,10 +41,17 @@ class InstallMainApps implements ShouldQueue
         $sshUser = config('batistack.ssh.user');
         $sshPassword = config('batistack.ssh.password', 'rbU89a-4');
 
+        // Créer le répertoire tmp sécurisé s'il n'existe pas
+        $tmpDir = storage_path('tmp');
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0700, true);
+        }
+
+        // Génération du fichier temporaire sécurisé
+        $envContent = $this->generateEnvContent($domain, $database);
+        $envTempPath = $tmpDir . DIRECTORY_SEPARATOR . '.env.temp.' . uniqid();
+        
         try {
-            // Optimisation : génération directe du contenu .env sans fichier temporaire
-            $envContent = $this->generateEnvContent($domain, $database);
-            $envTempPath = base_path('.env.temp');
             file_put_contents($envTempPath, $envContent);
 
             // Optimisation : commandes groupées et plus efficaces
@@ -81,6 +88,20 @@ class InstallMainApps implements ShouldQueue
                 ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
 
             throw $e;
+        } finally {
+            // Suppression sécurisée du fichier temporaire
+            if (isset($envTempPath) && file_exists($envTempPath)) {
+                try {
+                    unlink($envTempPath);
+                    Log::info('Fichier temporaire .env supprimé avec succès', ['path' => $envTempPath]);
+                } catch (\Exception $deleteException) {
+                    Log::error('Erreur lors de la suppression du fichier temporaire .env', [
+                        'path' => $envTempPath,
+                        'error' => $deleteException->getMessage()
+                    ]);
+                    // Ne pas relancer l\'exception pour éviter de masquer l\'erreur principale
+                }
+            }
         }
     }
 
