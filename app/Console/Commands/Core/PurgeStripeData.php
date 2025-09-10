@@ -101,15 +101,16 @@ class PurgeStripeData extends Command
                     $totalCount++;
 
                     if ($isDryRun) {
-                        $this->line("Would delete customer: {$customer->id} (Email: {$customer->email})");
+                        $email = $customer->email
+                            ? preg_replace('/^(.).+(@.+)$/', '$1***$2', $customer->email)
+                            : 'n/a';
+                        $this->line("Would delete customer: {$customer->id} (Email: {$email})");
                     } else {
                         try {
                             $stripe->client->customers->delete($customer->id);
                             $deletedCount++;
-                            $this->info("✅ Customer deleted: {$customer->id}");
-
-                            if ($progressBar) {
-                                $progressBar->advance();
+                            if ($this->output->isVerbose()) {
+                                $this->info("✅ Customer deleted: {$customer->id}");
                             }
                         } catch (\Exception $e) {
                             $this->error("❌ Failed to delete customer {$customer->id}: {$e->getMessage()}");
