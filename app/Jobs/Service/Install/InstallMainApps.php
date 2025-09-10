@@ -39,7 +39,7 @@ class InstallMainApps implements ShouldQueue
         // Configuration SSH
         $sshHost = config('batistack.ssh.host');
         $sshUser = config('batistack.ssh.user');
-        $sshPassword = config('batistack.ssh.password', 'rbU89a-4');
+        $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
 
         // Créer le répertoire tmp sécurisé s'il n'existe pas
         $tmpDir = storage_path('tmp');
@@ -120,12 +120,12 @@ class InstallMainApps implements ShouldQueue
             'APP_URL=http://localhost' => 'APP_URL=https://'.$domain,
             'APP_DOMAIN=' => 'APP_DOMAIN='.config('batistack.domain'),
             '# REDIS_PASSWORD=null' => 'REDIS_PASSWORD='.(config('services.redis.password') ?? env('REDIS_PASSWORD', '')),
-            'MAIL_HOST=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_HOST=127.0.0.1' : 'MAIL_HOST=functions.o2switch.net',
-            'MAIL_PORT=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PORT=1025' : 'MAIL_PORT=465',
-            'MAIL_USERNAME=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_USERNAME=' : 'MAIL_USERNAME=contact@batistack.ovh',
+            'MAIL_HOST=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_HOST=127.0.0.1' : 'MAIL_HOST='.(config('services.mail.host') ?? env('MAIL_HOST', 'functions.o2switch.net')),
+            'MAIL_PORT=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PORT=1025' : 'MAIL_PORT='.(config('services.mail.port') ?? env('MAIL_PORT', '465')),
+            'MAIL_USERNAME=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_USERNAME=' : 'MAIL_USERNAME='.(config('services.mail.username') ?? env('MAIL_USERNAME', 'contact@'.config('batistack.domain'))),
             'MAIL_PASSWORD=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PASSWORD=' : 'MAIL_PASSWORD='.(config('services.mail.password') ?? env('MAIL_PASSWORD', '')),
             'MAIL_FROM_ADDRESS=' => 'MAIL_FROM_ADDRESS='.(config('mail.from.address') ?? env('MAIL_FROM_ADDRESS', 'noreply@'.config('batistack.domain'))),
-            'SAAS_API_ENDPOINT=' => 'SAAS_API_ENDPOINT='.(config('batistack.api_endpoint') ?? env('SAAS_API_ENDPOINT', 'https://api.'.config('batistack.domain'))),
+            'SAAS_API_ENDPOINT=' => 'SAAS_API_ENDPOINT='.(config('batistack.api_endpoint') ?? env('SAAS_API_ENDPOINT', 'https://api.'.config('batistack.domain')))
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $envTemplate);

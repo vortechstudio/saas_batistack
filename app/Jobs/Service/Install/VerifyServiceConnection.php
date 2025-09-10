@@ -218,9 +218,10 @@ class VerifyServiceConnection implements ShouldQueue
 
         try {
             // Commande pour tester la connexion DB via artisan
+            $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
             $dbTestCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -268,9 +269,10 @@ class VerifyServiceConnection implements ShouldQueue
             $checks = [];
 
             // Vérifier que les queues fonctionnent
+            $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
             $queueCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
@@ -284,7 +286,7 @@ class VerifyServiceConnection implements ShouldQueue
             // Vérifier que le cache fonctionne
             $cacheCommand = [
                 'sshpass',
-                    '-p', 'rbU89a-4',
+                    '-p', $sshPassword,
                     'ssh',
                     '-o', 'StrictHostKeyChecking=no',
                     "$sshUser@$sshHost",
