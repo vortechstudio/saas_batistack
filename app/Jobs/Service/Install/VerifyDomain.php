@@ -33,19 +33,29 @@ class VerifyDomain implements ShouldQueue
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
 
         if (config('app.env') == 'local') {
-            $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
+            $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
                 'done' => true,
             ]);
             dispatch(new VerifyDatabase($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
-                if(count($this->fetch->sites(1, 1, $domain)['message']['data']) > 0) {
-                    $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
+                $sites = $this->fetch->sites(20, 1, $domain);
+                $rows = $sites['message']['data'] ?? [];
+                $exists = false;
+
+                if (is_array($rows)) {
+                    foreach ($rows as $row) {
+                        if (($row['name'] ?? null) === $domain) { $exists = true; break; }
+                    }
+                }
+
+                if($exists) {
+                    $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
                         'done' => true,
                     ]);
                     dispatch(new VerifyDatabase($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
                 } else {
-                    $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
+                    $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
                         'done' => false,
                         'comment' => 'Le domaine n\'existe pas !',
                     ]);
@@ -60,7 +70,7 @@ class VerifyDomain implements ShouldQueue
                 }
 
             } catch (\Exception $e) {
-                $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
+                $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
                     'done' => false,
                     'comment' => $e->getMessage(),
                 ]);

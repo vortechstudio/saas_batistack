@@ -35,15 +35,18 @@ class VerifyDatabase implements ShouldQueue
         $database = 'db_'.Str::slug($this->service->customer->entreprise);
 
         if (config('app.env') == 'local') {
-            $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
+            $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()?->update([
                 'done' => true,
             ]);
             dispatch(new InstallMainApps($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
                 // Comment vérifier qu'une base de donnée existe pour le domaine
-                if(count($this->fetch->databases(10, 1, $database)['message']['data']) > 0){
-                    $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
+                $res = $this->fetch->databases(10, 1, $database);
+                $rows = $res['message']['data'] ?? [];
+
+                if(is_array($rows) && count($rows) > 0){
+                    $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()?->update([
                         'done' => true,
                     ]);
                     dispatch(new InstallMainApps($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
@@ -54,7 +57,7 @@ class VerifyDatabase implements ShouldQueue
                         ->body("La base de donnée $database n'existe pas !")
                         ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
 
-                    $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
+                    $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()?->update([
                         'done' => false,
                         'comment' => "La base de donnée $database n'existe pas !",
                     ]);
@@ -64,7 +67,7 @@ class VerifyDatabase implements ShouldQueue
                     ]);
                 }
             } catch (\Exception $e) {
-                $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
+                $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()?->update([
                     'done' => false,
                     'comment' => $e->getMessage(),
                 ]);
