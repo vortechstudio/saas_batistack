@@ -36,13 +36,13 @@
                 <x-mary-menu-separator class="my-2" />
                 <div class="flex flex-col">
                     <span class="text-blue-900 font-black text-lg">Date de création</span>
-                    <span class="text-gray-400 italic">{{ $service->creationDate->format('d/m/y') }}</span>
+                    <span class="text-gray-400 italic">{{ $service->creationDate->format('d/m/Y') }}</span>
                 </div>
                 <x-mary-menu-separator class="my-2" />
                 <div class="flex flex-col">
                     <span class="text-blue-900 font-black text-lg">Date d'expiration</span>
                     <div class="flex gap-2">
-                        <span class="text-gray-400 italic">{{ $service->expirationDate->format('d/m/y') }}</span>
+                        <span class="text-gray-400 italic">{{ $service->expirationDate->format('d/m/Y') }}</span>
                         <div class="badge badge-outline badge-error">{{ $service->expirationDate->diffForHumans() }}</div>
                     </div>
                 </div>

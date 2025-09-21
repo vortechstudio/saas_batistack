@@ -40,9 +40,11 @@
                                             <h3 class="font-bold">{{ $notification->data['title'] }}</h3>
                                             <div class="text-xs">{{ $notification->data['body'] }}</div>
                                         </div>
-                                        @if(count($notification->data['actions']) > 0)
-                                            <button class="btn btn-sm">See</button>
-                                        @endif
+                                        @isset($notification->data['actions'])
+                                            @if(count($notification->data['actions']) > 0)
+                                                <button class="btn btn-sm">See</button>
+                                            @endif
+                                        @endisset
                                     </div>
                                 </li>
                             @endforeach
