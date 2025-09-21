@@ -31,10 +31,12 @@ class ActivateLicenseModule implements ShouldQueue
     {
 
         if (config('app.env') == 'local') {
-            $this->service->steps()->where('step', 'Activation des modules de la license')->first()->update([
-                'done' => true,
-                'comment' => 'Installation vérifiée avec succès.'
-            ]);
+            if ($step = $this->service->steps()->where('step', 'Activation des modules de la license')->first()) {
+                $step->update([
+                    'done' => true,
+                    'comment' => 'Installation vérifiée avec succès.'
+                ]);
+            }
             dispatch(new NotifyClientByMail($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
@@ -52,6 +54,13 @@ class ActivateLicenseModule implements ShouldQueue
                     Log::warning('Aucune fonctionnalité à activer pour ce produit', [
                         'product_id' => $this->service->product->id
                     ]);
+                    if ($step = $this->service->steps()->where('step', 'Activation des modules de la license')->first()) {
+                        $step->update([
+                            'done' => true,
+                            'comment' => 'Aucun module à activer pour ce produit.'
+                        ]);
+                    }
+                    dispatch(new NotifyClientByMail($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
                     return;
                 }
 

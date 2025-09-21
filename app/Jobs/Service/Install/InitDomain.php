@@ -36,17 +36,35 @@ class InitDomain implements ShouldQueue
      */
     public function handle(): void
     {
-        $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
-        $database = 'db_'.Str::slug($this->service->customer->entreprise);
+        $label = Str::slug($this->service->customer->entreprise);
+        $domainLabel = trim(Str::limit($label, 63, ''), '-');
+        if ($domainLabel === '') {
+            $domainLabel = 'client-'.substr(md5($label), 0, 8);
+        }
+        $domain = $domainLabel . '.' . config('batistack.domain');
+
+        // DB : remplacer '-' par '_' et respecter la limite (MySQL ≤64)
+        $dbLabel = substr(str_replace('-', '_', $domainLabel), 0, 61);
+        $database = 'db_' . $dbLabel;
 
         if (config('app.env') == 'local') {
-            $this->service->steps()->where('step', 'Création de domaine')->first()->update([
+            $this->service->steps()->where('step', 'Création de domaine')->first()?->update([
                 'done' => true,
             ]);
             dispatch(new VerifyDomain($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
-                if(count($this->fetch->sites(10,1, $domain)['message']['data']) == 0) {
+                $sites = $this->fetch->sites(10, 1, $domain);
+                $rows = $sites['message']['data'];
+                $domainExists = false;
+
+                if (is_array($rows)) {
+                    foreach ($rows as $row) {
+                        if (($row['name'] ?? null) === $domain) { $domainExists = true; break; }
+                    }
+                }
+
+                if (!$domainExists) {
                     $this->domain->add(
                         domain: $domain,
                         path: '/www/wwwroot/'.$domain,
@@ -62,7 +80,7 @@ class InitDomain implements ShouldQueue
                     $this->domain->checkRunPath($domain);
                 }
 
-                $this->service->steps()->where('step', 'Création de domaine')->first()->update([
+                $this->service->steps()->where('step', 'Création de domaine')->first()?->update([
                     'done' => true,
                 ]);
                 dispatch(new VerifyDomain($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
@@ -70,7 +88,7 @@ class InitDomain implements ShouldQueue
                 $this->service->update([
                     'status' => 'error',
                 ]);
-                $this->service->steps()->where('step', 'Création de domaine')->first()->update([
+                $this->service->steps()->where('step', 'Création de domaine')->first()?->update([
                     'done' => false,
                     'comment' => $e->getMessage(),
                 ]);
