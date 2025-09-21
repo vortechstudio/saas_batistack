@@ -53,7 +53,6 @@ return [
 
     'vito' => [
         'api_key' => env('VITO_APP_KEY'),
-        'endpoint' => env('VITO_ENDPOINT'),
+        'endpoint' => rtrim(env('VITO_ENDPOINT', ''), '/'),
     ],
-
 ];
