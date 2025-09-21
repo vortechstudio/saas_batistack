@@ -4,7 +4,7 @@ use App\Livewire\Client\Account\Dashboard as AccountDashboard;
 use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Dashboard;
-use App\Services\AaPanel\DatabaseService;
+use App\Services\VitoDeploy\Vito;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -13,8 +13,10 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $db = app(DatabaseService::class)->backupsList('db_pineau');
-    dd($db);
+    $vito = app(Vito::class)
+        ->get('/projects/1/servers');
+
+    dd($vito);
 });
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {

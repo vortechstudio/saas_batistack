@@ -39,40 +39,47 @@ class InitDomain implements ShouldQueue
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
         $database = 'db_'.Str::slug($this->service->customer->entreprise);
 
-        try {
-            if(count($this->fetch->sites(10,1, $domain)['message']['data']) == 0) {
-                $this->domain->add(
-                    domain: $domain,
-                    path: '/www/wwwroot/'.$domain,
-                    runPath: '/public',
-                    phpVersion: '83',
-                );
-
-                $this->database->add(
-                    databaseUsername: $database,
-                    databasePassword: $database,
-                );
-
-                $this->domain->checkRunPath($domain);
-            }
-
+        if (config('app.env') == 'local') {
             $this->service->steps()->where('step', 'Création de domaine')->first()->update([
                 'done' => true,
             ]);
             dispatch(new VerifyDomain($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
-        } catch (\Exception $e) {
-            $this->service->update([
-                'status' => 'error',
-            ]);
-            $this->service->steps()->where('step', 'Création de domaine')->first()->update([
-                'done' => false,
-                'comment' => $e->getMessage(),
-            ]);
-            Notification::make()
-                ->danger()
-                ->title("Installation d'un service en erreur !")
-                ->body($e->getMessage())
-                ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
+        } else {
+            try {
+                if(count($this->fetch->sites(10,1, $domain)['message']['data']) == 0) {
+                    $this->domain->add(
+                        domain: $domain,
+                        path: '/www/wwwroot/'.$domain,
+                        runPath: '/public',
+                        phpVersion: '83',
+                    );
+
+                    $this->database->add(
+                        databaseUsername: $database,
+                        databasePassword: $database,
+                    );
+
+                    $this->domain->checkRunPath($domain);
+                }
+
+                $this->service->steps()->where('step', 'Création de domaine')->first()->update([
+                    'done' => true,
+                ]);
+                dispatch(new VerifyDomain($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+            } catch (\Exception $e) {
+                $this->service->update([
+                    'status' => 'error',
+                ]);
+                $this->service->steps()->where('step', 'Création de domaine')->first()->update([
+                    'done' => false,
+                    'comment' => $e->getMessage(),
+                ]);
+                Notification::make()
+                    ->danger()
+                    ->title("Installation d'un service en erreur !")
+                    ->body($e->getMessage())
+                    ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
+            }
         }
     }
 }

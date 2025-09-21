@@ -33,42 +33,50 @@ class VerifyDatabase implements ShouldQueue
     public function handle(): void
     {
         $database = 'db_'.Str::slug($this->service->customer->entreprise);
-        try {
-            // Comment vérifier qu'une base de donnée existe pour le domaine
-            if(count($this->fetch->databases(10, 1, $database)['message']['data']) > 0){
+
+        if (config('app.env') == 'local') {
+            $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
+                'done' => true,
+            ]);
+            dispatch(new InstallMainApps($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+        } else {
+            try {
+                // Comment vérifier qu'une base de donnée existe pour le domaine
+                if(count($this->fetch->databases(10, 1, $database)['message']['data']) > 0){
+                    $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
+                        'done' => true,
+                    ]);
+                    dispatch(new InstallMainApps($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+                } else {
+                    Notification::make()
+                        ->danger()
+                        ->title("Installation d'un service en erreur !")
+                        ->body("La base de donnée $database n'existe pas !")
+                        ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
+
+                    $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
+                        'done' => false,
+                        'comment' => "La base de donnée $database n'existe pas !",
+                    ]);
+
+                    $this->service->update([
+                        'status' => 'error',
+                    ]);
+                }
+            } catch (\Exception $e) {
                 $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
-                    'done' => true,
+                    'done' => false,
+                    'comment' => $e->getMessage(),
                 ]);
-                dispatch(new InstallMainApps($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
-            } else {
                 Notification::make()
                     ->danger()
                     ->title("Installation d'un service en erreur !")
-                    ->body("La base de donnée $database n'existe pas !")
+                    ->body($e->getMessage())
                     ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
-
-                $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
-                    'done' => false,
-                    'comment' => "La base de donnée $database n'existe pas !",
-                ]);
-
                 $this->service->update([
                     'status' => 'error',
                 ]);
             }
-        } catch (\Exception $e) {
-            $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()->update([
-                'done' => false,
-                'comment' => $e->getMessage(),
-            ]);
-            Notification::make()
-                ->danger()
-                ->title("Installation d'un service en erreur !")
-                ->body($e->getMessage())
-                ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
-            $this->service->update([
-                'status' => 'error',
-            ]);
         }
     }
 }
