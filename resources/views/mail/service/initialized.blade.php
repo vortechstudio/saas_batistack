@@ -1,14 +1,14 @@
 <x-mail::message>
 # 🎉 Votre service Batistack est prêt !
 
-Bonjour {{ $customer->first_name }},
+Bonjour {{ $customer->user->fullname }},
 
 Nous avons le plaisir de vous informer que votre service Batistack a été initialisé avec succès et est maintenant prêt à être utilisé.
 
 ## 📋 Détails de votre service
 - **Produit :** {{ $product->name }}
-- **Domaine :** {{ $service->domain }}
-- **Date d'activation :** {{ $service->created_at->format('d/m/Y à H:i') }}
+- **Domaine :** {{ $service->domain }}.{{ config('batistack.domain') }}
+- **Date d'activation :** {{ $service->updated_at->format('d/m/Y à H:i') }}
 - **Statut :** {{ $service->status->label() }}
 
 ## 🔧 Informations d'installation
@@ -32,7 +32,7 @@ Nous avons le plaisir de vous informer que votre service Batistack a été initi
 
 ## 🌐 Accès à votre service
 
-<x-mail::button :url="'https://' . $service->domain">
+<x-mail::button :url="'https://' . $service->domain.'.'.config('batistack.domain')">
 Accéder à mon service
 </x-mail::button>
 

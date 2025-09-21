@@ -33,7 +33,6 @@ class ServiceShow extends Component
 
         if($this->stateInstallCurrent == $this->stateInstallTotal) {
             $this->stateInstallLabel = 'Fin';
-            $this->refresh();
         }
 
         $this->comment = $this->service->steps()->where('done', false)->latest()->first()->comment ?? null;

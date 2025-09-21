@@ -29,71 +29,80 @@ class ActivateLicenseModule implements ShouldQueue
      */
     public function handle(): void
     {
-        try {
-            // Mise à jour du statut de l'étape
 
-            Log::info('Début de l\'activation des modules de licence', [
-                'service_id' => $this->service->id,
-                'product_id' => $this->service->product->id
+        if (config('app.env') == 'local') {
+            $this->service->steps()->where('step', 'Activation des modules de la license')->first()->update([
+                'done' => true,
+                'comment' => 'Installation vérifiée avec succès.'
             ]);
+            dispatch(new NotifyClientByMail($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+        } else {
+            try {
+                // Mise à jour du statut de l'étape
 
-            // Récupérer les fonctionnalités du produit
-            $features = $this->service->product->features;
-
-            if ($features->isEmpty()) {
-                Log::warning('Aucune fonctionnalité à activer pour ce produit', [
+                Log::info('Début de l\'activation des modules de licence', [
+                    'service_id' => $this->service->id,
                     'product_id' => $this->service->product->id
                 ]);
-                return;
-            }
 
-            // Préparer la configuration des modules
-            $moduleConfig = $this->prepareModuleConfiguration($features);
+                // Récupérer les fonctionnalités du produit
+                $features = $this->service->product->features;
 
-            // Créer le fichier de configuration temporaire
-            $configContent = $this->generateModuleConfigFile($moduleConfig);
-            $tempConfigFile = tempnam(sys_get_temp_dir(), 'batistack_modules_');
-            file_put_contents($tempConfigFile, $configContent);
+                if ($features->isEmpty()) {
+                    Log::warning('Aucune fonctionnalité à activer pour ce produit', [
+                        'product_id' => $this->service->product->id
+                    ]);
+                    return;
+                }
 
-            try {
-                // Transférer le fichier de configuration vers le serveur
-                $this->transferConfigurationFile($tempConfigFile);
+                // Préparer la configuration des modules
+                $moduleConfig = $this->prepareModuleConfiguration($features);
 
-                // Activer les modules via SSH
-                $this->activateModulesOnServer($moduleConfig);
+                // Créer le fichier de configuration temporaire
+                $configContent = $this->generateModuleConfigFile($moduleConfig);
+                $tempConfigFile = tempnam(sys_get_temp_dir(), 'batistack_modules_');
+                file_put_contents($tempConfigFile, $configContent);
 
-                // Vérifier l'activation des modules
-                $this->verifyModuleActivation($features);
+                try {
+                    // Transférer le fichier de configuration vers le serveur
+                    $this->transferConfigurationFile($tempConfigFile);
 
-                Log::info('Modules de licence activés avec succès', [
+                    // Activer les modules via SSH
+                    $this->activateModulesOnServer($moduleConfig);
+
+                    // Vérifier l'activation des modules
+                    $this->verifyModuleActivation($features);
+
+                    Log::info('Modules de licence activés avec succès', [
+                        'service_id' => $this->service->id,
+                        'activated_modules' => $features->pluck('slug')->toArray()
+                    ]);
+
+
+                } finally {
+                    // Nettoyer le fichier temporaire
+                    if (file_exists($tempConfigFile)) {
+                        unlink($tempConfigFile);
+                    }
+                }
+
+                dispatch(new NotifyClientByMail($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de l\'activation des modules de licence', [
                     'service_id' => $this->service->id,
-                    'activated_modules' => $features->pluck('slug')->toArray()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
                 ]);
 
+                Notification::make()
+                    ->danger()
+                    ->title("Installation d'un service en erreur !")
+                    ->body($e->getMessage())
+                    ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
 
-            } finally {
-                // Nettoyer le fichier temporaire
-                if (file_exists($tempConfigFile)) {
-                    unlink($tempConfigFile);
-                }
+                throw $e;
             }
-
-            dispatch(new NotifyClientByMail($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
-
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de l\'activation des modules de licence', [
-                'service_id' => $this->service->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            Notification::make()
-                ->danger()
-                ->title("Installation d'un service en erreur !")
-                ->body($e->getMessage())
-                ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
-
-            throw $e;
         }
     }
 
