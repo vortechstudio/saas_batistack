@@ -52,14 +52,18 @@ class InstallMainApps implements ShouldQueue
         $envTempPath = $tmpDir . DIRECTORY_SEPARATOR . '.env.temp.' . uniqid();
 
         if (config('app.env') == 'local') {
-            $this->service->steps()->where('step', 'Installation de l\'application principal')->first()->update([
-                'done' => true,
-                'comment' => 'Application installée avec succès via Process'
-            ]);
-
+            if ($step = $this->service->steps()->where('step', 'Installation de l\'application principal')->first()) {
+                $step->update([
+                    'done' => true,
+                    'comment' => 'Application installée avec succès (mode local)'
+                ]);
+            }
             dispatch(new VerifyInstallation($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
+                if (empty($sshPassword)) {
+                    throw new \RuntimeException('SSH password manquant: config(batistack.ssh.password) ou SSH_PASSWORD.');
+                }
                 file_put_contents($envTempPath, $envContent);
 
                 // Optimisation : commandes groupées et plus efficaces
