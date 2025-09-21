@@ -31,42 +31,60 @@ class VerifyDomain implements ShouldQueue
     public function handle(): void
     {
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
-        try {
-            if(count($this->fetch->sites(1, 1, $domain)['message']['data']) > 0) {
-                $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
-                    'done' => true,
-                ]);
-                dispatch(new VerifyDatabase($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
-            } else {
-                $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
+
+        if (config('app.env') == 'local') {
+            $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
+                'done' => true,
+            ]);
+            dispatch(new VerifyDatabase($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+        } else {
+            try {
+                $sites = $this->fetch->sites(20, 1, $domain);
+                $rows = $sites['message']['data'] ?? [];
+                $exists = false;
+
+                if (is_array($rows)) {
+                    foreach ($rows as $row) {
+                        if (($row['name'] ?? null) === $domain) { $exists = true; break; }
+                    }
+                }
+
+                if($exists) {
+                    $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
+                        'done' => true,
+                    ]);
+                    dispatch(new VerifyDatabase($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+                } else {
+                    $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
+                        'done' => false,
+                        'comment' => 'Le domaine n\'existe pas !',
+                    ]);
+                    $this->service->update([
+                        'status' => 'error',
+                    ]);
+                    Notification::make()
+                        ->danger()
+                        ->title("Installation d'un service en erreur !")
+                        ->body("Le domaine $domain n'existe pas !")
+                        ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
+                }
+
+            } catch (\Exception $e) {
+                $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
                     'done' => false,
-                    'comment' => 'Le domaine n\'existe pas !',
+                    'comment' => $e->getMessage(),
                 ]);
+
                 $this->service->update([
                     'status' => 'error',
                 ]);
+
                 Notification::make()
-                    ->danger()
-                    ->title("Installation d'un service en erreur !")
-                    ->body("Le domaine $domain n'existe pas !")
-                    ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
+                        ->danger()
+                        ->title("Installation d'un service en erreur !")
+                        ->body($e->getMessage())
+                        ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
             }
-
-        } catch (\Exception $e) {
-            $this->service->steps()->where('step', 'Vérification du domaine')->first()->update([
-                'done' => false,
-                'comment' => $e->getMessage(),
-            ]);
-
-            $this->service->update([
-                'status' => 'error',
-            ]);
-
-            Notification::make()
-                    ->danger()
-                    ->title("Installation d'un service en erreur !")
-                    ->body($e->getMessage())
-                    ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
         }
     }
 }

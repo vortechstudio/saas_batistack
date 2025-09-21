@@ -22,7 +22,7 @@ class ServiceShow extends Component
         $this->service = CustomerService::with('product', 'steps')->where('service_code', $service_code)->first();
         $this->stateInstallTotal = $this->service->steps->count();
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
-        $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step;
+        $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
     }
 
     public function refreshStateInstall()
@@ -33,7 +33,6 @@ class ServiceShow extends Component
 
         if($this->stateInstallCurrent == $this->stateInstallTotal) {
             $this->stateInstallLabel = 'Fin';
-            $this->refresh();
         }
 
         $this->comment = $this->service->steps()->where('done', false)->latest()->first()->comment ?? null;
