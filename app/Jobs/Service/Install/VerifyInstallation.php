@@ -36,12 +36,15 @@ class VerifyInstallation implements ShouldQueue
         // Configuration SSH
         $sshHost = config('batistack.ssh.host');
         $sshUser = config('batistack.ssh.user');
-        $sshKey = config('batistack.ssh.private_key_path');
+        $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
+        $sshPort = config('batistack.ssh.port', '22');
 
         if (config('app.env') == 'local') {
-            $this->service->steps()->where('step', 'Vérification de l\'installation')->first()->update([
+            $step = $this->service->steps()
+                ->firstOrCreate(['step' => "Vérification de l'installation"], ['done' => false, 'comment' => null]);
+            $step->update([
                 'done' => true,
-                'comment' => 'Installation vérifiée avec succès.'
+                'comment' => 'Installation vérifiée avec succès.',
             ]);
             dispatch(new VerifyServiceConnection($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
 
@@ -75,24 +78,22 @@ class VerifyInstallation implements ShouldQueue
                 // 1. Vérification des fichiers essentiels
                 foreach ($verifications['files'] as $file) {
                     // Construction de la commande SSH avec Process
-                    $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
-                    $sshCommand = [
-                        'sshpass',
-                        '-p', $sshPassword,
-                        'ssh',
-                        '-o', 'StrictHostKeyChecking=no',
-                        "$sshUser@$sshHost",
-                        '-p', '22',
+                    $sshPort = config('batistack.ssh.port', 22);
+                    $knownHostsFile = config('batistack.ssh.known_hosts_file');
+                    $verifyHostKeyDns = config('batistack.ssh.verify_host_key_dns', false);
 
+                    $sshOptions = [
+                        '-o', "UserKnownHostsFile=$knownHostsFile",
+                        '-o', $verifyHostKeyDns ? 'VerifyHostKeyDNS=yes' : 'VerifyHostKeyDNS=no',
                     ];
 
                     $checkFileCommand = [
                         'sshpass',
                         '-p', $sshPassword,
                         'ssh',
-                        '-o', 'StrictHostKeyChecking=no',
+                        ...$sshOptions,
                         "$sshUser@$sshHost",
-                        '-p', '22',
+                        '-p', (string)$sshPort,
                         "test -f $domainPath/$file && echo 'EXISTS' || echo 'MISSING'"
                     ];
 
@@ -109,9 +110,9 @@ class VerifyInstallation implements ShouldQueue
                         'sshpass',
                         '-p', $sshPassword,
                         'ssh',
-                        '-o', 'StrictHostKeyChecking=no',
+                        ...$sshOptions,
                         "$sshUser@$sshHost",
-                        '-p', '22',
+                        '-p', (string)$sshPort,
                         "test -d $domainPath/$directory && echo 'EXISTS' || echo 'MISSING'"
                     ];
 
@@ -122,21 +123,52 @@ class VerifyInstallation implements ShouldQueue
                     }
                 }
 
-                // 3. Vérifier que les permissions sont correctes
+                // 3. Vérifier que les permissions d'écriture sont correctes
+                $writeTestScript = "
+                    set -e
+                    test_write() {
+                        local dir=\$1
+                        local test_file=\"\$dir/.write_test_\$(date +%s)_\$\$\"
+                        if ! echo 'test' > \"\$test_file\" 2>/dev/null; then
+                            echo \"ERROR: Cannot write to \$dir\" >&2
+                            exit 1
+                        fi
+                        if ! rm \"\$test_file\" 2>/dev/null; then
+                            echo \"ERROR: Cannot remove test file from \$dir\" >&2
+                            exit 1
+                        fi
+                        echo \"OK: \$dir is writable\"
+                    }
+                    test_write \"$domainPath/storage\"
+                    test_write \"$domainPath/bootstrap/cache\"
+                    echo \"All directories are writable\"
+                ";
+
                 $permissionsCommand = [
                     'sshpass',
                         '-p', $sshPassword,
                         'ssh',
-                        '-o', 'StrictHostKeyChecking=no',
+                        ...$sshOptions,
                         "$sshUser@$sshHost",
-                        '-p', '22',
-                    "ls -la $domainPath/storage && ls -la $domainPath/bootstrap/cache"
+                        '-p', (string)$sshPort,
+                    "bash -c " . escapeshellarg($writeTestScript)
                 ];
 
                 $permissionsResult = Process::timeout(30)->run($permissionsCommand);
 
                 if ($permissionsResult->failed()) {
-                    throw new \Exception("Impossible de vérifier les permissions des dossiers storage et bootstrap/cache");
+                    $errorOutput = trim($permissionsResult->errorOutput());
+                    $standardOutput = trim($permissionsResult->output());
+
+                    $errorMessage = "Échec du test d'écriture dans les dossiers storage et/ou bootstrap/cache";
+                    if (!empty($errorOutput)) {
+                        $errorMessage .= ". Erreur: " . $errorOutput;
+                    }
+                    if (!empty($standardOutput)) {
+                        $errorMessage .= ". Sortie: " . $standardOutput;
+                    }
+
+                    throw new \Exception($errorMessage);
                 }
 
                 // 4. Vérifier que l'application Laravel fonctionne
@@ -144,9 +176,9 @@ class VerifyInstallation implements ShouldQueue
                     'sshpass',
                         '-p', $sshPassword,
                         'ssh',
-                        '-o', 'StrictHostKeyChecking=no',
+                        ...$sshOptions,
                         "$sshUser@$sshHost",
-                        '-p', '22',
+                        '-p', (string)$sshPort,
                     "cd $domainPath && php artisan --version"
                 ];
 
@@ -170,9 +202,9 @@ class VerifyInstallation implements ShouldQueue
                     'sshpass',
                         '-p', $sshPassword,
                         'ssh',
-                        '-o', 'StrictHostKeyChecking=no',
+                        ...$sshOptions,
                         "$sshUser@$sshHost",
-                        '-p', '22',
+                        '-p', (string)$sshPort,
                     "cd $domainPath && php artisan migrate:status"
                 ];
 
@@ -183,7 +215,9 @@ class VerifyInstallation implements ShouldQueue
                 }
 
                 // Installation vérifiée avec succès
-                $this->service->steps()->where('step', 'Vérification de l\'installation')->first()->update([
+                $step = $this->service->steps()
+                    ->firstOrCreate(['step' => "Vérification de l'installation"], ['done' => false, 'comment' => null]);
+                $step->update([
                     'done' => true,
                     'comment' => 'Installation vérifiée avec succès. Laravel version: ' . trim($artisanResult->output())
                 ]);
@@ -196,11 +230,14 @@ class VerifyInstallation implements ShouldQueue
                 ]);
 
             } catch (\Exception $e) {
-                // Gestion des erreurs
-                $this->service->steps()->where('step', 'Vérification de l\'installation')->first()->update([
-                    'done' => false,
-                    'comment' => $e->getMessage()
-                ]);
+                // Gestion des erreurs - éviter les déréférencements null
+                $step = $this->service->steps()->where('step', 'Vérification de l\'installation')->first();
+                if ($step !== null) {
+                    $step->update([
+                        'done' => false,
+                        'comment' => $e->getMessage()
+                    ]);
+                }
 
                 $this->service->update([
                     'status' => 'error',
@@ -212,11 +249,14 @@ class VerifyInstallation implements ShouldQueue
                     'error' => $e->getMessage()
                 ]);
 
-                Notification::make()
-                    ->danger()
-                    ->title("Installation d'un service en erreur !")
-                    ->body($e->getMessage())
-                    ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
+                $adminUser = User::where('email', 'admin@'.config('batistack.domain'))->first();
+                if ($adminUser !== null) {
+                    Notification::make()
+                        ->danger()
+                        ->title("Installation d'un service en erreur !")
+                        ->body($e->getMessage())
+                        ->sendToDatabase($adminUser);
+                }
 
                 throw $e;
             }
