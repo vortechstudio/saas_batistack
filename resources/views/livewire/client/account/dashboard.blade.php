@@ -91,17 +91,28 @@
 
                             <div>
                                 <span class="text-sm font-medium text-gray-700">Mon niveau de support</span>
-                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-{{ auth()->user()->customer->support_type->color() }}-100 text-{{ auth()->user()->customer->support_type->color() }}-800">
-                                    {{ auth()->user()->customer->support_type->label() }}
-                                </span>
+                                <p class="badge badge-outline badge-{{ auth()->user()->customer->support_type->color() }}"> {{ auth()->user()->customer->support_type->label() }}</p>
                             </div>
                         </div>
 
                         <!-- Bouton Éditer mon profil -->
                         <div class="mt-6">
-                            <button class="w-full bg-white border border-blue-600 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors font-medium">
+                            <button type="button" wire:click="editProfilAction" class="w-full bg-white border border-blue-600 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors font-medium">
                                 Éditer mon profil
                             </button>
+                            <x-filament::modal id="edit-profil" width="5xl" sticky-header>
+                                <x-slot name="heading">
+                                    Editer mon profil
+                                </x-slot>
+
+                               <form wire:submit="editProfil">
+                                    {{ $this->editProfilForm }}
+
+                                    <x-slot name="footer">
+                                        <button type="submit" class="btn">Enregistrer</button>
+                                    </x-slot>
+                               </form>
+                            </x-filament::modal>
                         </div>
                     </div>
 
