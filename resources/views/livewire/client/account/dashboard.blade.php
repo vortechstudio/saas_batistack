@@ -280,26 +280,7 @@
 
             @if($activeTab === 'emails')
                 <div class="space-y-6">
-                    <h2 class="text-xl font-semibold text-gray-900">Emails reçus</h2>
-                    <div class="space-y-4">
-                        <div class="bg-gray-50 rounded-md p-4">
-                            <p class="text-gray-600">Gérez vos préférences de notification par email.</p>
-                        </div>
-                        <div class="space-y-3">
-                            <label class="flex items-center">
-                                <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
-                                <span class="ml-2 text-sm text-gray-700">Notifications de commandes</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
-                                <span class="ml-2 text-sm text-gray-700">Newsletters et promotions</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span class="ml-2 text-sm text-gray-700">Mises à jour produits</span>
-                            </label>
-                        </div>
-                    </div>
+                    @livewire('client.account.components.table.notification-table')
                 </div>
             @endif
 
