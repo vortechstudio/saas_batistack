@@ -10,6 +10,7 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -17,6 +18,7 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\Layout;
@@ -28,9 +30,10 @@ use Livewire\Component;
 class Dashboard extends Component implements HasActions, HasSchemas
 {
     use InteractsWithActions, InteractsWithSchemas;
-    public $activeTab = 'general';
+    public $activeTab = 'security';
     public $latestInvoice;
     public ?array $profilData = [];
+    public ?array $passwordData = [];
     public User $user;
 
     public function mount()
@@ -54,6 +57,11 @@ class Dashboard extends Component implements HasActions, HasSchemas
     public function editProfilAction()
     {
         $this->dispatch('open-modal', id: 'edit-profil');
+    }
+
+    public function editPasswordAction()
+    {
+        $this->dispatch('open-modal', id: 'edit-password');
     }
 
     public function getListCountry()
@@ -143,10 +151,58 @@ class Dashboard extends Component implements HasActions, HasSchemas
             ->model($this->user);
     }
 
+    public function editPasswordForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('old_password')
+                    ->label('Ancien Mot de passe')
+                    ->password()
+                    ->required(),
+
+                TextInput::make('password')
+                    ->label('Mot de passe')
+                    ->password()
+                    ->different('old_password')
+                    ->confirmed()
+                    ->required(),
+
+                TextInput::make('password_confirmation')
+                    ->label('Confirmation du mot de passe')
+                    ->password()
+                    ->required(),
+            ])
+            ->statePath('passwordData');
+    }
+
     public function editProfil()
     {
         $data = $this->editProfilForm->getState();
-        dd($data);
+        $this->user->update($data);
+        $this->dispatch('close-modal', id: 'edit-profil');
+        Notification::make()
+            ->success()
+            ->title('Profil modifié avec succès')
+            ->send();
+    }
+
+    public function editPassword()
+    {
+        $data = $this->editPasswordForm->getState();
+        if(Hash::check($data['old_password'], $this->user->password)) {
+            $this->user->update($data);
+            $this->dispatch('close-modal', id: 'edit-password');
+            Notification::make()
+                ->success()
+                ->title('Mot de passe modifié avec succès')
+                ->send();
+        } else {
+            Notification::make()
+                ->error()
+                ->title('Ancien mot de passe incorrect')
+                ->send();
+        }
+
     }
 
     public function render()

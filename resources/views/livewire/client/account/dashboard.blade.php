@@ -108,9 +108,9 @@
                                <form wire:submit="editProfil">
                                     {{ $this->editProfilForm }}
 
-                                    <x-slot name="footer">
-                                        <button type="submit" class="btn">Enregistrer</button>
-                                    </x-slot>
+                                    <div class="flex justify-end mt-5">
+                                    <button type="submit" class="btn btn-primary">Valider</button>
+                                </div>
                                </form>
                             </x-filament::modal>
                         </div>
@@ -245,10 +245,24 @@
                                     <h3 class="text-lg font-semibold text-gray-900">Mot de passe</h3>
                                 </div>
                             </div>
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                            {{ $this->editPasswordAction() }}
+                            <button type="button" wire:click="editPasswordAction" class="btn btn-info">
                                 Modifier
                             </button>
                         </div>
+                        <x-filament::modal id="edit-password" width="xl" sticky-header>
+                            <x-slot name="heading">
+                                Modification de votre mot de passe
+                            </x-slot>
+
+                           <form wire:submit="editPassword">
+                                {{ $this->editPasswordForm }}
+
+                                <div class="flex justify-end mt-5">
+                                    <button type="submit" class="btn btn-primary">Valider</button>
+                                </div>
+                           </form>
+                        </x-filament::modal>
                     </div>
 
                     <!-- Section Double authentification -->
@@ -401,6 +415,7 @@
                         </div>
                     </div>
                 </div>
+
             @endif
 
             @if($activeTab === 'emails')
