@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2d78980310706b29d18526dfefc53c9a",
+    "content-hash": "d39564afc46e44d99d337450964bd645",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -8694,6 +8694,88 @@
                 }
             ],
             "time": "2025-08-13T11:49:31+00:00"
+        },
+        {
+            "name": "tapp/filament-country-code-field",
+            "version": "v2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/TappNetwork/filament-country-code-field.git",
+                "reference": "8fc620001e929db074e0c67492b945ca365a9be9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/TappNetwork/filament-country-code-field/zipball/8fc620001e929db074e0c67492b945ca365a9be9",
+                "reference": "8fc620001e929db074e0c67492b945ca365a9be9",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^4.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "larastan/larastan": "^2.9||^3.0",
+                "laravel/pint": "^1.14",
+                "nunomaduro/collision": "^8.1.1||^7.10.0",
+                "orchestra/testbench": "^10.0.0||^9.0.0",
+                "pestphp/pest": "^3.0||^2.34",
+                "pestphp/pest-plugin-arch": "^3.0||^2.7",
+                "pestphp/pest-plugin-laravel": "^3.0||^2.3",
+                "phpstan/extension-installer": "^1.3||^2.0",
+                "phpstan/phpstan-deprecation-rules": "^1.1||^2.0",
+                "phpstan/phpstan-phpunit": "^1.3||^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "FilamentCountryCodeField": "Tapp\\FilamentCountryCodeField\\Facades\\FilamentCountryCodeField"
+                    },
+                    "providers": [
+                        "Tapp\\FilamentCountryCodeField\\FilamentCountryCodeFieldServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Tapp\\FilamentCountryCodeField\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Tapp Network",
+                    "email": "steve@tappnetwork.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Tapp Network",
+                    "email": "andreia.bohner@tappnetwork.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Filament country code field.",
+            "homepage": "https://github.com/TappNetwork/filament-country-code-field",
+            "keywords": [
+                "country code",
+                "filament",
+                "laravel",
+                "tapp network"
+            ],
+            "support": {
+                "issues": "https://github.com/TappNetwork/filament-country-code-field/issues",
+                "source": "https://github.com/TappNetwork/filament-country-code-field"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/TappNetwork",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-06-20T20:22:59+00:00"
         },
         {
             "name": "tijsverkoyen/css-to-inline-styles",
