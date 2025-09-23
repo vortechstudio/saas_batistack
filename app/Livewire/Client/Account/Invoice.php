@@ -33,7 +33,7 @@ class Invoice extends Component implements HasActions, HasSchemas, HasTable
         return $table
             ->records(fn () => Auth::user()->customer->getListInvoices())
             ->columns([
-                TextColumn::make('id')
+                TextColumn::make('number')
                     ->label('Référence')
                     ->searchable(isIndividual: true)
                     ->sortable(),

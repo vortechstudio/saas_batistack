@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Services\Stripe\CustomerService as StripeCustomerService;
+use App\Services\Stripe\StripeService;
 
 class Customer extends Model
 {
@@ -85,6 +86,7 @@ class Customer extends Model
             ->map(function ($invoice) {
                 return [
                     'id' => $invoice->id,
+                    'number' => $invoice->number,
                     'metadata' => $invoice->metadata ? $invoice->metadata->toArray() : [],
                     'created' => $invoice->created,
                     'subtotal' => $this->calcHorsTaxe($invoice->subtotal/100, 20),
