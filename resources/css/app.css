@@ -7,6 +7,7 @@
 @import '../../vendor/filament/schemas/resources/css/index.css';
 @import '../../vendor/filament/tables/resources/css/index.css';
 @import '../../vendor/filament/widgets/resources/css/index.css';
+@import '../../vendor/livewire/flux/dist/flux.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

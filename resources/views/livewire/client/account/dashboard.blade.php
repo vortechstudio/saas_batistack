@@ -286,23 +286,7 @@
 
             @if($activeTab === 'support')
                 <div class="space-y-6">
-                    <h2 class="text-xl font-semibold text-gray-900">Mon niveau de support</h2>
-                    <div class="bg-white border border-gray-200 rounded-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900">Niveau actuel</h3>
-                                <p class="text-gray-600">Votre niveau de support détermine les services disponibles</p>
-                            </div>
-                            <span class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium bg-{{ auth()->user()->customer->support_type->color() }}-100 text-{{ auth()->user()->customer->support_type->color() }}-800">
-                                {{ auth()->user()->customer->support_type->label() }}
-                            </span>
-                        </div>
-                        <div class="mt-4">
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                                Améliorer mon support
-                            </button>
-                        </div>
-                    </div>
+                    @livewire('client.account.components.tabs.support-tabs')
                 </div>
             @endif
 

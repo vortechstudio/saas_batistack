@@ -33,7 +33,7 @@ use Filament\Forms\Components\Toggle;
 class Dashboard extends Component implements HasActions, HasSchemas
 {
     use InteractsWithActions, InteractsWithSchemas;
-    public $activeTab = 'emails';
+    public $activeTab = 'support';
     public $latestInvoice;
     public ?array $profilData = [];
     public ?array $passwordData = [];
