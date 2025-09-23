@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use App\Models\Customer\CustomerRestrictedIp;
+use App\Enum\Customer\CustomerRestrictedIpTypeEnum;
+use Filament\Forms\Components\Toggle;
 
 #[Layout('components.layouts.client')]
 #[Title('Mon Compte')]
@@ -35,6 +38,7 @@ class Dashboard extends Component implements HasActions, HasSchemas
     public ?array $profilData = [];
     public ?array $passwordData = [];
     public User $user;
+    public $ipRestrictionData = [];
 
     public function mount()
     {
@@ -208,5 +212,93 @@ class Dashboard extends Component implements HasActions, HasSchemas
     public function render()
     {
         return view('livewire.client.account.dashboard');
+    }
+
+    public function ipRestrictionForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                TextInput::make('ip_address')
+                    ->label('Adresse IP')
+                    ->required()
+                    ->ip()
+                    ->placeholder('192.168.1.1'),
+
+                Select::make('authorize')
+                    ->label('Type d\'autorisation')
+                    ->options(CustomerRestrictedIpTypeEnum::options())
+                    ->required()
+                    ->default(CustomerRestrictedIpTypeEnum::ALLOW->value),
+
+                Toggle::make('alert')
+                    ->label('Activer les alertes')
+                    ->default(false),
+            ])
+            ->statePath('ipRestrictionData');
+    }
+
+    public function addIpRestriction()
+    {
+        $data = $this->ipRestrictionForm->getState();
+
+        // Vérifier si l'IP existe déjà pour ce client
+        $existingIp = $this->customer->restrictedIps()
+            ->where('ip_address', $data['ip_address'])
+            ->first();
+
+        if ($existingIp) {
+            Notification::make()
+                ->warning()
+                ->title('Cette adresse IP est déjà configurée')
+                ->send();
+            return;
+        }
+
+        // Créer la nouvelle restriction IP
+        $this->customer->restrictedIps()->create([
+            'ip_address' => $data['ip_address'],
+            'authorize' => CustomerRestrictedIpTypeEnum::from($data['authorize']),
+            'alert' => $data['alert'],
+        ]);
+
+        $this->dispatch('close-modal', id: 'add-ip-restriction');
+        $this->reset('ipRestrictionData');
+
+        Notification::make()
+            ->success()
+            ->title('Restriction IP ajoutée avec succès')
+            ->send();
+    }
+
+    public function removeIpRestriction($ipId)
+    {
+        $ipRestriction = $this->customer->restrictedIps()->find($ipId);
+
+        if ($ipRestriction) {
+            $ipRestriction->delete();
+
+            Notification::make()
+                ->success()
+                ->title('Restriction IP supprimée avec succès')
+                ->send();
+        }
+    }
+
+    public function toggleIpRestrictionStatus($ipId)
+    {
+        $ipRestriction = $this->customer->restrictedIps()->find($ipId);
+
+        if ($ipRestriction) {
+            $newStatus = $ipRestriction->authorize === CustomerRestrictedIpTypeEnum::ALLOW
+                ? CustomerRestrictedIpTypeEnum::DENY
+                : CustomerRestrictedIpTypeEnum::ALLOW;
+
+            $ipRestriction->update(['authorize' => $newStatus]);
+
+            Notification::make()
+                ->success()
+                ->title('Statut de la restriction IP modifié')
+                ->send();
+        }
     }
 }

@@ -266,156 +266,16 @@
                     </div>
 
                     <!-- Section Double authentification -->
-                    <div class="bg-white border border-gray-200 rounded-lg p-6">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                    <svg class="w-6 h-6 text-green-600 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-lg font-semibold text-gray-900">Double authentification</h3>
-                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
-                                        ACTIVÉ
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SMS -->
-                        <div class="mt-6 space-y-4">
-                            <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0">
-                                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h4 class="text-sm font-medium text-gray-900">SMS</h4>
-                                        <p class="text-sm text-gray-600">S'authentifier à l'aide d'un code de sécurité reçu par SMS.</p>
-                                    </div>
-                                </div>
-                                <button class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors">
-                                    Ajouter un numéro
-                                </button>
-                            </div>
-
-                            <!-- Application Mobile -->
-                            <div class="p-4 border border-gray-200 rounded-lg">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0">
-                                            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="ml-3">
-                                            <h4 class="text-sm font-medium text-gray-900">Application Mobile</h4>
-                                            <p class="text-sm text-gray-600">S'authentifier à l'aide d'une application mobile gratuite (compatible Android / iPhone / Windows Phone).</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Liste des applications -->
-                                <div class="bg-blue-50 rounded-lg p-3 mt-3">
-                                    <h5 class="text-sm font-medium text-blue-900 mb-2">Description</h5>
-                                    <div class="space-y-2 text-sm text-gray-700">
-                                        <div class="flex justify-between">
-                                            <span>Aucune description</span>
-                                            <span class="text-xs text-gray-500">(Dernière utilisation : 30 mai 2023)</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span>Aucune description</span>
-                                            <span class="text-xs text-gray-500">(Dernière utilisation : 13 avril 2024)</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span>Aucune description</span>
-                                            <span class="text-xs text-gray-500">(Dernière utilisation : 31 juillet 2023)</span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span>2FAS</span>
-                                            <span class="text-xs text-gray-500">(Dernière utilisation : 26 août 2025)</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-4">
-                                    <button class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors">
-                                        Ajouter une application
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Section Clé de sécurité -->
-                    <div class="bg-white border border-gray-200 rounded-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-lg font-semibold text-gray-900">Clé de sécurité</h3>
-                                    <p class="text-sm text-gray-600">S'authentifier à l'aide d'une clé de sécurité compatible U2F.</p>
-                                </div>
-                            </div>
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
-                                Ajouter une clé
-                            </button>
-                        </div>
-                    </div>
 
                     <!-- Section Codes de secours -->
-                    <div class="bg-white border border-gray-200 rounded-lg p-6">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                    <svg class="w-6 h-6 text-green-600 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-lg font-semibold text-gray-900">Codes de secours</h3>
-                                    <p class="text-sm text-gray-600 mb-2">Utilisez ces codes si vous perdez ou n'avez pas accès à votre téléphone.</p>
-                                    <p class="text-sm font-medium text-green-600">Vous disposez de 9 codes de secours valides.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-4 flex space-x-3">
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
-                                Regénérer les codes
-                            </button>
-                            <button class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors font-medium">
-                                Désactiver les codes 2FA
-                            </button>
-                        </div>
-                    </div>
 
                     <!-- Section Restriction d'accès par IP -->
                     <div class="bg-white border border-gray-200 rounded-lg p-6">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-lg font-semibold text-gray-900">Restriction d'accès par IP</h3>
-                                </div>
-                            </div>
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
-                                Activer
-                            </button>
-                        </div>
+                        @livewire('client.account.components.table.restricted-ip-table')
                     </div>
                 </div>
-
             @endif
 
             @if($activeTab === 'emails')
