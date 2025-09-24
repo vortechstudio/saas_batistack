@@ -10,6 +10,8 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Checkbox;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -17,28 +19,34 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
-use Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use App\Models\Customer\CustomerRestrictedIp;
 use App\Enum\Customer\CustomerRestrictedIpTypeEnum;
+use App\Jobs\Customer\DeleteCustomerAccountJob;
+use App\Notifications\Customer\AccountDeletionScheduled;
 use Filament\Forms\Components\Toggle;
+use Filament\Support\Enums\IconSize;
+use Filament\Support\Enums\Size;
+use Illuminate\Support\Facades\Hash;
 
 #[Layout('components.layouts.client')]
 #[Title('Mon Compte')]
 class Dashboard extends Component implements HasActions, HasSchemas
 {
     use InteractsWithActions, InteractsWithSchemas;
-    public $activeTab = 'support';
+    public $activeTab = 'personal';
     public $latestInvoice;
     public ?array $profilData = [];
     public ?array $passwordData = [];
     public User $user;
     public $ipRestrictionData = [];
+    public $deleteAccountData = [];
+    public $showDeleteConfirmation = false;
 
     public function mount()
     {
@@ -51,6 +59,10 @@ class Dashboard extends Component implements HasActions, HasSchemas
         $this->user = User::with('customer')->find(Auth::user()->id);
 
         $this->editProfilForm->fill($this->user->toArray());
+
+        if(request()->query('action') === 'cancelDeletion') {
+            $this->cancelAccountDeletion();
+        }
     }
 
     public function setActiveTab($tab)
@@ -209,6 +221,32 @@ class Dashboard extends Component implements HasActions, HasSchemas
 
     }
 
+    public function deleteAccountAction()
+    {
+        $this->dispatch('open-modal', id: 'delete-account');
+    }
+
+    public function deleteAccount()
+    {
+        $customer = Auth::user()->customer;
+        $data = $this->deleteAccountForm->getState();
+        $deletionRequest = $this->createDeletionRequest($customer, $data);
+        $this->validateAccountDeletion($customer);
+        $this->deactivateAccount($customer);
+
+        dispatch(new DeleteCustomerAccountJob($customer, $deletionRequest))->delay(now()->addDays(7));
+        Auth::user()->notify(new AccountDeletionScheduled($customer, $deletionRequest));
+
+        $this->dispatch('close-modal', id: 'delete-account');
+
+        Notification::make()
+            ->success()
+            ->color('success')
+            ->title("Suppression de votre compte client")
+            ->body("La suppression de votre compte client à été programmé, un mail vous à été envoyé pour le confirmé.")
+            ->send();
+    }
+
     public function render()
     {
         return view('livewire.client.account.dashboard');
@@ -298,6 +336,171 @@ class Dashboard extends Component implements HasActions, HasSchemas
             Notification::make()
                 ->success()
                 ->title('Statut de la restriction IP modifié')
+                ->send();
+        }
+    }
+
+    public function deleteAccountForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make('Confirmation de suppression')
+                    ->description('Veuillez confirmer votre demande de suppression de compte')
+                    ->schema([
+                        Checkbox::make('confirm_data_loss')
+                            ->label('Je comprends que toutes mes données seront définitivement supprimées')
+                            ->required()
+                            ->accepted(),
+
+                        Checkbox::make('confirm_services_termination')
+                            ->label('Je comprends que tous mes services actifs seront résiliés')
+                            ->required()
+                            ->accepted(),
+
+                        Checkbox::make('confirm_billing_final')
+                            ->label('Je comprends que ma facturation sera finalisée et que je devrai régler les montants dus')
+                            ->required()
+                            ->accepted(),
+
+                        Textarea::make('reason')
+                            ->label('Raison de la suppression (optionnel)')
+                            ->placeholder('Pouvez-vous nous dire pourquoi vous souhaitez supprimer votre compte ?')
+                            ->rows(3)
+                            ->maxLength(500),
+
+                        TextInput::make('password_confirmation')
+                            ->label('Confirmez votre mot de passe')
+                            ->password()
+                            ->required()
+                            ->rule('current_password'),
+                    ])
+            ])
+            ->statePath('deleteAccountData');
+    }
+
+    private function validateAccountDeletion($customer): void
+    {
+        // Vérifier s'il y a des factures impayées
+        $unpaidOrders = $customer->orders()
+            ->whereIn('status', ['pending', 'cancelled', 'refunded'])
+            ->where('total_amount', '>', 0)
+            ->exists();
+
+        if ($unpaidOrders) {
+            $this->dispatch('close-modal', id: 'delete-account');
+            Notification::make()
+                ->warning()
+                ->title('Impossible de supprimer le compte : des factures sont encore impayées.')
+                ->color('warning')
+                ->send();
+        }
+
+        // Vérifier s'il y a des services actifs critiques
+        $criticalServices = $customer->services()
+            ->where('status', 'ok')
+            ->whereHas('product', function($query) {
+                $query->where('category', 'license'); // Supposons qu'il y ait un flag pour les produits critiques
+            })
+            ->exists();
+
+        if ($criticalServices) {
+            $this->dispatch('close-modal', id: 'delete-account');
+            Notification::make()
+                ->warning()
+                ->title('Veuillez d\'abord résilier vos services actifs avant de supprimer votre compte.')
+                ->color('warning')
+                ->send();
+            return;
+        }
+    }
+
+    private function createDeletionRequest($customer, array $data): object
+    {
+        return (object) [
+            'customer_id' => $customer->id,
+            'requested_at' => now(),
+            'scheduled_for' => now()->addDays(7),
+            'reason' => $data['reason'] ?? null,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'confirmations' => [
+                'data_loss' => $data['confirm_data_loss'],
+                'services_termination' => $data['confirm_services_termination'],
+                'billing_final' => $data['confirm_billing_final'],
+            ]
+        ];
+    }
+
+    private function deactivateAccount($customer): void
+    {
+        // Marquer le compte comme en cours de suppression
+        $customer->update([
+            'status' => 'pending_deletion',
+            'deactivated_at' => now()
+        ]);
+
+        // Suspendre tous les services
+        $customer->services()->update([
+            'status' => 'suspended'
+        ]);
+
+        // Désactiver toutes les méthodes de paiement
+        $customer->paymentMethods()->update([
+            'is_active' => false
+        ]);
+
+        // Envoyer un email de confirmation
+        // Mail::to($customer->user->email)->send(new AccountDeletionScheduled($customer));
+    }
+
+    public function cancelAccountDeletion(): void
+    {
+        $customer = $this->user->customer;
+
+        if ($customer->status !== 'pending_deletion') {
+            Notification::make()
+                ->warning()
+                ->title('Aucune suppression en cours')
+                ->send();
+            return;
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Réactiver le compte
+            $customer->update([
+                'status' => 'active',
+                'deactivated_at' => null
+            ]);
+
+            // Réactiver les services (si ils étaient actifs avant)
+            $customer->services()
+                ->where('status', 'suspended')
+                ->update(['status' => 'ok']);
+
+            // Annuler le job de suppression programmé
+            // Ici vous devriez implémenter la logique pour annuler le job
+
+            DB::commit();
+
+            Notification::make()
+                ->success()
+                ->title('Suppression annulée')
+                ->body('Votre compte a été réactivé avec succès.')
+                ->send();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de l\'annulation de suppression', [
+                'customer_id' => $customer->id,
+                'error' => $e->getMessage()
+            ]);
+
+            Notification::make()
+                ->danger()
+                ->title('Erreur')
+                ->body('Impossible d\'annuler la suppression. Contactez le support.')
                 ->send();
         }
     }

@@ -292,26 +292,35 @@
 
             @if($activeTab === 'personal')
                 <div class="space-y-6">
-                    <h2 class="text-xl font-semibold text-gray-900">Données personnelles & gestion du compte</h2>
-                    <div class="space-y-4">
-                        <div class="bg-red-50 border border-red-200 rounded-md p-4">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    @svg('heroicon-o-exclamation-triangle', 'h-5 w-5 text-red-400')
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-red-800">Zone dangereuse</h3>
-                                    <p class="mt-1 text-sm text-red-700">Les actions suivantes sont irréversibles.</p>
-                                </div>
+                    <div class="card card-xl bg-red-100 shadow-sm">
+                        <div class="card-body">
+                            <h2 class="card-title">Supprimer mon compte Batistack</h2>
+                            <p class="font-bold">Si vous choisissez de supprimer votre compte, vous ne pourrez plus le réactiver. Nous procéderons à la suppression de votre compte après la confirmation.</p>
+                            <p>
+                                Conformément à notre politique d’utilisation des données, certaines des données (notamment logs de connexion, données comptables et financières, etc.) resterons dans nos bases de données afin de nous conformer à nos obligations légales et faire valoir nos droits, et ce, conformément à la réglementation en vigueur.
+                            </p>
+                            <div class="flex justify-end">
+                                <button type="button" wire:click="deleteAccountAction" class="btn btn-error">
+                                    Supprimer mon compte
+                                </button>
+                                <x-filament::modal id="delete-account" width="xl" sticky-header>
+                                    <x-slot name="heading">
+                                        Suppression de votre compte Batistack
+                                    </x-slot>
+
+                                    <form wire:submit="deleteAccount">
+                                        {{ $this->deleteAccountForm }}
+
+                                        <p>Confirmer que vous souhaitez demander la suppression du compte {{ auth()->user()->customer->code_client }}</p>
+                                        <div class="flex justify-end mt-5 gap-5">
+                                            <button type="button" class="btn btn-primary">Annuler</button>
+                                            <button type="submit" class="btn btn-error text-white" wire:loading.class="opacity-50">Supprimer mon compte</button>
+                                        </div>
+                                    </form>
+
+
+                                </x-filament::modal>
                             </div>
-                        </div>
-                        <div class="space-y-3">
-                            <button class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
-                                Supprimer mon compte
-                            </button>
-                            <button class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">
-                                Exporter mes données
-                            </button>
                         </div>
                     </div>
                 </div>
