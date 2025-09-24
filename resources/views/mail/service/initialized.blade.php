@@ -60,7 +60,7 @@ L'équipe {{ config('app.name') }}
 
 <small>
 **Informations techniques :**<br>
-Service ID: {{ $service->uuid }}<br>
+Service ID: {{ $service->service_code }}<br>
 Date d'initialisation: {{ now()->format('d/m/Y H:i:s') }}
 </small>
 </x-mail::message>

@@ -1,21 +1,24 @@
 <?php
 
-namespace App\Notifications\Commerce;
+namespace App\Notifications\Customer;
 
-use App\Models\Commerce\Order;
+use App\Models\Customer\Customer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CreateSubscription extends Notification
+class AccountDeletionScheduled extends Notification
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(public Order $order, public $subscription)
+    public function __construct(
+        private Customer $customer,
+        private object $deletionRequest
+    )
     {
         //
     }
@@ -36,10 +39,10 @@ class CreateSubscription extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("[".config('app.name')."] - Commande N°".$this->order->order_number)
-            ->markdown('mail.commerce.create_subscription', [
-                'order' => $this->order,
-                'subscription' => $this->subscription
+            ->subject("Suppression de compte planifiée")
+            ->markdown('mail.customer.account-deletion-scheduled', [
+                'customer' => $this->customer,
+                'deletionRequest' => $this->deletionRequest
             ]);
     }
 

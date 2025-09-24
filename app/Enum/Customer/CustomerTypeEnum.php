@@ -2,23 +2,18 @@
 
 namespace App\Enum\Customer;
 
+use App\Enum\EnumTrait;
+
 enum CustomerTypeEnum: string
 {
+    use EnumTrait;
+
     case ADMINISTRATION = 'administration';
     case ASSOCIATION = 'association';
     case ENTREPRISE = 'entreprise';
     case PARTICULIER = 'particulier';
     case AUTRE = 'autre';
 
-    public static function array()
-    {
-        return collect(self::cases())->map(function ($type) {
-            return [
-                'value' => $type->value,
-                'label' => $type->name,
-            ];
-        });
-    }
 
     public function label(): string
     {
