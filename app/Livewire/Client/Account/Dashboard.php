@@ -234,7 +234,7 @@ class Dashboard extends Component implements HasActions, HasSchemas
         $this->validateAccountDeletion($customer);
         $this->deactivateAccount($customer);
 
-        dispatch(new DeleteCustomerAccountJob($customer, $deletionRequest))->delay(now()->addDays(7));
+        dispatch(new DeleteCustomerAccountJob($customer, $deletionRequest));
         Auth::user()->notify(new AccountDeletionScheduled($customer, $deletionRequest));
 
         $this->dispatch('close-modal', id: 'delete-account');

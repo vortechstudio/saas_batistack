@@ -13,6 +13,7 @@ enum CustomerServiceStatusEnum: string
     case PENDING = 'pending';
     case UNPAID = 'unpaid';
     case ERROR = 'error';
+    case SUSPENDED = 'suspended';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum CustomerServiceStatusEnum: string
             self::PENDING => 'En attente',
             self::UNPAID => 'Non payé',
             self::ERROR => 'Erreur',
+            self::SUSPENDED => 'Suspendu',
         };
     }
 
@@ -33,6 +35,7 @@ enum CustomerServiceStatusEnum: string
             self::PENDING => 'warning',
             self::UNPAID => 'danger',
             self::ERROR => 'danger',
+            self::SUSPENDED => 'warning',
         };
     }
 
@@ -44,6 +47,7 @@ enum CustomerServiceStatusEnum: string
             self::PENDING => 'heroicon-o-arrow-path',
             self::UNPAID => 'heroicon-o-exclamation-circle',
             self::ERROR => 'heroicon-o-x-circle',
+            self::SUSPENDED => 'heroicon-o-pause-circle',
         };
     }
 
