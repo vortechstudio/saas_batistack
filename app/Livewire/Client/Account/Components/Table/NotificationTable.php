@@ -34,7 +34,7 @@ class NotificationTable extends Component implements HasActions, HasSchemas, Has
                     ->size(Size::Large)
                     ->icon(Heroicon::ArrowTurnUpRight)
                     ->action(function () {
-                        $this->dispatch('refresh');
+                        $this->dispatch('$refresh');
                     }),
             ])
             ->query(User::find(Auth::user()->id)->notifications()->getQuery())
