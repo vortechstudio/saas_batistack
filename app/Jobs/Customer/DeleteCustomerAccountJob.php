@@ -33,32 +33,23 @@ class DeleteCustomerAccountJob implements ShouldQueue
                 return;
             }
 
-            DB::beginTransaction();
-
             Log::info('Début de la suppression du compte client', [
                 'customer_id' => $this->customer->id,
                 'customer_code' => $this->customer->code_client
             ]);
-
-            // 1. Sauvegarder les données essentielles pour conformité légale
-            $this->archiveEssentialData();
-
-            // 2. Supprimer les données Stripe
+            // 1) Archiver (transaction courte)
+            DB::transaction(function () {
+                $this->archiveEssentialData();
+            });
+            // 2) Opérations externes (pas de transaction DB)
             $this->deleteStripeData();
-
-            // 3. Supprimer les fichiers et données de stockage
             $this->deleteStorageData();
-
-            // 4. Supprimer les services externes (domaines, bases de données, etc.)
             $this->deleteExternalServices();
-
-            // 5. Anonymiser les données conservées
-            $this->anonymizeRetainedData();
-
-            // 6. Supprimer les enregistrements de la base de données
-            $this->deleteDatabaseRecords();
-
-            DB::commit();
+            // 3) Nettoyage/anonymisation (transaction courte)
+            DB::transaction(function () {
+                $this->anonymizeRetainedData();
+                $this->deleteDatabaseRecords();
+            });
 
             Log::info('Suppression du compte client terminée avec succès', [
                 'customer_id' => $this->customer->id
