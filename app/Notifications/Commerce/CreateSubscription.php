@@ -36,6 +36,7 @@ class CreateSubscription extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
+            ->subject("[".config('app.name')."] - Commande N°".$this->order->order_number)
             ->markdown('mail.commerce.create_subscription', [
                 'order' => $this->order,
                 'subscription' => $this->subscription
