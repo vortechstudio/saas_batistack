@@ -23,7 +23,7 @@
         @endif
     @endif
     <div class="flex justify-between gap-5 mt-10">
-        <div class="w-1/3">
+        <div class="w-1/2">
             <x-mary-card class="bg-gray-100 p-5 shadow-md">
                 <x-slot:title class="text-blue-900 text-xl font-black">
                     Détails du service
@@ -53,9 +53,18 @@
                         <span class="text-gray-400 italic">{{ $service->service_code }}</span>
                     </div>
                 </div>
+                <x-mary-menu-separator class="my-2" />
+                <div class="flex flex-col">
+                    <span class="text-blue-900 font-black text-lg">Accès</span>
+                    @if($service->status->value === 'ok')
+                    <div class="flex gap-2">
+                        <a href="https://{{ $service->domain }}" target="_blank" class="text-gray-400 italic">https://{{ $service->domain }}</a>
+                    </div>
+                    @endif
+                </div>
             </x-mary-card>
         </div>
-        <div class="w-1/3">
+        <div class="w-1/2">
             <x-mary-card class="bg-gray-100 p-5 shadow-md">
                 <x-slot:title class="text-blue-900 text-2xl font-black">
                     Détails du produits
