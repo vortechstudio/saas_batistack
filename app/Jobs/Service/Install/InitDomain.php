@@ -47,6 +47,10 @@ class InitDomain implements ShouldQueue
         $dbLabel = substr(str_replace('-', '_', $domainLabel), 0, 61);
         $database = 'db_' . $dbLabel;
 
+        $this->service->update([
+            'domain' => $domain,
+        ]);
+
         if (config('app.env') == 'local') {
             $this->service->steps()->where('step', 'Création de domaine')->first()?->update([
                 'done' => true,

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('customer_services', function (Blueprint $table) {
             $table->id();
             $table->string('service_code')->unique();
+            $table->string('domain')->nullable();
             $table->date('creationDate');
             $table->date('expirationDate');
             $table->date('nextBillingDate');
