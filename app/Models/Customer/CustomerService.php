@@ -41,6 +41,11 @@ class CustomerService extends Model
         return $this->hasMany(CustomerServiceOption::class);
     }
 
+    public function modules()
+    {
+        return $this->hasMany(CustomerServiceModule::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

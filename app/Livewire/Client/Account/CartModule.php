@@ -7,7 +7,7 @@ use App\Jobs\Commerce\CreateInvoiceByOrder;
 use App\Models\Commerce\Order;
 use App\Models\Customer\CustomerService;
 use App\Models\Product\Feature;
-use App\Services\Stripe\StripeService;
+use App\Models\Product\Product;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
@@ -93,8 +93,9 @@ class CartModule extends Component implements HasSchemas
         }
         
         // Récupérer le service et la feature sélectionnés
-        $service = CustomerService::with('product')->find($data['service_id']);
+        $service = CustomerService::with('product', 'product.prices')->find($data['service_id']);
         $feature = Feature::find($data['feature_id']);
+        $product = Product::where('slug', $feature->slug)->first();
         
         if (!$service || !$feature) {
             session()->flash('error', 'Service ou fonctionnalité introuvable.');
@@ -121,7 +122,7 @@ class CartModule extends Component implements HasSchemas
         
         // Ici vous pouvez ajouter la logique pour traiter l'ajout de la fonctionnalité
         // Par exemple, créer une commande, ajouter au panier, etc.
-        $productPrice = $feature->product->prices()->first()->price;
+        $productPrice = $product->prices->first()->price;
 
         $order = Order::create([
             'type' => OrderTypeEnum::SUBSCRIPTION,
@@ -137,13 +138,15 @@ class CartModule extends Component implements HasSchemas
             "unit_price" => $productPrice,
             "total_price" => $productPrice,
             "order_id" => $order->id,
-            "product_id" => $feature->product->id,
-            "product_price_id" => $feature->product->prices()->first()->id,
+            "product_id" => $product->id,
+            "product_price_id" => $product->prices->first()->id,
+        ]);
+
+        $order->logs()->create([
+            'libelle' => 'Création de votre commande',
         ]);
 
         dispatch(new CreateInvoiceByOrder($order));
-        
-        session()->flash('success', "Fonctionnalité '{$feature->name}' ajoutée au service '{$service->service_code}'.");
         
         Notification::make()
                 ->success()
@@ -151,8 +154,8 @@ class CartModule extends Component implements HasSchemas
                 ->title('Succès')
                 ->body("Fonctionnalité '{$feature->name}' ajoutée au service '{$service->service_code}'.")
                 ->send();
-        // Réinitialiser le formulaire
-        $this->form->fill();
+
+        return $this->redirect(route('client.account.order.show', $order->id));
     }
 
     public function render()
