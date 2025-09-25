@@ -111,6 +111,20 @@
                     </ul>
                 </div>
             </div>
+            @if($service->options->count() > 0)
+            <div class="card bg-gray-100 p-5 shadow-md rounded-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-blue-900 text-2xl font-black">Options</h2>
+                    <ul class="list">
+                        @foreach ($service->options as $option)
+                            <li class="list-row">
+                                <div>{{ $option->product->name }}</div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
