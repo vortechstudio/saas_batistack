@@ -23,7 +23,7 @@
         @endif
     @endif
     <div class="flex justify-between gap-5 mt-10">
-        <div class="w-1/2">
+        <div class="w-1/3">
             <x-mary-card class="bg-gray-100 p-5 shadow-md">
                 <x-slot:title class="text-blue-900 text-xl font-black">
                     Détails du service
@@ -64,7 +64,7 @@
                 </div>
             </x-mary-card>
         </div>
-        <div class="w-1/2">
+        <div class="w-1/3">
             <x-mary-card class="bg-gray-100 p-5 shadow-md">
                 <x-slot:title class="text-blue-900 text-2xl font-black">
                     Détails du produits
@@ -94,6 +94,23 @@
                     </div>
                 </div>
             </x-mary-card>
+        </div>
+        <div class="w-1/3">            
+            <div class="card bg-gray-100 p-5 shadow-md mb-2 rounded-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-blue-900 text-2xl font-black">Modules Installées</h2>
+                    <ul class="list">
+                        @foreach ($service->product->features as $feature)
+                            <li class="list-row">
+                                <div><img class="size-5 rounded-box" src="{{ $feature->media }}" /></div>
+                                <div>
+                                    <div>{{ $feature->name }}</div>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 </div>
