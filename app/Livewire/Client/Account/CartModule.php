@@ -2,9 +2,14 @@
 
 namespace App\Livewire\Client\Account;
 
+use App\Enum\Commerce\OrderTypeEnum;
+use App\Jobs\Commerce\CreateInvoiceByOrder;
+use App\Models\Commerce\Order;
 use App\Models\Customer\CustomerService;
 use App\Models\Product\Feature;
+use App\Services\Stripe\StripeService;
 use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
@@ -93,20 +98,59 @@ class CartModule extends Component implements HasSchemas
         
         if (!$service || !$feature) {
             session()->flash('error', 'Service ou fonctionnalité introuvable.');
+            Notification::make()
+                ->danger()
+                ->color('error')
+                ->title('Erreur')
+                ->body('Service ou fonctionnalité introuvable.')
+                ->send();
             return;
         }
         
         // Vérifier que la feature n'est pas déjà disponible pour ce produit
         if ($service->product->features->contains($feature->id)) {
             session()->flash('error', 'Cette fonctionnalité est déjà disponible pour ce service.');
+            Notification::make()
+                ->danger()
+                ->color('error')
+                ->title('Erreur')
+                ->body('Cette fonctionnalité est déjà disponible pour ce service.')
+                ->send();
             return;
         }
         
         // Ici vous pouvez ajouter la logique pour traiter l'ajout de la fonctionnalité
         // Par exemple, créer une commande, ajouter au panier, etc.
+        $productPrice = $feature->product->prices()->first()->price;
+
+        $order = Order::create([
+            'type' => OrderTypeEnum::SUBSCRIPTION,
+            'status' => 'pending',
+            'subtotal' => $productPrice,
+            'tax_amount' => $productPrice * 0.2,
+            'total_amount' => $productPrice + ($productPrice * 0.2),
+            'customer_id' => Auth::user()->customer->id,
+            'customer_service_id' => $data['service_id'],
+        ]);
+
+        $order->items()->create([
+            "unit_price" => $productPrice,
+            "total_price" => $productPrice,
+            "order_id" => $order->id,
+            "product_id" => $feature->product->id,
+            "product_price_id" => $feature->product->prices()->first()->id,
+        ]);
+
+        dispatch(new CreateInvoiceByOrder($order));
         
         session()->flash('success', "Fonctionnalité '{$feature->name}' ajoutée au service '{$service->service_code}'.");
         
+        Notification::make()
+                ->success()
+                ->color('success')
+                ->title('Succès')
+                ->body("Fonctionnalité '{$feature->name}' ajoutée au service '{$service->service_code}'.")
+                ->send();
         // Réinitialiser le formulaire
         $this->form->fill();
     }
