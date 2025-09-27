@@ -9,20 +9,7 @@ use App\Enum\Product\ProductPriceFrequencyEnum;
 use App\Jobs\Commerce\CreateInvoiceByOrder;
 use App\Models\Commerce\Order;
 use App\Models\Product\Product;
-use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Wizard;
-use Filament\Schemas\Components\Wizard\Step;
-use Filament\Schemas\Concerns\InteractsWithSchemas;
-use Filament\Schemas\Contracts\HasSchemas;
-use Filament\Schemas\Schema;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
@@ -30,147 +17,157 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.client')]
-#[Title('Souscription')]
-class CartLicense extends Component implements HasSchemas
+#[Title('Licences - Souscription')]
+class CartLicense extends Component
 {
-    use InteractsWithSchemas;
-    public ?array $data = [];
+    public bool $isAnnual = false;
+    public $selectedLicense = null;
+    public $licenses = [];
+    public $selectedLicenseData = null;
 
     public function mount()
     {
-        $this->form->fill();
+        $this->loadLicenses();
     }
 
-    public function form(Schema $schema): Schema
+    public function toggleFrequency()
     {
-        return $schema
-            ->components([
-                // Toggle pour la fréquence de paiement
-                Toggle::make('is_annual')
-                    ->label('Abonnement annuel')
-                    ->helperText('Économisez avec l\'abonnement annuel')
-                    ->onIcon('heroicon-m-check')
-                    ->offIcon('heroicon-m-x-mark')
-                    ->onColor('success')
-                    ->offColor('gray')
-                    ->inline()
-                    ->live()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        // Réinitialiser la sélection de licence quand on change la fréquence
-                        $set('license_id', null);
-                    }),
-
-                // Sélection de licence avec prix dynamiques
-                Radio::make('product_id')
-                    ->label('Sélectionnez votre licence')
-                    ->options(function (callable $get) {
-                        $isAnnual = $get('is_annual') ?? false;
-                        $frequency = $isAnnual ? ProductPriceFrequencyEnum::ANNUAL : ProductPriceFrequencyEnum::MONTHLY;
-
-                        return Product::where('category', ProductCategoryEnum::LICENSE)
-                            ->with(['prices' => function ($query) use ($frequency) {
-                                $query->where('frequency', $frequency);
-                            }])
-                            ->get()
-                            ->mapWithKeys(function ($license) use ($isAnnual) {
-                                $price = $license->prices->first();
-                                if ($price) {
-                                    $amount = $price->price;
-                                    $priceText = number_format($amount, 2) . ' €';
-                                    if ($isAnnual) {
-                                        $monthlyEquivalent = $amount / 12;
-                                        $priceText .= ' /an (soit ' . number_format($monthlyEquivalent, 2) . ' €/mois)';
-                                    } else {
-                                        $priceText .= ' /mois';
-                                    }
-                                } else {
-                                    $priceText = 'Prix non disponible';
-                                }
-
-                                return [
-                                    $license->id => $license->name . ' - ' . $priceText
-                                ];
-                            })
-                            ->toArray();
-                    })
-                    ->descriptions(function () {
-                        return Product::where('category', ProductCategoryEnum::LICENSE)
-                            ->with(['features'])
-                            ->get()
-                            ->mapWithKeys(function ($license) {
-                                $description = $license->description;
-
-                                // Ajouter la liste des features incluses
-                                if ($license->features->isNotEmpty()) {
-                                    $description .= "\n\n**Fonctionnalités incluses :**\n";
-                                    foreach ($license->features as $feature) {
-                                        $description .= "• " . $feature->name . "\n";
-                                    }
-                                }
-
-                                return [$license->id => $description];
-                            })
-                            ->toArray();
-                    })
-                    ->extraFieldWrapperAttributes([
-                        'class' => 'bg-white rounded-lg border border-gray-200 p-4 space-y-3'
-                    ])
-                    ->columns(1)
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        $set('additional_modules', []);
-                        $set('options', []);
-                        $set('support_level', null);
-                    })
-                    ->required()
-                    ->live(),
-            ])
-            ->statePath('data');
+        $this->isAnnual = !$this->isAnnual;
+        $this->selectedLicense = null;
+        $this->selectedLicenseData = null;
+        $this->loadLicenses();
     }
 
-    public function render()
+    public function loadLicenses()
     {
-        return view('livewire.client.account.cart-license');
+        $frequency = $this->isAnnual ? ProductPriceFrequencyEnum::ANNUAL : ProductPriceFrequencyEnum::MONTHLY;
+
+        $this->licenses = Product::where('category', ProductCategoryEnum::LICENSE)
+            ->with(['prices' => function ($query) use ($frequency) {
+                $query->where('frequency', $frequency);
+            }, 'features'])
+            ->get()
+            ->map(function ($license) {
+                $price = $license->prices->first();
+                $amount = $price ? $price->price : 0;
+
+                return [
+                    'id' => $license->id,
+                    'name' => $license->name,
+                    'description' => $license->description,
+                    'slug' => $license->slug,
+                    'features' => $license->features->pluck('name')->toArray(),
+                    'price_id' => $price?->id,
+                    'price' => $amount,
+                    'price_formatted' => $price ? number_format($amount, 2) . ' €' : 'Prix non disponible',
+                    'monthly_equivalent' => $this->isAnnual && $price ? number_format($amount / 12, 2) . ' €/mois' : null,
+                    'savings' => $this->isAnnual && $price ? $this->calculateSavings($license) : null,
+                ];
+            })
+            ->toArray();
+    }
+
+    private function calculateSavings($license)
+    {
+        $monthlyPrice = $license->prices->where('frequency', ProductPriceFrequencyEnum::MONTHLY)->first();
+        $annualPrice = $license->prices->where('frequency', ProductPriceFrequencyEnum::ANNUAL)->first();
+
+        if ($monthlyPrice && $annualPrice) {
+            $yearlyMonthly = $monthlyPrice->price * 12;
+            $savings = $yearlyMonthly - $annualPrice->price;
+            $savingsPercent = round(($savings / $yearlyMonthly) * 100);
+
+            return [
+                'amount' => number_format($savings, 2) . ' €',
+                'percent' => $savingsPercent . '%'
+            ];
+        }
+
+        return null;
+    }
+
+    public function selectLicense($licenseId)
+    {
+        $this->selectedLicense = $licenseId;
+        $this->selectedLicenseData = collect($this->licenses)->firstWhere('id', $licenseId);
     }
 
     public function subscribe()
     {
-        $data = $this->form->getState();
-        $product = Product::find($data['product_id']);
-        if($data['is_annual']){
-            $price = $product->prices->where('frequency', ProductPriceFrequencyEnum::ANNUAL)->first();
-        }else{
-            $price = $product->prices->where('frequency', ProductPriceFrequencyEnum::MONTHLY)->first();
+        if (!$this->selectedLicense) {
+            Notification::make()
+                ->warning()
+                ->title('Sélection requise')
+                ->body('Veuillez sélectionner une licence avant de continuer.')
+                ->send();
+            return;
+        }
+
+        $product = Product::find($this->selectedLicense);
+        $frequency = $this->isAnnual ? ProductPriceFrequencyEnum::ANNUAL : ProductPriceFrequencyEnum::MONTHLY;
+        $price = $product->prices->where('frequency', $frequency)->first();
+
+        if (!$price) {
+            Notification::make()
+                ->danger()
+                ->title('Erreur')
+                ->body('Prix non disponible pour cette licence.')
+                ->send();
+            return;
         }
 
         try {
+            // Calcul des montants
+            $subtotal = $price->price / 1.2; // Prix HT
+            $taxAmount = $price->price - $subtotal; // TVA
+            $totalAmount = $price->price; // Prix TTC
+
             // Création de la commande
             $order = Order::create([
                 'type' => OrderTypeEnum::SUBSCRIPTION,
                 'status' => OrderStatusEnum::PENDING,
-                'subtotal' => $price->price - ($price->price * 0.2),
-                'tax_amount' => $price->price * 0.2,
-                'total_amount' => $price->price,
+                'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $totalAmount,
                 'customer_id' => Auth::user()->customer->id,
             ]);
 
             $order->items()->create([
-                'unit_price' => $price->price - ($price->price * 0.2),
+                'unit_price' => $subtotal,
                 'quantity' => 1,
-                'total_price' => $price->price,
+                'total_price' => $totalAmount,
                 'order_id' => $order->id,
                 'product_id' => $product->id,
                 'product_price_id' => $price->id,
             ]);
 
             $order->logs()->create([
-                'libelle' => 'Création de votre commande',
+                'libelle' => 'Création de votre commande de licence',
             ]);
+
             dispatch(new CreateInvoiceByOrder($order));
+
+            Notification::make()
+                ->success()
+                ->title('Commande créée')
+                ->body('Votre commande de licence a été créée avec succès.')
+                ->send();
+
             return $this->redirect(route('client.account.order.show', $order->id));
-        }catch (\Exception $e) {
+
+        } catch (\Exception $e) {
             Log::error("Erreur lors de la création de la commande : " . $e->getMessage());
-            throw $e;
+
+            Notification::make()
+                ->danger()
+                ->title('Erreur')
+                ->body('Une erreur est survenue lors de la création de votre commande.')
+                ->send();
         }
+    }
+
+    public function render()
+    {
+        return view('livewire.client.account.cart-license');
     }
 }
