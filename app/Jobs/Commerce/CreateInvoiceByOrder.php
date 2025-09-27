@@ -131,7 +131,7 @@ class CreateInvoiceByOrder implements ShouldQueue
     {
         // Notification Filament pour l'utilisateur (base de données)
         Notification::make()
-            ->title('Souscription à une license BATISTACK')
+            ->title('Nouvelle souscription')
             ->body('Votre souscription a été créée avec succès.')
             ->success()
             ->sendToDatabase($this->order->customer->user);

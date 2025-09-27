@@ -24,9 +24,9 @@ class FeatureSeeder extends Seeder
         foreach ($products as $product)
         {
             // Ne créer des features que pour les modules gratuits (prix à 0)
-            if (isset($product->metadata->category) && 
+            if (isset($product->metadata->category) &&
                 $product->metadata->category === 'modules') {
-                
+
                 // Vérifier s'il y a au moins un prix à 0
                 $hasFreePrice = false;
                 foreach ($product->prices as $price) {
@@ -35,10 +35,10 @@ class FeatureSeeder extends Seeder
                         break;
                     }
                 }
-                
+
                 if ($hasFreePrice) {
                     $slug = isset($product->metadata->slug) ? $product->metadata->slug : Str::slug($product->name);
-                    
+
                     $feature = Feature::create([
                         'name' => $product->name,
                         'slug' => $slug,
@@ -77,21 +77,22 @@ class FeatureSeeder extends Seeder
     {
         return match ($license) {
             'starter' => [
+                'Module Chantier',
                 'Module Tiers',
-                'Module Articles', 
+                'Module Articles',
                 'Module Commerces',
                 'Module Facturation & Paiement',
                 'Module Banques & Caisses',
                 'Module Comptabilité'
             ],
             'pro' => [
+                'Module Chantier',
                 'Module Tiers',
                 'Module Articles',
-                'Module Commerces', 
+                'Module Commerces',
                 'Module Facturation & Paiement',
                 'Module Banques & Caisses',
                 'Module Comptabilité',
-                'Module Chantier',
                 'Module GRH',
                 'Module Paie',
                 'Module Planning',
@@ -101,7 +102,7 @@ class FeatureSeeder extends Seeder
                 'Module Tiers',
                 'Module Articles',
                 'Module Commerces',
-                'Module Facturation & Paiement', 
+                'Module Facturation & Paiement',
                 'Module Banques & Caisses',
                 'Module Comptabilité',
                 'Module Chantier',
@@ -119,13 +120,13 @@ class FeatureSeeder extends Seeder
     private function attachFeaturesToProduct(Product $product, array $features, array $allowedFeatureNames): void
     {
         $featuresToAttach = [];
-        
+
         foreach ($features as $feature) {
             if (in_array($feature->name, $allowedFeatureNames)) {
                 $featuresToAttach[] = $feature->id;
             }
         }
-        
+
         // Attacher les features au produit
         $product->features()->sync($featuresToAttach);
     }

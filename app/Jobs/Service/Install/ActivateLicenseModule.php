@@ -31,6 +31,16 @@ class ActivateLicenseModule implements ShouldQueue
     {
 
         if (config('app.env') == 'local') {
+            $features = $this->service->product->features;
+
+            foreach ($features as $feature) {
+                $this->service->modules()->create([
+                    'customer_service_id' => $this->service->id,
+                    'feature_id' => $feature->id,
+                    'is_active' => true,
+                ]);
+            }
+
             if ($step = $this->service->steps()->where('step', 'Activation des modules de la license')->first()) {
                 $step->update([
                     'done' => true,

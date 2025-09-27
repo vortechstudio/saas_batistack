@@ -13,7 +13,6 @@ class CustomerService extends Model
     /** @use HasFactory<\Database\Factories\Customer\CustomerServiceFactory> */
     use HasFactory;
     protected $guarded = [];
-    protected $appends = ['domain'];
 
     protected $casts = [
         'status' => CustomerServiceStatusEnum::class,
@@ -37,9 +36,14 @@ class CustomerService extends Model
         return $this->hasMany(CustomerServiceStep::class);
     }
 
-    public function getDomainAttribute()
+    public function options()
     {
-        return Str::slug($this->customer->entreprise);
+        return $this->hasMany(CustomerServiceOption::class);
+    }
+
+    public function modules()
+    {
+        return $this->hasMany(CustomerServiceModule::class);
     }
 
     protected static function boot()

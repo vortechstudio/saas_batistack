@@ -53,6 +53,15 @@
                         <span class="text-gray-400 italic">{{ $service->service_code }}</span>
                     </div>
                 </div>
+                <x-mary-menu-separator class="my-2" />
+                <div class="flex flex-col">
+                    <span class="text-blue-900 font-black text-lg">Accès</span>
+                    @if($service->status->value === 'ok')
+                    <div class="flex gap-2">
+                        <a href="https://{{ $service->domain }}" target="_blank" class="text-gray-400 italic">https://{{ $service->domain }}</a>
+                    </div>
+                    @endif
+                </div>
             </x-mary-card>
         </div>
         <div class="w-1/3">
@@ -85,6 +94,38 @@
                     </div>
                 </div>
             </x-mary-card>
+        </div>
+        <div class="w-1/3">
+            <div class="card bg-gray-100 p-5 shadow-md mb-2 rounded-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-blue-900 text-2xl font-black">Modules Installées</h2>
+                    <ul class="list align-center">
+                        @foreach ($service->modules as $feature)
+                            <li class="list-row">
+                                <div><img class="size-5 rounded-box" src="{{ $feature->feature->media }}" /></div>
+                                <div>
+                                    <div>{{ $feature->feature->name }}</div>
+                                </div>
+                                <x-mary-icon :name="$feature->is_active ? 'o-check-circle' : 'o-x-circle'" class="w-5 h-5 text-green-500" />
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+            @if($service->options->count() > 0)
+            <div class="card bg-gray-100 p-5 shadow-md rounded-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-blue-900 text-2xl font-black">Options</h2>
+                    <ul class="list">
+                        @foreach ($service->options as $option)
+                            <li class="list-row">
+                                <div>{{ $option->product->name }}</div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>
