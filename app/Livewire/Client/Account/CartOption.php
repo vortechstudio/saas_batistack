@@ -13,6 +13,7 @@ use App\Jobs\Commerce\CreateInvoiceByOrder;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -147,24 +148,24 @@ class CartOption extends Component
             DB::transaction(function () {
                 // Créer la commande
                 $order = Order::create([
-                    'customer_id' => Auth::user()->customer->id,
-                    'customer_service_id' => $this->selectedService,
-                    'order_number' => 'OPT-' . strtoupper(uniqid()),
-                    'status' => OrderStatusEnum::PENDING,
-                    'type' => OrderTypeEnum::PURCHASE,
+                    'type' => OrderTypeEnum::SUBSCRIPTION,
                     'subtotal' => $this->cartTotal,
                     'tax_amount' => $this->getTaxAmount(),
                     'total_amount' => $this->getTotalWithTax(),
+                    'customer_id' => Auth::user()->customer->id,
+                    'customer_service_id' => $this->selectedService,
                 ]);
 
                 // Créer les éléments de commande
                 foreach ($this->cart as $option) {
+                    $product = Product::find($option['id']);
                     OrderItem::create([
                         'order_id' => $order->id,
                         'product_id' => $option['id'],
                         'quantity' => 1,
                         'unit_price' => $option['price'],
                         'total_price' => $option['price'],
+                        'product_price_id' => $product->prices()->first()->id,
                     ]);
                 }
 
@@ -189,6 +190,8 @@ class CartOption extends Component
                 return $this->redirect(route('client.account.order.show', $order->id));
             });
         } catch (\Exception $e) {
+            Log::error("Erreur lors de la création de la commande : " . $e->getMessage());
+
             Notification::make()
                 ->danger()
                 ->title('Erreur')
