@@ -33,6 +33,7 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
         Route::get('/cart', \App\Livewire\Client\Account\CartIndex::class)->name('client.account.cart.index');
         Route::get('/cart/license', \App\Livewire\Client\Account\CartLicense::class)->name('client.account.cart.license');
         Route::get('/cart/module', \App\Livewire\Client\Account\CartModule::class)->name('client.account.cart.module');
+        Route::get('/cart/option', \App\Livewire\Client\Account\CartOption::class)->name('client.account.cart.option');
     });
 
     Route::prefix('services')->group(function () {
