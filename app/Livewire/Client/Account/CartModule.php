@@ -8,152 +8,174 @@ use App\Models\Commerce\Order;
 use App\Models\Customer\CustomerService;
 use App\Models\Product\Feature;
 use App\Models\Product\Product;
-use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
-use Filament\Schemas\Concerns\InteractsWithSchemas;
-use Filament\Schemas\Contracts\HasSchemas;
-use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('components.layouts.client')]
-#[Title('Souscription')]
-class CartModule extends Component implements HasSchemas
+#[Title('Modules - Panier')]
+class CartModule extends Component
 {
-    use InteractsWithSchemas;
-    public ?array $data = [];
     public bool $hasServices;
+    public $selectedService = null;
+    public $availableFeatures = [];
+    public $cart = [];
+    public $cartTotal = 0;
 
     public function mount()
     {
-        $this->hasServices = Auth::user()->customer->services->count() > 0 ? false : true;
-        $this->form->fill();
+        $this->hasServices = Auth::user()->customer->services->count() > 0;
+        if ($this->hasServices) {
+            $this->selectedService = Auth::user()->customer->services->first()->id;
+            $this->loadAvailableFeatures();
+        }
     }
 
-    public function form(Schema $schema): Schema
+    public function selectService($serviceId)
     {
-        return $schema
-            ->components([
-                Select::make('service_id')
-                    ->label('Sélectionnez votre service')
-                    ->options(Auth::user()->customer->services->pluck('service_code', 'id'))
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        $set('feature_id', null);
-                    }),
-                
-                Select::make('feature_id')
-                    ->label('Fonctionnalités non disponibles')
-                    ->options(function (callable $get) {
-                        $serviceId = $get('service_id');
-                        
-                        if (!$serviceId) {
-                            return [];
-                        }
-                        
-                        // Récupérer le service sélectionné
-                        $service = CustomerService::with('product.features')->find($serviceId);
-                        
-                        if (!$service || !$service->product) {
-                            return [];
-                        }
-                        
-                        // Récupérer toutes les features disponibles
-                        $allFeatures = Feature::all();
-                        
-                        // Récupérer les features du produit (celles qui sont disponibles)
-                        $productFeatures = $service->product->features;
-                        
-                        // Filtrer pour obtenir seulement les features non disponibles
-                        $unavailableFeatures = $allFeatures->whereNotIn('id', $productFeatures->pluck('id'));
-                        
-                        return $unavailableFeatures->pluck('name', 'id')->toArray();
-                    })
-                    ->visible(fn (callable $get) => !empty($get('service_id')))
-                    ->placeholder('Sélectionnez une fonctionnalité à ajouter'),
-            ])
-            ->statePath('data');
+        $this->selectedService = $serviceId;
+        $this->cart = []; // Vider le panier lors du changement de service
+        $this->loadAvailableFeatures();
+        $this->calculateTotal();
     }
 
-    public function subscribeModule()
+    public function loadAvailableFeatures()
     {
-        $data = $this->form->getState();
-        
-        // Validation des données
-        if (empty($data['service_id'])) {
-            $this->addError('service_id', 'Veuillez sélectionner un service.');
+        if (!$this->selectedService) {
+            $this->availableFeatures = [];
             return;
         }
-        
-        if (empty($data['feature_id'])) {
-            $this->addError('feature_id', 'Veuillez sélectionner une fonctionnalité à ajouter.');
+
+        $service = CustomerService::with('product.features')->find($this->selectedService);
+
+        if (!$service || !$service->product) {
+            $this->availableFeatures = [];
             return;
         }
-        
-        // Récupérer le service et la feature sélectionnés
-        $service = CustomerService::with('product', 'product.prices')->find($data['service_id']);
-        $feature = Feature::find($data['feature_id']);
-        $product = Product::where('slug', $feature->slug)->first();
-        
-        if (!$service || !$feature) {
-            session()->flash('error', 'Service ou fonctionnalité introuvable.');
+
+        // Récupérer toutes les features disponibles avec leurs produits associés
+        $allFeatures = Feature::with(['products' => function($query) {
+            $query->with('prices');
+        }])->get();
+
+        // Récupérer les features du produit (celles qui sont déjà disponibles)
+        $productFeatures = $service->product->features;
+
+        // Filtrer pour obtenir seulement les features non disponibles
+        $unavailableFeatures = $allFeatures->whereNotIn('id', $productFeatures->pluck('id'));
+
+        $this->availableFeatures = $unavailableFeatures->map(function ($feature) {
+            $product = Product::where('slug', $feature->slug)->with('prices')->first();
+            $price = $product ? $product->prices->first() : null;
+
+            return [
+                'id' => $feature->id,
+                'name' => $feature->name,
+                'description' => $feature->description ?? 'Module ' . $feature->name,
+                'slug' => $feature->slug,
+                'media' => $feature->media,
+                'product_id' => $product?->id,
+                'price' => $price?->price ?? 0,
+                'price_formatted' => $price ? number_format($price->price, 2) . ' €' : 'Prix non disponible'
+            ];
+        })->toArray();
+    }
+
+    public function addToCart($featureId)
+    {
+        $feature = collect($this->availableFeatures)->firstWhere('id', $featureId);
+
+        if (!$feature || isset($this->cart[$featureId])) {
+            return;
+        }
+
+        $this->cart[$featureId] = $feature;
+        $this->calculateTotal();
+    }
+
+    public function removeFromCart($featureId)
+    {
+        if (isset($this->cart[$featureId])) {
+            $featureName = $this->cart[$featureId]['name'];
+            unset($this->cart[$featureId]);
+            $this->calculateTotal();
+        }
+    }
+
+    public function calculateTotal()
+    {
+        $this->cartTotal = collect($this->cart)->sum('price');
+    }
+
+    public function checkout()
+    {
+        if (empty($this->cart)) {
             Notification::make()
-                ->danger()
-                ->color('error')
-                ->title('Erreur')
-                ->body('Service ou fonctionnalité introuvable.')
+                ->warning()
+                ->title('Panier vide')
+                ->body('Veuillez ajouter au moins un module à votre panier.')
                 ->send();
             return;
         }
-        
-        // Vérifier que la feature n'est pas déjà disponible pour ce produit
-        if ($service->product->features->contains($feature->id)) {
-            session()->flash('error', 'Cette fonctionnalité est déjà disponible pour ce service.');
+
+        $service = CustomerService::with('product', 'product.prices')->find($this->selectedService);
+
+        if (!$service) {
             Notification::make()
                 ->danger()
-                ->color('error')
                 ->title('Erreur')
-                ->body('Cette fonctionnalité est déjà disponible pour ce service.')
+                ->body('Service introuvable.')
                 ->send();
             return;
         }
-        
-        // Ici vous pouvez ajouter la logique pour traiter l'ajout de la fonctionnalité
-        // Par exemple, créer une commande, ajouter au panier, etc.
-        $productPrice = $product->prices->first()->price;
 
+        // Calculer les montants
+        $subtotal = $this->cartTotal;
+        $taxAmount = $subtotal * 0.2; // TVA 20%
+        $totalAmount = $subtotal + $taxAmount;
+
+        // Créer la commande
         $order = Order::create([
             'type' => OrderTypeEnum::SUBSCRIPTION,
             'status' => 'pending',
-            'subtotal' => $productPrice,
-            'tax_amount' => $productPrice * 0.2,
-            'total_amount' => $productPrice + ($productPrice * 0.2),
+            'subtotal' => $subtotal,
+            'tax_amount' => $taxAmount,
+            'total_amount' => $totalAmount,
             'customer_id' => Auth::user()->customer->id,
-            'customer_service_id' => $data['service_id'],
+            'customer_service_id' => $this->selectedService,
         ]);
 
-        $order->items()->create([
-            "unit_price" => $productPrice,
-            "total_price" => $productPrice,
-            "order_id" => $order->id,
-            "product_id" => $product->id,
-            "product_price_id" => $product->prices->first()->id,
-        ]);
+        // Ajouter les items à la commande
+        foreach ($this->cart as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product && $product->prices->first()) {
+                $order->items()->create([
+                    "unit_price" => $item['price'],
+                    "total_price" => $item['price'],
+                    "order_id" => $order->id,
+                    "product_id" => $product->id,
+                    "product_price_id" => $product->prices->first()->id,
+                ]);
+            }
+        }
 
         $order->logs()->create([
-            'libelle' => 'Création de votre commande',
+            'libelle' => 'Création de votre commande de modules',
         ]);
 
         dispatch(new CreateInvoiceByOrder($order));
-        
+
+        // Vider le panier
+        $this->cart = [];
+        $this->calculateTotal();
+
         Notification::make()
-                ->success()
-                ->color('success')
-                ->title('Succès')
-                ->body("Fonctionnalité '{$feature->name}' ajoutée au service '{$service->service_code}'.")
-                ->send();
+            ->success()
+            ->title('Commande créée')
+            ->body('Votre commande a été créée avec succès.')
+            ->send();
 
         return $this->redirect(route('client.account.order.show', $order->id));
     }

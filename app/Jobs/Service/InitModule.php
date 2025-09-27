@@ -31,7 +31,6 @@ class InitModule implements ShouldQueue
         $this->passOrderToDelivered();
         $this->passServiceToPending($this->service);
         $this->initStep($this->service);
-
         // Installation du module
 
         try {
@@ -53,12 +52,26 @@ class InitModule implements ShouldQueue
             ]);
         }
 
-        // 
+        // Activation du module
 
+        try {
+            $this->service->modules()->where('feature_id', Feature::where('slug', $this->order->items->first()->product->slug)->first()->id)->first()?->update([
+                'is_active' => true,
+            ]);
 
-
-        
-
+            $this->service->steps()->where('step', 'Activation du module')->first()?->update([
+                'done' => true,
+            ]);
+            $this->passServiceToOk($this->service);
+        } catch (\Throwable $th) {
+            $this->service->update([
+                'status' => 'error',
+            ]);
+            $this->service->steps()->where('step', 'Activation du module')->first()?->update([
+                'done' => false,
+                'comment' => $th->getMessage(),
+            ]);
+        }
 
     }
 
@@ -89,6 +102,13 @@ class InitModule implements ShouldQueue
     {
         $service->update([
             'status' => CustomerServiceStatusEnum::PENDING,
+        ]);
+    }
+
+    private function passServiceToOk(CustomerService $service)
+    {
+        $service->update([
+            'status' => CustomerServiceStatusEnum::OK,
         ]);
     }
 }
