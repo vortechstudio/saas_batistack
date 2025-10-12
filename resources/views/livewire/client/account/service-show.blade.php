@@ -224,7 +224,7 @@
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-500">Dernière sauvegarde</span>
-                                    <span class="text-sm text-gray-700">{{ now()->subHours(2)->format('d/m/Y H:i') }}</span>
+                                    <span class="text-sm text-gray-700">{{ $service->backups()->latest()->first()->created_at->format('d/m/Y H:i') }}</span>
                                 </div>
                             @else
                                 <div class="text-center mt-3">
