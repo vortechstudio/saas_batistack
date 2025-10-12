@@ -8,6 +8,7 @@ use App\Services\Stripe\StripeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -15,7 +16,7 @@ class Product extends Model
     /** @use HasFactory<\Database\Factories\Product\ProductFactory> */
     use HasFactory;
     protected $guarded = [];
-    protected $appends = ['info_stripe'];
+    protected $appends = ['info_stripe', 'media'];
 
     protected $casts = [
         'category' => ProductCategoryEnum::class,
@@ -47,6 +48,15 @@ class Product extends Model
     public function getInfoStripeAttribute()
     {
         return $this->getInfoProductStripe();
+    }
+
+    public function getMediaAttribute()
+    {
+        return match($this->category) {
+            ProductCategoryEnum::LICENSE => Storage::url('product/'.$this->slug.'.png'),
+            ProductCategoryEnum::MODULE => Storage::url('modules/'.$this->slug.'.png'),
+            ProductCategoryEnum::OPTION => Storage::url('options/'.$this->slug.'.png'),
+        };
     }
 
     protected static function booted(): void

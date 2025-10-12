@@ -37,10 +37,6 @@ class CreateService implements ShouldQueue
 
             if($this->order->customerService) {
                 $service = $this->order->customerService;
-                $service->modules()->create([
-                    'customer_service_id' => $service->id,
-                    'feature_id' => Feature::where('slug', $product->product->slug)->first()->id,
-                ]);
 
                 $this->order->logs()->create(['libelle' => 'Service ' . $product->product->name . ' mise à jours']);
             } else {
@@ -62,10 +58,49 @@ class CreateService implements ShouldQueue
             match ($product->product->category->value) {
                 'license' => dispatch(new InitService($service, $this->order)), // Déploiement de la license,
                 'module' => dispatch(new InitModule($service, $this->order)), // Activation du module pour le service
-                'option' => '', // Ajout et activation de l'option pour le service
+                'option' => dispatch(new InitOption($service, $this->order, $subscription)), // Ajout et activation de l'option pour le service
                 'support' => '', // Mise à jour du support de service
             };
             $this->order->logs()->create(['libelle' => 'Service ' . $product->product->name . ' configuré']);
         }
+    }
+
+    private function defineSettingsOptions($product, $service)
+    {
+        $settings = collect();
+
+        switch($product->product->slug) {
+            case 'aggregation-bancaire':
+                $settings->put('bank_account', [
+                    'bank_name' => 'Banque du Nord',
+                    'account_number' => '12345678901234567890123456',
+                    'iban' => 'FR7630001007941234567890185',
+                ]);
+                break;
+
+            case 'pack-signature':
+                $settings->put('signature_pack', [
+                    'validity' => $service->expirationDate,
+                    'value' => 100,
+                ]);
+                break;
+
+            case 'sauvegarde-et-retentions':
+                $settings->put('retention_pack', [
+                    'validity' => $service->expirationDate,
+                    'retention_day' => 365,
+                    'saving_at_day' => 2
+                ]);
+                break;
+
+            case 'extension-stockages':
+                $settings->put('storage_extension', [
+                    'validity' => $service->expirationDate,
+                    'extension_day' => 30,
+                ]);
+                break;
+        }
+
+        return $settings->toArray();
     }
 }

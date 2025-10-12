@@ -46,6 +46,11 @@ class CustomerService extends Model
         return $this->hasMany(CustomerServiceModule::class);
     }
 
+    public function backups()
+    {
+        return $this->hasMany(CustomerServiceBackup::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

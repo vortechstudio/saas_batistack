@@ -17,9 +17,12 @@ class ServiceShow extends Component
     public int $stateInstallTotal = 0;
     public ?string $comment = null;
 
+    // Gestion des onglets
+    public string $activeTab = 'modules';
+
     public function mount(string $service_code)
     {
-        $this->service = CustomerService::with('product', 'steps')->where('service_code', $service_code)->first();
+        $this->service = CustomerService::with('product', 'steps', 'modules.feature', 'options.product')->where('service_code', $service_code)->first();
         $this->stateInstallTotal = $this->service->steps->count();
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
         $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
@@ -36,6 +39,23 @@ class ServiceShow extends Component
         }
 
         $this->comment = $this->service->steps()->where('done', false)->latest()->first()->comment ?? null;
+    }
+
+    public function setActiveTab(string $tab)
+    {
+        $this->activeTab = $tab;
+    }
+
+    /**
+     * Vérifie si l'option "Sauvegarde et rétention" est associée au service
+     */
+    public function hasBackupOption(): bool
+    {
+        return $this->service->options()
+            ->whereHas('product', function ($query) {
+                $query->where('slug', 'sauvegarde-et-retentions');
+            })
+            ->exists();
     }
 
     public function render()

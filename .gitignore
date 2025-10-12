@@ -27,3 +27,4 @@ _ide_helper_models.php
 /storage/ssh
 /storage/ssl
 /storage/ssl/*.*
+ca.homestead.homestead.crt

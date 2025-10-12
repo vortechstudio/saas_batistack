@@ -22,8 +22,9 @@
             </div>
         @endif
     @endif
-    <div class="flex justify-between gap-5 mt-10">
-        <div class="w-1/3">
+
+    <div class="flex justify-between gap-5 mt-10 mb-10">
+        <div class="w-1/2">
             <x-mary-card class="bg-gray-100 p-5 shadow-md">
                 <x-slot:title class="text-blue-900 text-xl font-black">
                     Détails du service
@@ -64,7 +65,8 @@
                 </div>
             </x-mary-card>
         </div>
-        <div class="w-1/3">
+
+        <div class="w-1/2">
             <x-mary-card class="bg-gray-100 p-5 shadow-md">
                 <x-slot:title class="text-blue-900 text-2xl font-black">
                     Détails du produits
@@ -95,36 +97,184 @@
                 </div>
             </x-mary-card>
         </div>
-        <div class="w-1/3">
-            <div class="card bg-gray-100 p-5 shadow-md mb-2 rounded-lg">
-                <div class="card-body">
-                    <h2 class="card-title text-blue-900 text-2xl font-black">Modules Installées</h2>
-                    <ul class="list align-center">
-                        @foreach ($service->modules as $feature)
-                            <li class="list-row">
-                                <div><img class="size-5 rounded-box" src="{{ $feature->feature->media }}" /></div>
-                                <div>
-                                    <div>{{ $feature->feature->name }}</div>
+    </div>
+
+    <div class="bg-gray-100 p-5 shadow-md rounded-lg">
+        <!-- Navigation des onglets -->
+        <div class="flex border-b border-gray-200 mb-4">
+            <button
+                wire:click="setActiveTab('modules')"
+                class="px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-200 {{ $activeTab === 'modules' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+            >
+                <div class="flex items-center gap-2">
+                    @svg('heroicon-o-puzzle-piece', 'w-4 h-4')
+                    Modules
+                </div>
+            </button>
+
+            <button
+                wire:click="setActiveTab('options')"
+                class="px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-200 {{ $activeTab === 'options' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+            >
+                <div class="flex items-center gap-2">
+                    @svg('heroicon-o-cog-6-tooth', 'w-4 h-4')
+                    Options
+                </div>
+            </button>
+
+            <button
+                wire:click="setActiveTab('sauvegardes')"
+                class="px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-200 {{ $activeTab === 'sauvegardes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+            >
+                <div class="flex items-center gap-2">
+                    @svg('heroicon-o-archive-box', 'w-4 h-4')
+                    Sauvegardes
+                </div>
+            </button>
+
+            <button
+                wire:click="setActiveTab('stockages')"
+                class="px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-200 {{ $activeTab === 'stockages' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+            >
+                <div class="flex items-center gap-2">
+                    @svg('heroicon-o-circle-stack', 'w-4 h-4')
+                    Stockages
+                </div>
+            </button>
+        </div>
+
+        <!-- Contenu des onglets -->
+        <div class="min-h-[300px]">
+            @if($activeTab === 'modules')
+                <div class="space-y-3">
+                    <h3 class="text-blue-900 text-xl font-black mb-4">Modules Installés</h3>
+                    @if($service->modules->count() > 0)
+                        <ul class="list space-y-2">
+                            @foreach ($service->modules as $module)
+                                <li class="list-row bg-white rounded-lg p-3 shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <img class="size-8 rounded-lg" src="{{ $module->feature->media }}" alt="{{ $module->feature->name }}" />
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-900">{{ $module->feature->name }}</div>
+                                            <div class="text-sm text-gray-500">{{ $module->feature->description ?? 'Module installé' }}</div>
+                                        </div>
+                                        <x-mary-icon
+                                            :name="$module->is_active ? 'o-check-circle' : 'o-x-circle'"
+                                            class="w-6 h-6 {{ $module->is_active ? 'text-green-500' : 'text-red-500' }}"
+                                        />
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="text-center py-8">
+                            <x-mary-icon name="o-puzzle-piece" class="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                            <p class="text-gray-500">Aucun module installé</p>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if($activeTab === 'options')
+                <div class="space-y-3">
+                    <h3 class="text-blue-900 text-xl font-black mb-4">Options Activées</h3>
+                    @if($service->options->count() > 0)
+                        <ul class="list space-y-2">
+                            @foreach ($service->options as $option)
+                                <li class="list-row bg-white rounded-lg p-3 shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <x-mary-icon name="o-cog-6-tooth" class="w-6 h-6 text-blue-500" />
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-900">{{ $option->product->name }}</div>
+                                            <div class="text-sm text-gray-500">{{ $option->product->description ?? 'Option activée' }}</div>
+                                        </div>
+                                        <x-mary-badge value="Actif" class="badge-success" />
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="text-center py-8">
+                            <x-mary-icon name="o-cog-6-tooth" class="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                            <p class="text-gray-500">Aucune option activée</p>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            @if($activeTab === 'sauvegardes')
+                <div class="space-y-3">
+                    <h3 class="text-blue-900 text-xl font-black mb-4">Sauvegardes</h3>
+                    <div class="text-center py-8">
+                        <x-mary-icon name="o-archive-box" class="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p class="text-gray-500 mb-4">Gestion des sauvegardes automatiques</p>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">Sauvegarde automatique</span>
+                                @if($this->hasBackupOption())
+                                    <x-mary-badge value="Activée" class="badge-success" />
+                                @else
+                                    <x-mary-badge value="Non disponible" class="badge-warning" />
+                                @endif
+                            </div>
+                            @if($this->hasBackupOption())
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm text-gray-500">Fréquence</span>
+                                    <span class="text-sm text-gray-700">Quotidienne</span>
                                 </div>
-                                <x-mary-icon :name="$feature->is_active ? 'o-check-circle' : 'o-x-circle'" class="w-5 h-5 text-green-500" />
-                            </li>
-                        @endforeach
-                    </ul>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-500">Dernière sauvegarde</span>
+                                    <span class="text-sm text-gray-700">{{ $service->backups()->latest()->first()->created_at->format('d/m/Y H:i') }}</span>
+                                </div>
+                            @else
+                                <div class="text-center mt-3">
+                                    <p class="text-sm text-gray-500">L'option "Sauvegarde et rétention" n'est pas associée à ce service.</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
-            </div>
-            @if($service->options->count() > 0)
-            <div class="card bg-gray-100 p-5 shadow-md rounded-lg">
-                <div class="card-body">
-                    <h2 class="card-title text-blue-900 text-2xl font-black">Options</h2>
-                    <ul class="list">
-                        @foreach ($service->options as $option)
-                            <li class="list-row">
-                                <div>{{ $option->product->name }}</div>
-                            </li>
-                        @endforeach
-                    </ul>
+            @endif
+
+            @if($activeTab === 'stockages')
+                <div class="space-y-3">
+                    <h3 class="text-blue-900 text-xl font-black mb-4">Stockages</h3>
+                    <div class="space-y-4">
+                        <!-- Stockage principal -->
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-medium text-gray-900">Stockage Principal</span>
+                                <x-mary-badge value="Actif" class="badge-success" />
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Utilisé</span>
+                                    <span class="text-gray-700">2.4 GB / {{ $service->product->info_stripe->metadata->storage_limit ?? 10 }} GB</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ (2.4 / ($service->product->info_stripe->metadata->storage_limit ?? 10)) * 100 }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stockage de sauvegarde -->
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-medium text-gray-900">Stockage Sauvegarde</span>
+                                <x-mary-badge value="Actif" class="badge-info" />
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Utilisé</span>
+                                    <span class="text-gray-700">850 MB / 5 GB</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 17%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
             @endif
         </div>
     </div>
