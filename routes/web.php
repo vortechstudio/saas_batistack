@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Client\Account\Dashboard as AccountDashboard;
+use App\Livewire\Client\Account\Sauvegardes;
 use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Dashboard;
@@ -39,6 +40,7 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
     Route::prefix('services')->group(function () {
         Route::get('/', Service::class)->name('client.services');
         Route::get('/{service_code}', ServiceShow::class)->name('client.service.show');
+        Route::get('/sauvegardes', Sauvegardes::class)->name('client.service.sauvegardes');
     });
 });
 

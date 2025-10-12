@@ -94,7 +94,7 @@
                     <x-mary-menu-item title="Accueil" icon="o-home" link="{{ route('client.dashboard') }}" />
                     <x-mary-menu-sub title="Logiciels & Services" icon="o-adjustments-horizontal">
                         <x-mary-menu-item title="Mes logiciels & Services" link="{{ route('client.services') }}" />
-                        <x-mary-menu-item title="Sauvegarde en ligne" link="####" />
+                        <x-mary-menu-item title="Sauvegarde en ligne" link="{{ route('client.service.sauvegardes') }}" />
                         <x-mary-menu-item title="Catalogue" link="####" />
                     </x-mary-menu-sub>
                     <x-mary-menu-sub title="Formations" icon="o-book-open">
