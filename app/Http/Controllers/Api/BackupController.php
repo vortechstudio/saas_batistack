@@ -28,7 +28,8 @@ class BackupController extends Controller
         }
         // Insertion de la sauvegarde
         $service->backups()->create([
-            'customer_service_id' => $service->id
+            'customer_service_id' => $service->id,
+            'customer_id' => $service->customer_id,
         ]);
 
         return response()->json();

@@ -12,4 +12,14 @@ class CustomerServiceBackup extends Model
     {
         return $this->belongsTo(CustomerService::class);
     }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function getDownloadUrlAttribute()
+    {
+        return route('client.account.sauvegardes.download', $this);
+    }
 }

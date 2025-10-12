@@ -53,6 +53,11 @@ class Customer extends Model
         return $this->hasOne(CustomerServiceStorage::class);
     }
 
+    public function backups()
+    {
+        return $this->hasMany(CustomerServiceBackup::class);
+    }
+
     /** Attributes */
     protected function getSupportTypeColorAttributes()
     {

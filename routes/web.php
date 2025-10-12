@@ -42,6 +42,10 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
         Route::get('/{service_code}', ServiceShow::class)->name('client.service.show');
         Route::get('/sauvegardes', Sauvegardes::class)->name('client.service.sauvegardes');
     });
+
+    Route::prefix('backup')->group(function() {
+        Route::get('/', Sauvegardes::class)->name('client.service.backup.index');
+    });
 });
 
 Route::middleware(['auth'])->group(function () {

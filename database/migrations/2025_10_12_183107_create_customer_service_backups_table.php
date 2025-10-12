@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('customer_service_backups', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_service_id')->constrained('customer_services')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
             $table->timestamps();
         });
     }
