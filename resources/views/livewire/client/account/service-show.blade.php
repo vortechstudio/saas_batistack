@@ -87,11 +87,11 @@
                     <div class="flex justify-center items-center gap-5">
                         <div class="flex tooltip bg-white p-2 rounded-md" data-tip="Nombre maximum d'utilisateurs">
                             @svg('heroicon-o-user-circle', 'w-6 h-6 text-gray-500')
-                            <span class="text-gray-400 italic">{{ $service->product->info_stripe->metadata->max_users }}</span>
+                            <span class="text-gray-400 italic">{{ $service->max_user }}</span>
                         </div>
                         <div class="flex tooltip bg-white p-2 rounded-md" data-tip="Limite de stockage">
                             @svg('heroicon-o-circle-stack', 'w-6 h-6 text-gray-500')
-                            <span class="text-gray-400 italic">{{ $service->product->info_stripe->metadata->storage_limit }} Gb</span>
+                            <span class="text-gray-400 italic">{{ $service->storage_limit }} Gb</span>
                         </div>
                     </div>
                 </div>
@@ -249,7 +249,7 @@
                             <div class="space-y-2">
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-500">Utilisé</span>
-                                    <span class="text-gray-700">{{ $this->infoStorage[0]->storage_used_mb > 100 ? $this->infoStorage[0]->storage_used_gb." GB" : $this->infoStorage[0]->storage_used_mb." MB" }} / {{ $service->product->info_stripe->metadata->storage_limit ?? 10 }} GB</span>
+                                    <span class="text-gray-700">{{ $this->infoStorage[0]->storage_used_mb > 100 ? $this->infoStorage[0]->storage_used_gb." GB" : $this->infoStorage[0]->storage_used_mb." MB" }} / {{ $service->storage_limit ?? 10 }} GB</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-2">
                                     <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $this->infoStorage[0]->storage_used_percentage }}%"></div>

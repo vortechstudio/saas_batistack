@@ -73,7 +73,7 @@ class ServiceShow extends Component
 
     public function render()
     {        
-        dd($this->service->product->info_stripe);
+        //dd($this->service->product->info_stripe);
         return view('livewire.client.account.service-show');
     }
 }
