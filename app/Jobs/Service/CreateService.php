@@ -48,6 +48,8 @@ class CreateService implements ShouldQueue
                     'stripe_subscription_id' => $subscription->id,
                     'customer_id' => $this->order->customer->id,
                     'product_id' => $product->product_id,
+                    'storage_limit' => $product->product->info_stripe->metadata->storage_limit ?? 5,
+                    'max_user' => $product->product->info_stripe->metadata->max_user ?? 0,
                 ]);
                 $this->order->logs()->create(['libelle' => 'Service ' . $product->product->name . ' créé']);
 
@@ -63,44 +65,5 @@ class CreateService implements ShouldQueue
             };
             $this->order->logs()->create(['libelle' => 'Service ' . $product->product->name . ' configuré']);
         }
-    }
-
-    private function defineSettingsOptions($product, $service)
-    {
-        $settings = collect();
-
-        switch($product->product->slug) {
-            case 'aggregation-bancaire':
-                $settings->put('bank_account', [
-                    'bank_name' => 'Banque du Nord',
-                    'account_number' => '12345678901234567890123456',
-                    'iban' => 'FR7630001007941234567890185',
-                ]);
-                break;
-
-            case 'pack-signature':
-                $settings->put('signature_pack', [
-                    'validity' => $service->expirationDate,
-                    'value' => 100,
-                ]);
-                break;
-
-            case 'sauvegarde-et-retentions':
-                $settings->put('retention_pack', [
-                    'validity' => $service->expirationDate,
-                    'retention_day' => 365,
-                    'saving_at_day' => 2
-                ]);
-                break;
-
-            case 'extension-stockages':
-                $settings->put('storage_extension', [
-                    'validity' => $service->expirationDate,
-                    'extension_day' => 30,
-                ]);
-                break;
-        }
-
-        return $settings->toArray();
     }
 }
