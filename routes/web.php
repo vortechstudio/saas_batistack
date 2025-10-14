@@ -6,6 +6,7 @@ use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Dashboard;
 use App\Services\VitoDeploy\Vito;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -14,10 +15,10 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $vito = app(Vito::class)
-        ->get('/projects/1/servers');
+    $request = Http::withoutVerifying()
+        ->get('https://core.batistack.test/api/core/backup-restore', ['backup' => '2025-10-15-00-00-00']);
 
-    dd($vito);
+    dd($request->object());
 });
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
