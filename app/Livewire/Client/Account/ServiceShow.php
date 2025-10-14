@@ -3,6 +3,7 @@
 namespace App\Livewire\Client\Account;
 
 use App\Models\Customer\CustomerService;
+use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -16,6 +17,7 @@ class ServiceShow extends Component
     public int $stateInstallCurrent = 0;
     public int $stateInstallTotal = 0;
     public ?string $comment = null;
+    public ?array $infoStorage = null;
 
     // Gestion des onglets
     public string $activeTab = 'modules';
@@ -26,6 +28,7 @@ class ServiceShow extends Component
         $this->stateInstallTotal = $this->service->steps->count();
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
         $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
+        $this->getStorageInfo();
     }
 
     public function refreshStateInstall()
@@ -58,8 +61,19 @@ class ServiceShow extends Component
             ->exists();
     }
 
-    public function render()
+    /**
+     * Récupère les informations de stockage du service
+     */
+    public function getStorageInfo()
     {
+        $this->infoStorage = Http::withoutVerifying()
+            ->get('https://core.batistack.test/api/core/storage/info')
+            ->object();
+    }
+
+    public function render()
+    {        
+        dd($this->service->product->info_stripe);
         return view('livewire.client.account.service-show');
     }
 }

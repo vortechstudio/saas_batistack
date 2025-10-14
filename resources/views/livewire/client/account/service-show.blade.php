@@ -249,30 +249,13 @@
                             <div class="space-y-2">
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-500">Utilisé</span>
-                                    <span class="text-gray-700">2.4 GB / {{ $service->product->info_stripe->metadata->storage_limit ?? 10 }} GB</span>
+                                    <span class="text-gray-700">{{ $this->infoStorage[0]->storage_used_mb > 100 ? $this->infoStorage[0]->storage_used_gb." GB" : $this->infoStorage[0]->storage_used_mb." MB" }} / {{ $service->product->info_stripe->metadata->storage_limit ?? 10 }} GB</span>
                                 </div>
                                 <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ (2.4 / ($service->product->info_stripe->metadata->storage_limit ?? 10)) * 100 }}%"></div>
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $this->infoStorage[0]->storage_used_percentage }}%"></div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Stockage de sauvegarde -->
-                        <div class="bg-white rounded-lg p-4 shadow-sm">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="font-medium text-gray-900">Stockage Sauvegarde</span>
-                                <x-mary-badge value="Actif" class="badge-info" />
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">Utilisé</span>
-                                    <span class="text-gray-700">850 MB / 5 GB</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-green-600 h-2 rounded-full" style="width: 17%"></div>
-                                </div>
-                            </div>
-                        </div>
+                        </div>                        
                     </div>
                 </div>
             @endif

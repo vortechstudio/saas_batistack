@@ -16,7 +16,7 @@ Route::get('/', function () {
 
 Route::get('/test', function () {
     $request = Http::withoutVerifying()
-        ->get('https://core.batistack.test/api/core/backup-restore', ['backup' => '2025-10-15-00-00-00']);
+        ->get('https://core.batistack.test/api/core/storage/info');
 
     dd($request->object());
 });
