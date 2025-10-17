@@ -22,7 +22,7 @@ class LicenseController extends Controller
     {
         $license = $request->input('license_key');
 
-        $service = CustomerService::with('product', 'product.features', 'modules', 'modules.feature', 'options', 'options.product')->where('service_code', $license)->first();
+        $service = CustomerService::with('product', 'product.features', 'modules', 'modules.feature', 'options', 'options.product', 'customer', 'customer.user')->where('service_code', $license)->first();
 
         return $service ? response()->json($service) : response()->json(['valid' => false]);
     }
