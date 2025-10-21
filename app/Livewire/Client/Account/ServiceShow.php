@@ -2,22 +2,28 @@
 
 namespace App\Livewire\Client\Account;
 
+use App\Mail\Service\CreateUser;
 use App\Models\Customer\CustomerService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -120,14 +126,126 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ])->required(),
                     ])
                     ->requiresConfirmation()
-                    ->action(function (array $data) {
-                        Http::withoutVerifying()
+                    ->action(function (array $data) use ($users) {
+                        // 1. On vérifie le nombre d'utilisateur sur l'espace et le nombre autorisé
+                        // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
+                        // 3. On envoie un mail de définition de mot de passe à l'utilisateur.
+                        // 4. On notifie l'utilisateur actuel que l'utilisateur a été créé.
+
+                        // 1. On vérifie le nombre d'utilisateur sur l'espace et le nombre autorisé
+                        if(count($users) >= $this->service->max_user) {
+                            Notification::make()
+                                ->title("Création de l'utilisateur")
+                                ->body("Le nombre maximum d'utilisateur a été atteint.")
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
+                        try{
+                            Http::withoutVerifying()
                             ->post('https://'.$this->service->domain.'/api/users', $data);
+                        } catch (\Exception $e) {
+                            Log::error($e->getMessage());
+                            Notification::make()
+                                ->title("Création de l'utilisateur")
+                                ->body("Une erreur est survenue lors de la création de l'utilisateur.")
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // 4. On notifie l'utilisateur actuel que l'utilisateur a été créé.
+                        Notification::make()
+                            ->title("Création de l'utilisateur")
+                            ->body("L'utilisateur {$data['name']} a été créé.")
+                            ->success()
+                            ->send();
                     }),
             ])
             ->recordActions([
-                EditAction::make('edit')
-                    ->label('Modifier')
+                ActionGroup::make([
+                    Action::make('edit')
+                        ->label("Editer l'utilisateur")
+                        ->icon(Heroicon::Pencil)
+                        ->modal(true)
+                        ->schema([
+                            TextInput::make('name')->label('Identité')->required()->default(fn ($record) => $record['name']),
+                            TextInput::make('email')->label('Email')->required()->email()->default(fn ($record) => $record['email']),
+                            Select::make('role')->label('Rôle')->options([
+                                'user' => 'Utilisateur',
+                                'admin' => 'Administrateur',
+                            ])->required()->default(fn ($record) => $record['role']),
+                        ])
+                        ->action(function (array $data, $record) {
+                            try {
+                                $request = Http::withoutVerifying()
+                                ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], $data);
+
+                                if($request->failed()) {
+                                    throw new \Exception($request->body());
+                                }
+
+                                // 5. On notifie l'utilisateur actuel que l'utilisateur a été modifié.
+                                Notification::make()
+                                    ->title("Modification de l'utilisateur")
+                                    ->body("L'utilisateur {$data['name']} a été modifié.")
+                                    ->success()
+                                    ->send();
+                            } catch (\Exception $e) {
+                                Log::error($e->getMessage());
+                                Notification::make()
+                                    ->title("Modification de l'utilisateur")
+                                    ->body("Une erreur est survenue lors de la modification de l'utilisateur.")
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+                        }),
+
+                    Action::make('reinit-password')
+                        ->label("Réinitialiser le mot de passe")
+                        ->icon(Heroicon::OutlinedKey)
+                        ->requiresConfirmation()
+                        ->action(function (array $data, $record) {
+                            try {
+                                Http::withoutVerifying()
+                                    ->get('https://'.$this->service->domain.'/api/users/'.$record['id'].'/password-reset', $data);
+
+                                Notification::make()
+                                    ->title("Réinitialisation du mot de passe")
+                                    ->body("Le mot de passe de l'utilisateur {$record['name']} a été réinitialisé.")
+                                    ->success()
+                                    ->send();
+
+                            } catch (\Exception $e) {
+                                Log::error($e->getMessage());
+                                Notification::make()
+                                    ->title("Réinitialisation du mot de passe")
+                                    ->body("Une erreur est survenue lors de la réinitialisation du mot de passe.")
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+                        }),
+
+                    Action::make('delete')
+                        ->label('Supprimer l\'utilisateur')   
+                        ->icon(Heroicon::Trash)
+                        ->requiresConfirmation(),
+
+                    Action::make('user-block')
+                        ->visible(fn ($record) => $record['blocked'] == false)
+                        ->label("Bloquer l'utilisateur")
+                        ->icon(Heroicon::LockClosed),
+
+                    Action::make('user-unblock')
+                        ->visible(fn ($record) => $record['blocked'] == true)
+                        ->label("Débloquer l'utilisateur")
+                        ->icon(Heroicon::LockOpen),
+                            
+                ])
             ]);
     }
 
