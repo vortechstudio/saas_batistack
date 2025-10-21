@@ -103,7 +103,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
         return $table->records(fn () => $users)
             ->columns([
                 TextColumn::make('id')->label('ID'),
-                TextColumn::make('name')->label('Identité'),
+                TextColumn::make('name')->label('Identité')->searchable(isIndividual: true),
                 TextColumn::make('email')->label('Email'),
                 TextColumn::make('role')->label('Rôle'),
                 IconColumn::make('blocked')
@@ -233,17 +233,83 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                     Action::make('delete')
                         ->label('Supprimer l\'utilisateur')   
                         ->icon(Heroicon::Trash)
-                        ->requiresConfirmation(),
+                        ->requiresConfirmation()
+                        ->action(function ($record) {
+                            try {
+                                Http::withoutVerifying()
+                                    ->delete('https://'.$this->service->domain.'/api/users/'.$record['id']);
+
+                                Notification::make()
+                                    ->title("Suppression de l'utilisateur")
+                                    ->body("L'utilisateur {$record['name']} a été supprimé.")
+                                    ->success()
+                                    ->send();
+                            } catch (\Exception $e) {
+                                Log::error($e->getMessage());
+                                Notification::make()
+                                    ->title("Suppression de l'utilisateur")
+                                    ->body("Une erreur est survenue lors de la suppression de l'utilisateur.")
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+                        }),
 
                     Action::make('user-block')
                         ->visible(fn ($record) => $record['blocked'] == false)
                         ->label("Bloquer l'utilisateur")
-                        ->icon(Heroicon::LockClosed),
+                        ->icon(Heroicon::LockClosed)
+                        ->requiresConfirmation()
+                        ->action(function ($record) {
+                            try {
+                                Http::withoutVerifying()
+                                    ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], [
+                                        'blocked' => 1,
+                                    ]);
+
+                                Notification::make()
+                                    ->title("Bloquage de l'utilisateur")
+                                    ->body("L'utilisateur {$record['name']} a été bloqué.")
+                                    ->success()
+                                    ->send();
+                            } catch (\Exception $e) {
+                                Log::error($e->getMessage());
+                                Notification::make()
+                                    ->title("Bloquage de l'utilisateur")
+                                    ->body("Une erreur est survenue lors du bloquage de l'utilisateur.")
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+                        }),
 
                     Action::make('user-unblock')
                         ->visible(fn ($record) => $record['blocked'] == true)
                         ->label("Débloquer l'utilisateur")
-                        ->icon(Heroicon::LockOpen),
+                        ->icon(Heroicon::LockOpen)
+                        ->requiresConfirmation()
+                        ->action(function ($record) {
+                            try {
+                                Http::withoutVerifying()
+                                    ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], [
+                                        'blocked' => 0,
+                                    ]);
+
+                                Notification::make()
+                                    ->title("Débloquage de l'utilisateur")
+                                    ->body("L'utilisateur {$record['name']} a été débloqué.")
+                                    ->success()
+                                    ->send();
+                            } catch (\Exception $e) {
+                                Log::error($e->getMessage());
+                                Notification::make()
+                                    ->title("Débloquage de l'utilisateur")
+                                    ->body("Une erreur est survenue lors du débloquage de l'utilisateur.")
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+                        }),
                             
                 ])
             ]);
