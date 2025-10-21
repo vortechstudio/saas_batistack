@@ -3,10 +3,16 @@
 namespace App\Livewire\Client\Account;
 
 use App\Models\Customer\CustomerService;
+use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -85,12 +91,43 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     {
         $users = Http::withoutVerifying()
             ->get('https://'.$this->service->domain.'/api/users')
-            ->json();
+            ->collect()
+            ->toArray();
 
-        return $table->records(fn () => json_decode($users, true))
+        return $table->records(fn () => $users)
             ->columns([
                 TextColumn::make('id')->label('ID'),
+                TextColumn::make('name')->label('Identité'),
                 TextColumn::make('email')->label('Email'),
+                TextColumn::make('role')->label('Rôle'),
+                IconColumn::make('blocked')
+                    ->label('Accès')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-x-circle')
+                    ->falseIcon('heroicon-o-check-circle')
+                    ->color(fn (bool $state): string => $state ? 'danger' : 'success')
+            ])
+            ->headerActions([
+                Action::make('create')
+                    ->label('Créer un utilisateur')
+                    ->modal(true)
+                    ->schema([
+                        TextInput::make('name')->label('Identité')->required(),
+                        TextInput::make('email')->label('Email')->required()->email(),
+                        Select::make('role')->label('Rôle')->options([
+                            'user' => 'Utilisateur',
+                            'admin' => 'Administrateur',
+                        ])->required(),
+                    ])
+                    ->requiresConfirmation()
+                    ->action(function (array $data) {
+                        Http::withoutVerifying()
+                            ->post('https://'.$this->service->domain.'/api/users', $data);
+                    }),
+            ])
+            ->recordActions([
+                EditAction::make('edit')
+                    ->label('Modifier')
             ]);
     }
 

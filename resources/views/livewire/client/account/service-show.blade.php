@@ -273,7 +273,8 @@
                 <div class="space-y-3">
                     <h3 class="text-blue-900 text-xl font-black mb-4">Utilisateurs</h3>
                     <div class="space-y-4">
-                        {{ $this->table }}                       
+                        {{ $this->table }}      
+                        <x-filament-actions::modals />                 
                     </div>
                 </div>
             @endif

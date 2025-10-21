@@ -5,7 +5,7 @@ use App\Livewire\Client\Account\Sauvegardes;
 use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Dashboard;
-use App\Services\VitoDeploy\Vito;
+use App\Models\Commerce\Order;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -15,10 +15,12 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $request = Http::withoutVerifying()
-        ->get('https://core.batistack.test/api/core/storage/info');
+    $t = Http::withoutVerifying()
+            ->get('https://core.batistack.test/api/users')
+            ->collect()
+            ->toArray();
 
-    dd($request->object());
+            dd($t);
 });
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
