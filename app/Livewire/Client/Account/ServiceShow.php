@@ -3,6 +3,14 @@
 namespace App\Livewire\Client\Account;
 
 use App\Models\Customer\CustomerService;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -10,8 +18,10 @@ use Livewire\Component;
 
 #[Layout('components.layouts.client')]
 #[Title('Mes Service - Détail')]
-class ServiceShow extends Component
+class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
 {
+    use InteractsWithActions, InteractsWithSchemas, InteractsWithTable;
+
     public CustomerService $service;
     public string $stateInstallLabel = '';
     public int $stateInstallCurrent = 0;
@@ -67,8 +77,21 @@ class ServiceShow extends Component
     public function getStorageInfo()
     {
         $this->infoStorage = Http::withoutVerifying()
-            ->get('https://core.batistack.test/api/core/storage/info')
+            ->get('https://'.$this->service->domain.'/api/core/storage/info')
             ->object();
+    }
+
+    public function table(Table $table): Table
+    {
+        $users = Http::withoutVerifying()
+            ->get('https://'.$this->service->domain.'/api/users')
+            ->json();
+
+        return $table->records(fn () => json_decode($users, true))
+            ->columns([
+                TextColumn::make('id')->label('ID'),
+                TextColumn::make('email')->label('Email'),
+            ]);
     }
 
     public function render()

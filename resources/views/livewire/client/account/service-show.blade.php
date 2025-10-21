@@ -141,6 +141,15 @@
                     Stockages
                 </div>
             </button>
+            <button
+                wire:click="setActiveTab('users')"
+                class="px-4 py-2 text-sm font-medium border-b-2 transition-colors duration-200 {{ $activeTab === 'users' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+            >
+                <div class="flex items-center gap-2">
+                    @svg('heroicon-o-user-circle', 'w-4 h-4')
+                    Utilisateurs
+                </div>
+            </button>
         </div>
 
         <!-- Contenu des onglets -->
@@ -256,6 +265,15 @@
                                 </div>
                             </div>
                         </div>                        
+                    </div>
+                </div>
+            @endif
+
+            @if($activeTab === 'users')
+                <div class="space-y-3">
+                    <h3 class="text-blue-900 text-xl font-black mb-4">Utilisateurs</h3>
+                    <div class="space-y-4">
+                        {{ $this->table }}                       
                     </div>
                 </div>
             @endif
