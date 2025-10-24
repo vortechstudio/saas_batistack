@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\Client\Account\Dashboard as AccountDashboard;
 use App\Livewire\Client\Account\Sauvegardes;
 use App\Livewire\Client\Account\Service;
@@ -22,6 +23,8 @@ Route::get('/test', function () {
 
             dd($t);
 });
+
+Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('client.dashboard');
