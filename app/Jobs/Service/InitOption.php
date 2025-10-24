@@ -38,11 +38,18 @@ class InitOption implements ShouldQueue
             $product = ProductPrice::with('product')->where('stripe_price_id', $item->price->id)->first();
 
             try {
+                $options = $this->defineSettingsOptions($product, $this->service);
                 $this->service->options()->create([
                     'customer_service_id' => $this->service->id,
                     'product_id' => $product->product_id,
-                    'settings' => $this->defineSettingsOptions($product, $this->service),
+                    'settings' => $options,
                 ]);
+
+                if($product->product->slug == 'extension-stockages') {
+                    $this->service->update([
+                        'storage_limit' => $options['storage_extension']['storage_limit'],
+                    ]);
+                }
 
                 $this->service->steps()->where('step', "Initialisation de l'options")->first()?->update([
                     'done' => true,
@@ -124,7 +131,8 @@ class InitOption implements ShouldQueue
                 $settings->put('storage_extension', [
                     'validity' => $service->expirationDate,
                     'extension_day' => 30,
-                ]);
+                    'storage_limit' => 25,
+                ]);                
                 break;
         }
 

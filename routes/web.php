@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\StripeWebhookController;
 use App\Livewire\Client\Account\Dashboard as AccountDashboard;
 use App\Livewire\Client\Account\Sauvegardes;
 use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Dashboard;
-use App\Services\VitoDeploy\Vito;
+use App\Models\Commerce\Order;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -14,11 +16,15 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $vito = app(Vito::class)
-        ->get('/projects/1/servers');
+    $t = Http::withoutVerifying()
+            ->get('https://core.batistack.test/api/users')
+            ->collect()
+            ->toArray();
 
-    dd($vito);
+            dd($t);
 });
+
+Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('client.dashboard');
