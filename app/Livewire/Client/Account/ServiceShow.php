@@ -89,14 +89,14 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     public function getStorageInfo()
     {
         $this->infoStorage = Http::withoutVerifying()
-            ->get('https://'.$this->service->domain.'/api/core/storage/info')
+            ->get('//'.$this->service->domain.'/api/core/storage/info')
             ->object();
     }
 
     public function table(Table $table): Table
     {
         $users = Http::withoutVerifying()
-            ->get('https://'.$this->service->domain.'/api/users')
+            ->get('//'.$this->service->domain.'/api/users')
             ->collect()
             ->toArray();
 
@@ -145,7 +145,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
                         try{
                             Http::withoutVerifying()
-                            ->post('https://'.$this->service->domain.'/api/users', $data);
+                            ->post('//'.$this->service->domain.'/api/users', $data);
                         } catch (\Exception $e) {
                             Log::error($e->getMessage());
                             Notification::make()
@@ -181,7 +181,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function (array $data, $record) {
                             try {
                                 $request = Http::withoutVerifying()
-                                ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], $data);
+                                ->put('//'.$this->service->domain.'/api/users/'.$record['id'], $data);
 
                                 if($request->failed()) {
                                     throw new \Exception($request->body());
@@ -211,7 +211,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function (array $data, $record) {
                             try {
                                 Http::withoutVerifying()
-                                    ->get('https://'.$this->service->domain.'/api/users/'.$record['id'].'/password-reset', $data);
+                                    ->get('//'.$this->service->domain.'/api/users/'.$record['id'].'/password-reset', $data);
 
                                 Notification::make()
                                     ->title("Réinitialisation du mot de passe")
@@ -237,7 +237,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function ($record) {
                             try {
                                 Http::withoutVerifying()
-                                    ->delete('https://'.$this->service->domain.'/api/users/'.$record['id']);
+                                    ->delete('//'.$this->service->domain.'/api/users/'.$record['id']);
 
                                 Notification::make()
                                     ->title("Suppression de l'utilisateur")
@@ -263,7 +263,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function ($record) {
                             try {
                                 Http::withoutVerifying()
-                                    ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], [
+                                    ->put('//'.$this->service->domain.'/api/users/'.$record['id'], [
                                         'blocked' => 1,
                                     ]);
 
@@ -291,7 +291,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function ($record) {
                             try {
                                 Http::withoutVerifying()
-                                    ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], [
+                                    ->put('//'.$this->service->domain.'/api/users/'.$record['id'], [
                                         'blocked' => 0,
                                     ]);
 
