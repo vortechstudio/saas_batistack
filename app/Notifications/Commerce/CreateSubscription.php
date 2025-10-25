@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\RocketChat\RocketChatMessage;
+use NotificationChannels\RocketChat\RocketChatWebhookChannel;
 
 class CreateSubscription extends Notification
 {
@@ -27,7 +29,7 @@ class CreateSubscription extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', RocketChatWebhookChannel::class];
     }
 
     /**
@@ -41,6 +43,16 @@ class CreateSubscription extends Notification
                 'order' => $this->order,
                 'subscription' => $this->subscription
             ]);
+    }
+
+    public function toRocketChat(object $notifiable): RocketChatMessage
+    {
+        $object = "[".config('app.env')."] [".config('app.name')."] Commande N°".$this->order->order_number;
+        $content = "Nouvelle commande N°".$this->order->order_number." a été créée.";
+        
+        return RocketChatMessage::create($object)
+            ->to(config('services.rocketchat.channel'))
+            ->content($content);
     }
 
     /**
