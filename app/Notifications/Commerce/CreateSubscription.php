@@ -6,7 +6,10 @@ use App\Models\Commerce\Order;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Slack\BlockKit\Blocks\ContextBlock;
+use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
 use NotificationChannels\RocketChat\RocketChatMessage;
 use NotificationChannels\RocketChat\RocketChatWebhookChannel;
 
@@ -29,7 +32,7 @@ class CreateSubscription extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail', RocketChatWebhookChannel::class];
+        return ['mail', 'slack'];
     }
 
     /**
@@ -45,14 +48,30 @@ class CreateSubscription extends Notification
             ]);
     }
 
-    public function toRocketChat(object $notifiable): RocketChatMessage
+    public function toSlack(object $notifiable): SlackMessage
     {
-        $object = "[".config('app.env')."] [".config('app.name')."] Commande N°".$this->order->order_number;
-        $content = "Nouvelle commande N°".$this->order->order_number." a été créée.";
-        
-        return RocketChatMessage::create($object)
-            ->to(config('services.rocketchat.channel'))
-            ->content($content);
+        return (new SlackMessage)
+            ->text('Nouvelle Commande client N°'.$this->order->order_number.' a été créée.')
+            ->headerBlock("Commande N° {$this->order->order_number}")
+            ->contextBlock(function (ContextBlock $block) {
+                $block->text('Client '.$this->order->customer->code_client);
+            })
+            ->sectionBlock(function (SectionBlock $block) {
+                $block->text('Souscription N°'.$this->subscription->id);
+                $block->text('Période de validité : '.$this->subscription->created_at->format('d/m/Y').' à '.$this->subscription->ends_at->format('d/m/Y'));
+                $block->text('Statut : '.$this->subscription->status);                
+            })
+            ->dividerBlock()
+            ->sectionBlock(function (SectionBlock $block) {
+                $block->text('Produits :');
+                foreach ($this->order->orderItems as $item) {
+                    $block->text($item->product->name.' x '.$item->quantity.' - '.$item->price->format('0,00 €'));
+                }
+            })
+            ->dividerBlock()
+            ->sectionBlock(function (SectionBlock $block) {
+                $block->text('Total : '.$this->order->total->format('0,00 €'));
+            });
     }
 
     /**

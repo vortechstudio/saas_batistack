@@ -7,11 +7,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "batistackapp/rocket-chat": "^1.0",
         "blade-ui-kit/blade-heroicons": "*",
         "filament/filament": "~4.0",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.33",
+        "laravel/slack-notification-channel": "^3.6",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.1.1",
         "livewire/livewire": "^3.6",

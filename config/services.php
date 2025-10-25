@@ -56,10 +56,4 @@ return [
         'api_key' => env('VITO_APP_KEY'),
         'endpoint' => rtrim(env('VITO_ENDPOINT', ''), '/'),
     ],
-
-    'rocketchat' => [
-        'url' => env('ROCKETCHAT_URL'),
-        'token' => env('ROCKETCHAT_TOKEN'),
-        'channel' => env('ROCKETCHAT_CHANNEL'),
-    ]
 ];
