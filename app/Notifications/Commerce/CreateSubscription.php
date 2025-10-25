@@ -10,8 +10,10 @@ use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Slack\BlockKit\Blocks\ContextBlock;
 use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
+use Illuminate\Support\Number;
 use NotificationChannels\RocketChat\RocketChatMessage;
 use NotificationChannels\RocketChat\RocketChatWebhookChannel;
+use Illuminate\Support\Str;
 
 class CreateSubscription extends Notification
 {
@@ -57,8 +59,7 @@ class CreateSubscription extends Notification
                 $block->text('Client '.$this->order->customer->code_client);
             })
             ->sectionBlock(function (SectionBlock $block) {
-                $block->text('Souscription N°'.$this->subscription->id);
-                $block->text('Période de validité : '.$this->subscription->created_at->format('d/m/Y').' à '.$this->subscription->ends_at->format('d/m/Y'));
+                $block->text('Souscription N°'.$this->subscription->id);                
                 $block->text('Statut : '.$this->subscription->status);                
             })
             ->dividerBlock()
@@ -70,7 +71,7 @@ class CreateSubscription extends Notification
             })
             ->dividerBlock()
             ->sectionBlock(function (SectionBlock $block) {
-                $block->text('Total : '.$this->order->total->format('0,00 €'));
+                $block->text('Total : '.Number::currency($this->order->total, in: 'EUR', precision: 2));
             });
     }
 
