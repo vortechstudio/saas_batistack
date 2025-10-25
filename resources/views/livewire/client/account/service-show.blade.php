@@ -273,6 +273,9 @@
                 <div class="space-y-3">
                     <h3 class="text-blue-900 text-xl font-black mb-4">Utilisateurs</h3>
                     <div class="space-y-4">
+                        @if($limitUser)
+                            <x-mary-alert title="Limite d'utilisateur" icon="o-user-group" class="alert-warning" description="Le service a atteint sa limite d'utilisateur. Veuillez contacter le support pour en savoir plus." />
+                        @endif
                         {{ $this->table }}      
                         <x-filament-actions::modals />                 
                     </div>

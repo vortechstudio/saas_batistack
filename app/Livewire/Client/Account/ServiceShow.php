@@ -40,6 +40,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     public int $stateInstallTotal = 0;
     public ?string $comment = null;
     public ?array $infoStorage = null;
+    public bool $limitUser = false;
 
     // Gestion des onglets
     public string $activeTab = 'modules';
@@ -51,6 +52,13 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
         $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
         $this->getStorageInfo();
+
+        $users = Http::withoutVerifying()
+            ->get('//'.$this->service->domain.'/api/users')
+            ->collect()
+            ->toArray();
+
+        $this->limitUser = $this->service->max_user >= count($users);    
     }
 
     public function refreshStateInstall()
@@ -116,6 +124,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
             ->headerActions([
                 Action::make('create')
                     ->label('Créer un utilisateur')
+                    ->visible(fn () => $this->service->max_user > count($users))
                     ->modal(true)
                     ->schema([
                         TextInput::make('name')->label('Identité')->required(),
