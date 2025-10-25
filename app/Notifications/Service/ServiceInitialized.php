@@ -6,7 +6,9 @@ use App\Models\Customer\CustomerService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
 
 class ServiceInitialized extends Notification implements ShouldQueue
 {
@@ -29,7 +31,7 @@ class ServiceInitialized extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail', 'database', 'slack'];
     }
 
     /**
@@ -45,6 +47,19 @@ class ServiceInitialized extends Notification implements ShouldQueue
                 'product' => $this->service->product,
                 'installationDetails' => $this->installationDetails
             ]);
+    }
+
+    public function toSlack(object $notifiable): SlackMessage
+    {
+        return (new SlackMessage)
+            ->text("Le service {$this->service->service_name} {$this->service->domain} est maintenant prêt à être utilisé.")
+            ->headerBlock("Service {$this->service->service_name} initialisé")
+            ->sectionBlock(function (SectionBlock $block) {
+                $block->text("Service : {$this->service->service_name}");
+                $block->field("Domaine : {$this->service->domain}");
+                $block->field("Produit : {$this->service->product->name}");
+                $block->field("Etat : {$this->service->status->value}");
+            });
     }
 
     /**
