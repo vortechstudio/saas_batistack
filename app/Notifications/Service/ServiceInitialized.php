@@ -52,10 +52,10 @@ class ServiceInitialized extends Notification implements ShouldQueue
     public function toSlack(object $notifiable): SlackMessage
     {
         return (new SlackMessage)
-            ->text("Le service {$this->service->service_name} {$this->service->domain} est maintenant prêt à être utilisé.")
-            ->headerBlock("Service {$this->service->service_name} initialisé")
+            ->text("Le service {$this->service->service_code} {$this->service->domain} est maintenant prêt à être utilisé.")
+            ->headerBlock("Service {$this->service->service_code} initialisé")
             ->sectionBlock(function (SectionBlock $block) {
-                $block->text("Service : {$this->service->service_name}");
+                $block->text("Service : {$this->service->service_code}");
                 $block->field("Domaine : {$this->service->domain}");
                 $block->field("Produit : {$this->service->product->name}");
                 $block->field("Etat : {$this->service->status->value}");
