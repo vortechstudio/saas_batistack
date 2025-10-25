@@ -27,25 +27,14 @@ class FeatureSeeder extends Seeder
             if (isset($product->metadata->category) &&
                 $product->metadata->category === 'modules') {
 
-                // Vérifier s'il y a au moins un prix à 0
-                $hasFreePrice = false;
-                foreach ($product->prices as $price) {
-                    if ($price->unit_amount === 0) {
-                        $hasFreePrice = true;
-                        break;
-                    }
-                }
+                $slug = isset($product->metadata->slug) ? $product->metadata->slug : Str::slug($product->name);
 
-                if ($hasFreePrice) {
-                    $slug = isset($product->metadata->slug) ? $product->metadata->slug : Str::slug($product->name);
-
-                    $feature = Feature::create([
-                        'name' => $product->name,
-                        'slug' => $slug,
-                        'description' => $product->description,
-                    ]);
-                    $features[] = $feature;
-                }
+                $feature = Feature::create([
+                    'name' => $product->name,
+                    'slug' => $slug,
+                    'description' => $product->description,
+                ]);
+                $features[] = $feature;
             }
         }
 
