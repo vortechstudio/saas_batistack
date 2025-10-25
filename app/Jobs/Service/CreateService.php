@@ -49,7 +49,7 @@ class CreateService implements ShouldQueue
                     'customer_id' => $this->order->customer->id,
                     'product_id' => $product->product_id,
                     'storage_limit' => $product->product->info_stripe->metadata->storage_limit ?? 5,
-                    'max_user' => $product->product->info_stripe->metadata->max_user ?? 0,
+                    'max_user' => $product->product->info_stripe->metadata->max_users ?? 0,
                 ]);
                 $this->order->logs()->create(['libelle' => 'Service ' . $product->product->name . ' créé']);
 
