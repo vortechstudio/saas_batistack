@@ -65,13 +65,13 @@ class CreateSubscription extends Notification
             ->dividerBlock()
             ->sectionBlock(function (SectionBlock $block) {
                 $block->text('Produits :');
-                foreach ($this->order->orderItems as $item) {
-                    $block->text($item->product->name.' x '.$item->quantity.' - '.$item->price->format('0,00 €'));
+                foreach ($this->order->items as $item) {
+                    $block->text($item->product->name.' x '.$item->quantity.' - '.Number::currency($item->productPrice->price, in: 'EUR', precision: 2));
                 }
             })
             ->dividerBlock()
             ->sectionBlock(function (SectionBlock $block) {
-                $block->text('Total : '.Number::currency($this->order->total, in: 'EUR', precision: 2));
+                $block->text('Total : '.Number::currency($this->order->total_amount, in: 'EUR', precision: 2));
             });
     }
 
