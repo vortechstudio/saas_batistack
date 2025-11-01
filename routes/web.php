@@ -5,6 +5,7 @@ use App\Livewire\Client\Account\Dashboard as AccountDashboard;
 use App\Livewire\Client\Account\Sauvegardes;
 use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
+use App\Livewire\Client\Catalogue;
 use App\Livewire\Client\Dashboard;
 use App\Models\Commerce\Order;
 use Illuminate\Support\Facades\Http;
@@ -28,6 +29,7 @@ Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.st
 
 Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('client.dashboard');
+    Route::get('/catalogue', Catalogue::class)->name('client.catalogue');
 
     Route::prefix('account')->group(function () {
         Route::get('/', AccountDashboard::class)->name('client.account.dashboard');
