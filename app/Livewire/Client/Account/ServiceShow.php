@@ -58,7 +58,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
             ->collect()
             ->toArray();
 
-        $this->limitUser = $this->service->max_user >= count($users);    
+        $this->limitUser = count($users) >= $this->service->max_user;    
     }
 
     public function refreshStateInstall()
@@ -96,9 +96,15 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
      */
     public function getStorageInfo()
     {
-        $this->infoStorage = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/core/storage/info')
-            ->object();
+        $response = Http::withoutVerifying()
+            ->get('//'.$this->service->domain.'/api/core/storage/info');
+
+        if ($response->status() == 200) {
+            $this->infoStorage = $response->object();
+        } else {
+            $this->infoStorage = [];
+        }       
+
     }
 
     public function table(Table $table): Table
