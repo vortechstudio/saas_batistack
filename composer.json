@@ -21,6 +21,7 @@
         "robsontenorio/mary": "^2.4",
         "stripe/stripe-php": "^17.5",
         "tapp/filament-country-code-field": "2.0",
+        "thibaud-dauce/laravel-notifications-mattermost": "^1.7",
         "vortechstudio/aapanel-api": "^1.1"
     },
     "require-dev": {

@@ -28,3 +28,4 @@ _ide_helper_models.php
 /storage/ssl
 /storage/ssl/*.*
 ca.homestead.homestead.crt
+commit.txt
