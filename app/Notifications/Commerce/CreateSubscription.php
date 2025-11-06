@@ -11,9 +11,6 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Slack\BlockKit\Blocks\ContextBlock;
 use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
 use Illuminate\Support\Number;
-use NotificationChannels\RocketChat\RocketChatMessage;
-use NotificationChannels\RocketChat\RocketChatWebhookChannel;
-use Illuminate\Support\Str;
 
 class CreateSubscription extends Notification
 {
@@ -59,18 +56,14 @@ class CreateSubscription extends Notification
                 $block->text('Client '.$this->order->customer->code_client);
             })
             ->sectionBlock(function (SectionBlock $block) {
-                $block->text('Souscription N°'.$this->subscription->id);                
-                $block->text('Statut : '.$this->subscription->status);                
+                $block->text('Souscription N°'.$this->subscription->id);
+                $block->text('Statut : '.$this->subscription->status);
             })
             ->dividerBlock()
             ->sectionBlock(function (SectionBlock $block) {
                 $block->text('Produits :');
                 foreach ($this->order->items as $item) {
-<<<<<<< HEAD
                     $block->text("{$item->quantity} X {$item->product->name} - ".Number::currency($item->unit_price, in: 'EUR', precision: 2));
-=======
-                    $block->text($item->product->name.' x '.$item->quantity.' - '.Number::currency($item->productPrice->price, in: 'EUR', precision: 2));
->>>>>>> c9a9ba922d0fa753602f6baf2d777ab392d6dff4
                 }
             })
             ->dividerBlock()
