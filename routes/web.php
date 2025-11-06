@@ -18,11 +18,13 @@ Route::get('/', function () {
 
 Route::get('/test', function () {
     $t = Http::withoutVerifying()
-            ->get('https://core.batistack.test/api/users')
-            ->collect()
-            ->toArray();
+            ->post('https://core.batistack.test/api/users', [
+                "name" => 'Test',
+                "email" => "test@example.com",
+                "role" => 'admin'
+            ]);
 
-            dd($t);
+            dd($t->body());
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');

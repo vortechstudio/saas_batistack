@@ -53,9 +53,9 @@ class Product extends Model
     public function getMediaAttribute()
     {
         return match($this->category) {
-            ProductCategoryEnum::LICENSE => Storage::url('product/'.$this->slug.'.png'),
-            ProductCategoryEnum::MODULE => Storage::url('modules/'.$this->slug.'.png'),
-            ProductCategoryEnum::OPTION => Storage::url('options/'.$this->slug.'.png'),
+            ProductCategoryEnum::LICENSE => config('app.url').'/storage/product/'.$this->slug.'.png',
+            ProductCategoryEnum::MODULE => config('app.url').'/storage/modules/'.$this->slug.'.png',
+            ProductCategoryEnum::OPTION => config('app.url').'/storage/options/'.$this->slug.'.png',
         };
     }
 

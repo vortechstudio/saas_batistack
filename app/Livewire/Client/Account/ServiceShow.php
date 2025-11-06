@@ -58,7 +58,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
             ->collect()
             ->toArray();
 
-        $this->limitUser = count($users) >= $this->service->max_user;    
+        $this->limitUser = count($users) >= $this->service->max_user;
     }
 
     public function refreshStateInstall()
@@ -103,7 +103,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
             $this->infoStorage = $response->object();
         } else {
             $this->infoStorage = [];
-        }       
+        }
 
     }
 
@@ -160,7 +160,9 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
                         try{
                             Http::withoutVerifying()
-                            ->post('//'.$this->service->domain.'/api/users', $data);
+                            ->post('https://'.$this->service->domain.'/api/users', $data);
+
+                            Log::debug("Utilisateur créé avec succès");
                         } catch (\Exception $e) {
                             Log::error($e->getMessage());
                             Notification::make()
@@ -246,7 +248,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         }),
 
                     Action::make('delete')
-                        ->label('Supprimer l\'utilisateur')   
+                        ->label('Supprimer l\'utilisateur')
                         ->icon(Heroicon::Trash)
                         ->requiresConfirmation()
                         ->action(function ($record) {
@@ -325,13 +327,13 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                                 return;
                             }
                         }),
-                            
+
                 ])
             ]);
     }
 
     public function render()
-    {        
+    {
         //dd($this->service->product->info_stripe);
         return view('livewire.client.account.service-show');
     }

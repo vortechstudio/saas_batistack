@@ -14,7 +14,7 @@ Artisan::command('inspire', function () {
 
 Schedule::call(function () {
     foreach (CustomerService::all() as $service) {
-        $request = Http::get("{$service->domain}/api/status");
+        $request = Http::withoutVerifying()->get("{$service->domain}/api/status");
 
         $response = $request->json();
 
