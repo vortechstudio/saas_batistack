@@ -250,6 +250,7 @@
                     <h3 class="text-blue-900 text-xl font-black mb-4">Stockages</h3>
                     <div class="space-y-4">
                         <!-- Stockage principal -->
+                        @if(count($this->infoStorage) > 0)
                         <div class="bg-white rounded-lg p-4 shadow-sm">
                             <div class="flex justify-between items-center mb-3">
                                 <span class="font-medium text-gray-900">Stockage Principal</span>
@@ -264,7 +265,15 @@
                                     <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $this->infoStorage[0]->storage_used_percentage }}%"></div>
                                 </div>
                             </div>
-                        </div>                        
+                        </div>
+                        @else
+                            <div class="bg-white rounded-lg p-4 shadow-sm">
+                                <div class="flex flex-col justify-center items-center gap-2">
+                                    @svg('heroicon-o-circle-stack', 'w-12 h-12 text-gray-400')
+                                    <p class="text-gray-500">Aucun stockage principal configuré</p>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endif

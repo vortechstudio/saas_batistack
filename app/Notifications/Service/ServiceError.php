@@ -8,21 +8,16 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
 
-class ServiceInitialized extends Notification implements ShouldQueue
+class ServiceError extends Notification
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(
-        public CustomerService $service,
-        public array $installationDetails = []
-    ) {
-        //
-    }
+    public function __construct(public CustomerService $service)
+    {}
 
     /**
      * Get the notification's delivery channels.
@@ -40,26 +35,18 @@ class ServiceInitialized extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Votre service Batistack est prêt !')
-            ->markdown('mail.service.initialized', [
-                'service' => $this->service,
-                'customer' => $this->service->customer,
-                'product' => $this->service->product,
-                'installationDetails' => $this->installationDetails
-            ]);
+            ->subject("Accès au service {$this->service->service->name} en erreur")
+            ->greeting("Bonjour {$this->service->customer->user->name},")
+            ->line("Le service {$this->service->service->name} a rencontré une erreur.")
+            ->line("Veuillez contacter le support technique pour plus d'informations.")
+            ->action('Contacter le support technique', url('/contact'))
+            ->line("Merci d'avoir utilisé notre application.");
     }
 
     public function toSlack(object $notifiable): SlackMessage
     {
         return (new SlackMessage)
-            ->text("Le service {$this->service->service_code} {$this->service->domain} est maintenant prêt à être utilisé.")
-            ->headerBlock("Service {$this->service->service_code} initialisé")
-            ->sectionBlock(function (SectionBlock $block) {
-                $block->text("Service : {$this->service->service_code}");
-                $block->field("Domaine : {$this->service->domain}");
-                $block->field("Produit : {$this->service->product->name}");
-                $block->field("Etat : {$this->service->status->value}");
-            });
+            ->text("Le service {$this->service->service->name} a rencontré une erreur et actuellement Hors Ligne");
     }
 
     /**
@@ -70,14 +57,16 @@ class ServiceInitialized extends Notification implements ShouldQueue
     public function toDatabase(object $notifiable): array
     {
         return [
-            'title' => 'Service Batistack initialisé',
-            'body' => 'Votre service Batistack est maintenant prêt à être utilisé.',
-            'icon' => 'heroicon-o-check-circle',
-            'iconColor' => 'success',
+            'title' => "Service {$this->service->service->name} en erreur",
+            'body' => "Le service {$this->service->service->name} a rencontré une erreur.",
+            'icon' => 'heroicon-o-exclamation-circle',
+            'iconColor' => 'danger',
             'service_id' => $this->service->id,
             'domain' => $this->service->domain
         ];
     }
+
+    
 
     /**
      * Get the array representation of the notification.
