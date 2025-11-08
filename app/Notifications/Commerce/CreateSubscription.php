@@ -4,7 +4,6 @@ namespace App\Notifications\Commerce;
 
 use App\Models\Commerce\Order;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Notifications\Notification;
