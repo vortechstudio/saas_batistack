@@ -26,4 +26,51 @@ class LicenseController extends Controller
 
         return $service ? response()->json($service) : response()->json(['valid' => false]);
     }
+
+    public function moduleInfo(Request $request, string $module_slug)
+    {
+        $license = $request->input('license_key');
+
+        $service = CustomerService::with('modules', 'modules.feature')->where('service_code', $license)->first();
+
+        $module = $service->modules->where('slug', $module_slug)->first();
+
+        return $module ? response()->json($module) : response()->json(['error' => 'module not found'], 404);
+    }
+
+    public function moduleActivate(Request $request, string $module_slug)
+    {
+        $license = $request->input('license_key');
+
+        $service = CustomerService::with('modules')->where('service_code', $license)->first();
+
+        $module = $service->modules->where('slug', $module_slug)->first();
+
+        if (!$module) {
+            return response()->json(['error' => 'module not found'], 404);
+        }
+
+        $module->is_active = true;
+        $module->save();
+
+        return response()->json($module);
+    }
+
+    public function moduleDeactivate(Request $request, string $module_slug)
+    {
+        $license = $request->input('license_key');
+
+        $service = CustomerService::with('modules')->where('service_code', $license)->first();
+
+        $module = $service->modules->where('slug', $module_slug)->first();
+
+        if (!$module) {
+            return response()->json(['error' => 'module not found'], 404);
+        }
+
+        $module->is_active = false;
+        $module->save();
+
+        return response()->json($module);
+    }
 }

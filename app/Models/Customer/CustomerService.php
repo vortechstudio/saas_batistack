@@ -4,6 +4,7 @@ namespace App\Models\Customer;
 
 use App\Enum\Customer\CustomerServiceStatusEnum;
 use App\Models\Product\Product;
+use App\Services\Stripe\StripeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -13,6 +14,7 @@ class CustomerService extends Model
     /** @use HasFactory<\Database\Factories\Customer\CustomerServiceFactory> */
     use HasFactory;
     protected $guarded = [];
+    public $appends = ['info_stripe'];
 
     protected $casts = [
         'status' => CustomerServiceStatusEnum::class,
@@ -49,6 +51,11 @@ class CustomerService extends Model
     public function backups()
     {
         return $this->hasMany(CustomerServiceBackup::class);
+    }
+
+    public function getInfoStripeAttribute()
+    {
+        return app(StripeService::class)->client->subscriptions->retrieve($this->stripe_subscription_id);
     }
 
     protected static function boot()

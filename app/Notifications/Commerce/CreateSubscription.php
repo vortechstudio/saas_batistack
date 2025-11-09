@@ -4,9 +4,12 @@ namespace App\Notifications\Commerce;
 
 use App\Models\Commerce\Order;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Slack\SlackMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Slack\BlockKit\Blocks\ContextBlock;
+use Illuminate\Notifications\Slack\BlockKit\Blocks\SectionBlock;
+use Illuminate\Support\Number;
 
 class CreateSubscription extends Notification
 {
@@ -27,7 +30,7 @@ class CreateSubscription extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'slack'];
     }
 
     /**
@@ -41,6 +44,31 @@ class CreateSubscription extends Notification
                 'order' => $this->order,
                 'subscription' => $this->subscription
             ]);
+    }
+
+    public function toSlack(object $notifiable): SlackMessage
+    {
+        return (new SlackMessage)
+            ->text('Nouvelle Commande client N°'.$this->order->order_number.' a été créée.')
+            ->headerBlock("Commande N° {$this->order->order_number}")
+            ->contextBlock(function (ContextBlock $block) {
+                $block->text('Client '.$this->order->customer->code_client);
+            })
+            ->sectionBlock(function (SectionBlock $block) {
+                $block->text('Souscription N°'.$this->subscription->id);
+                $block->text('Statut : '.$this->subscription->status);
+            })
+            ->dividerBlock()
+            ->sectionBlock(function (SectionBlock $block) {
+                $block->text('Produits :');
+                foreach ($this->order->items as $item) {
+                    $block->text("{$item->quantity} X {$item->product->name} - ".Number::currency($item->unit_price, in: 'EUR', precision: 2));
+                }
+            })
+            ->dividerBlock()
+            ->sectionBlock(function (SectionBlock $block) {
+                $block->text('Total : '.Number::currency($this->order->total_amount, in: 'EUR', precision: 2));
+            });
     }
 
     /**

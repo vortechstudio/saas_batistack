@@ -109,4 +109,16 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    'deferred' => [
+        'driver' => 'deferred',
+    ],
+
+    'failover' => [
+        'driver' => 'failover',
+        'connections' => [
+            'redis',
+            'database',
+        ]
+    ],
+
 ];

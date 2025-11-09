@@ -40,6 +40,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     public int $stateInstallTotal = 0;
     public ?string $comment = null;
     public ?array $infoStorage = null;
+    public bool $limitUser = false;
 
     // Gestion des onglets
     public string $activeTab = 'modules';
@@ -51,6 +52,13 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
         $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
         $this->getStorageInfo();
+
+        $users = Http::withoutVerifying()
+            ->get('//'.$this->service->domain.'/api/users')
+            ->collect()
+            ->toArray();
+
+        $this->limitUser = count($users) >= $this->service->max_user;
     }
 
     public function refreshStateInstall()
@@ -88,15 +96,21 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
      */
     public function getStorageInfo()
     {
-        $this->infoStorage = Http::withoutVerifying()
-            ->get('https://'.$this->service->domain.'/api/core/storage/info')
-            ->object();
+        $response = Http::withoutVerifying()
+            ->get('//'.$this->service->domain.'/api/core/storage/info');
+
+        if ($response->status() == 200) {
+            $this->infoStorage = $response->object();
+        } else {
+            $this->infoStorage = [];
+        }
+
     }
 
     public function table(Table $table): Table
     {
         $users = Http::withoutVerifying()
-            ->get('https://'.$this->service->domain.'/api/users')
+            ->get('//'.$this->service->domain.'/api/users')
             ->collect()
             ->toArray();
 
@@ -116,6 +130,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
             ->headerActions([
                 Action::make('create')
                     ->label('Créer un utilisateur')
+                    ->visible(fn () => $this->service->max_user > count($users))
                     ->modal(true)
                     ->schema([
                         TextInput::make('name')->label('Identité')->required(),
@@ -146,6 +161,8 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         try{
                             Http::withoutVerifying()
                             ->post('https://'.$this->service->domain.'/api/users', $data);
+
+                            Log::debug("Utilisateur créé avec succès");
                         } catch (\Exception $e) {
                             Log::error($e->getMessage());
                             Notification::make()
@@ -181,7 +198,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function (array $data, $record) {
                             try {
                                 $request = Http::withoutVerifying()
-                                ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], $data);
+                                ->put('//'.$this->service->domain.'/api/users/'.$record['id'], $data);
 
                                 if($request->failed()) {
                                     throw new \Exception($request->body());
@@ -211,7 +228,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function (array $data, $record) {
                             try {
                                 Http::withoutVerifying()
-                                    ->get('https://'.$this->service->domain.'/api/users/'.$record['id'].'/password-reset', $data);
+                                    ->get('//'.$this->service->domain.'/api/users/'.$record['id'].'/password-reset', $data);
 
                                 Notification::make()
                                     ->title("Réinitialisation du mot de passe")
@@ -231,13 +248,13 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         }),
 
                     Action::make('delete')
-                        ->label('Supprimer l\'utilisateur')   
+                        ->label('Supprimer l\'utilisateur')
                         ->icon(Heroicon::Trash)
                         ->requiresConfirmation()
                         ->action(function ($record) {
                             try {
                                 Http::withoutVerifying()
-                                    ->delete('https://'.$this->service->domain.'/api/users/'.$record['id']);
+                                    ->delete('//'.$this->service->domain.'/api/users/'.$record['id']);
 
                                 Notification::make()
                                     ->title("Suppression de l'utilisateur")
@@ -263,7 +280,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function ($record) {
                             try {
                                 Http::withoutVerifying()
-                                    ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], [
+                                    ->put('//'.$this->service->domain.'/api/users/'.$record['id'], [
                                         'blocked' => 1,
                                     ]);
 
@@ -291,7 +308,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ->action(function ($record) {
                             try {
                                 Http::withoutVerifying()
-                                    ->put('https://'.$this->service->domain.'/api/users/'.$record['id'], [
+                                    ->put('//'.$this->service->domain.'/api/users/'.$record['id'], [
                                         'blocked' => 0,
                                     ]);
 
@@ -310,13 +327,13 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                                 return;
                             }
                         }),
-                            
+
                 ])
             ]);
     }
 
     public function render()
-    {        
+    {
         //dd($this->service->product->info_stripe);
         return view('livewire.client.account.service-show');
     }
