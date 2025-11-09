@@ -26,7 +26,9 @@ return new class extends Migration
             $table->string('stripe_payment_intent_id')->nullable();
             $table->string('stripe_invoice_id')->nullable();
 
+
             $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('customer_service_id')->nullable()->constrained()->cascadeOnDelete();
             $table->timestamps();
 
             $table->index(['status', 'created_at']);

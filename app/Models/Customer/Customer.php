@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Services\Stripe\CustomerService as StripeCustomerService;
+use App\Services\Stripe\StripeService;
 
 class Customer extends Model
 {
@@ -42,6 +43,21 @@ class Customer extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function paymentMethods()
+    {
+        return $this->hasMany(CustomerPaymentMethod::class);
+    }
+
+    public function storage()
+    {
+        return $this->hasOne(CustomerServiceStorage::class);
+    }
+
+    public function backups()
+    {
+        return $this->hasMany(CustomerServiceBackup::class);
+    }
+
     /** Attributes */
     protected function getSupportTypeColorAttributes()
     {
@@ -50,9 +66,12 @@ class Customer extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (Customer $customer, StripeCustomerService $customerService) {
+        static::created(function (Customer $customer) {
             $customer->code_client = 'CLI' . str_pad($customer->id, 4, '0', STR_PAD_LEFT);
-            $customerService->create($customer);
+            $customer->save();
+
+            //$customerService = app(\App\Services\Stripe\StripeCustomerService::class);
+            //$customerService->create($customer);
         });
     }
 
@@ -68,6 +87,29 @@ class Customer extends Model
 
     public function getListInvoices()
     {
-        return app(StripeCustomerService::class)->listInvoices($this);
+        return app(StripeCustomerService::class)->listInvoices($this)
+            ->map(function ($invoice) {
+                return [
+                    'id' => $invoice->id,
+                    'number' => $invoice->number,
+                    'metadata' => $invoice->metadata ? $invoice->metadata->toArray() : [],
+                    'created' => $invoice->created,
+                    'subtotal' => $this->calcHorsTaxe($invoice->subtotal/100, 20),
+                    'total' => $invoice->total/100,
+                    'amount_due' => $invoice->amount_due/100,
+                    'status' => $invoice->status,
+                ];
+            })
+            ->toArray();
+    }
+
+    public function getInvoice($id)
+    {
+        return app(StripeCustomerService::class)->getInvoice($id);
+    }
+
+    private function calcHorsTaxe(float $total, float $taxe): float
+    {
+        return $total - ($total * $taxe / 100);
     }
 }

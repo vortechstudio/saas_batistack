@@ -46,17 +46,29 @@ class CustomerService extends StripeService
     public function listInvoices(Customer $customer)
     {
         try {
-            return collect($this->client->invoices->all(['customer' => $customer->stripe_customer_id]));
+            return collect($this->client->invoices->all([
+                'customer' => $customer->stripe_customer_id,
+            ]));
         }catch(\Throwable $e) {
             report($e);
             throw $e;
         }
     }
 
-    public function getInvoice(Customer $customer, string $invoiceId)
+    public function getInvoice(string $invoiceId)
     {
         try {
-            return $this->client->invoices->retrieve($invoiceId, ['customer' => $customer->stripe_customer_id]);
+            return $this->client->invoices->retrieve($invoiceId);
+        }catch(\Throwable $e) {
+            report($e);
+            throw $e;
+        }
+    }
+
+    public function payInvoice(string $invoiceId)
+    {
+        try {
+            return $this->client->invoices->pay($invoiceId);
         }catch(\Throwable $e) {
             report($e);
             throw $e;

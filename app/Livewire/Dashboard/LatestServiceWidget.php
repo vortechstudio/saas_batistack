@@ -11,6 +11,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class LatestServiceWidget extends TableWidget
@@ -30,16 +31,16 @@ class LatestServiceWidget extends TableWidget
             ])
             ->paginated(false)
             ->columns([
-                TextColumn::make('reference')
+                TextColumn::make('service_code')
                     ->label(''),
-                TextColumn::make('order.reference')
+                TextColumn::make('order.order_number')
                     ->label(''),
                 TextColumn::make('payment_method')
                     ->badge()
                     ->label(''),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn (?Model $record): string => match ($record->status->value) {
                         'completed' => 'success',
                         'failed' => 'danger',
                         'pending' => 'warning',

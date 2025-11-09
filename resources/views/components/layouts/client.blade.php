@@ -27,11 +27,25 @@
                     </div>
                     <div class="drawer-side">
                         <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-                        <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+                        <ul class="menu bg-base-200 text-base-content min-h-full w-[30%] p-4">
                         <!-- Sidebar content here -->
                             @foreach (auth()->user()->unreadNotifications as $notification)
                                 <li>
-                                    <x-mary-alert :title="$notification->data['message']" />
+                                    <div role="alert" class="alert alert-vertical sm:alert-horizontal alert-{{ $notification->data['iconColor'] }} mb-2">
+                                        @php
+                                        $icon = $notification->data['icon'];
+                                        @endphp
+                                        @svg($icon, 'w-6 h-6')
+                                        <div>
+                                            <h3 class="font-bold">{{ $notification->data['title'] }}</h3>
+                                            <div class="text-xs">{{ $notification->data['body'] }}</div>
+                                        </div>
+                                        @isset($notification->data['actions'])
+                                            @if(count($notification->data['actions']) > 0)
+                                                <button class="btn btn-sm">See</button>
+                                            @endif
+                                        @endisset
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>
@@ -60,11 +74,11 @@
                     </div>
                     <x-separator />
                     <div class="m-5">
-                        <x-mary-menu-item title="Mon Compte" link="###" />
-                        <x-mary-menu-item title="Mes factures" link="###" />
-                        <x-mary-menu-item title="Mes moyens de paiements" link="###" />
-                        <x-mary-menu-item title="Mes commandes" link="###" />
-                        <x-mary-menu-item title="Mes Services & Contrats" link="###" />
+                        <x-mary-menu-item title="Mon Compte" link="{{ route('client.account.dashboard') }}" />
+                        <x-mary-menu-item title="Mes factures" link="{{ route('client.account.invoice') }}" />
+                        <x-mary-menu-item title="Mes moyens de paiements" link="{{ route('client.account.method-payment') }}" />
+                        <x-mary-menu-item title="Mes commandes" link="{{ route('client.account.orders') }}" />
+                        <x-mary-menu-item title="Mes Services & Contrats" link="{{ route('client.services') }}" />
                     </div>
                 </x-mary-dropdown>
             </x-slot:actions>
@@ -79,9 +93,9 @@
                 <x-mary-menu activate-by-route active-bg-color="bg-blue-900 text-white font-black">
                     <x-mary-menu-item title="Accueil" icon="o-home" link="{{ route('client.dashboard') }}" />
                     <x-mary-menu-sub title="Logiciels & Services" icon="o-adjustments-horizontal">
-                        <x-mary-menu-item title="Mes logiciels & Services" link="####" />
-                        <x-mary-menu-item title="Sauvegarde en ligne" link="####" />
-                        <x-mary-menu-item title="Catalogue" link="####" />
+                        <x-mary-menu-item title="Mes logiciels & Services" link="{{ route('client.services') }}" />
+                        <x-mary-menu-item title="Sauvegarde en ligne" link="{{ route('client.service.backup.index') }}" />
+                        <x-mary-menu-item title="Catalogue" link="{{ route('client.catalogue') }}" />
                     </x-mary-menu-sub>
                     <x-mary-menu-sub title="Formations" icon="o-book-open">
                         <x-mary-menu-item title="Mes formations" link="####" />
@@ -93,6 +107,7 @@
                         <x-mary-menu-item title="Mes Tickets" link="####" />
                     </x-mary-menu-sub>
                 </x-mary-menu>
+                <x-mary-button label="Souscrire" icon="o-shopping-bag" class="btn-outline btn-wide mt-10 mx-2" link="{{ route('client.account.cart.index') }}" />
             </x-slot:sidebar>
 
             {{-- The `$slot` goes here --}}

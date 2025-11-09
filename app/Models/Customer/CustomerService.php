@@ -4,6 +4,7 @@ namespace App\Models\Customer;
 
 use App\Enum\Customer\CustomerServiceStatusEnum;
 use App\Models\Product\Product;
+use App\Services\Stripe\StripeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -13,6 +14,7 @@ class CustomerService extends Model
     /** @use HasFactory<\Database\Factories\Customer\CustomerServiceFactory> */
     use HasFactory;
     protected $guarded = [];
+    public $appends = ['info_stripe'];
 
     protected $casts = [
         'status' => CustomerServiceStatusEnum::class,
@@ -31,10 +33,35 @@ class CustomerService extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function steps()
+    {
+        return $this->hasMany(CustomerServiceStep::class);
+    }
+
+    public function options()
+    {
+        return $this->hasMany(CustomerServiceOption::class);
+    }
+
+    public function modules()
+    {
+        return $this->hasMany(CustomerServiceModule::class);
+    }
+
+    public function backups()
+    {
+        return $this->hasMany(CustomerServiceBackup::class);
+    }
+
+    public function getInfoStripeAttribute()
+    {
+        return app(StripeService::class)->client->subscriptions->retrieve($this->stripe_subscription_id);
+    }
+
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($customerService) {
             if (empty($customerService->service_code)) {
                 $customerService->service_code = $customerService->generateServiceCode();
@@ -51,7 +78,7 @@ class CustomerService extends Model
             // Format: SRV-YYYYMMDD-XXXXX (ex: SRV-20250126-A1B2C)
             $code = 'SRV-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
         } while (self::where('service_code', $code)->exists());
-        
+
         return $code;
     }
 
@@ -69,9 +96,9 @@ class CustomerService extends Model
                 strtoupper(Str::random(4))
             );
         } while (self::where('service_code', $code)->exists());
-        
+
         return $code;
     }
 
-    
+
 }

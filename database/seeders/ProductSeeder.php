@@ -39,11 +39,15 @@ class ProductSeeder extends Seeder
             foreach ($product->prices as $price)
             {
                 // Mapper la fréquence Stripe vers l'enum
-                $frequency = match($price->recurring->interval) {
-                    'month' => ProductPriceFrequencyEnum::MONTHLY,
-                    'year' => ProductPriceFrequencyEnum::ANNUAL,
-                    default => ProductPriceFrequencyEnum::UNIQUE,
-                };
+                if(isset($price->recurring->interval)) {
+                    $frequency = match($price->recurring->interval) {
+                        'month' => ProductPriceFrequencyEnum::MONTHLY,
+                        'year' => ProductPriceFrequencyEnum::ANNUAL,
+                        default => ProductPriceFrequencyEnum::UNIQUE,
+                    };
+                } else {
+                    $frequency = ProductPriceFrequencyEnum::UNIQUE;
+                }
 
                 ProductPrice::create([
                     'product_id' => $pr->id,

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Illuminate\Notifications\Notification;
 
 class User extends Authenticatable
 {
@@ -37,6 +38,11 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function routeNotificationForSlack(Notification $notification): mixed
+    {
+        return '#batistack';
+    }
 
     /**
      * Get the attributes that should be cast.

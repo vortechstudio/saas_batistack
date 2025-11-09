@@ -12,6 +12,8 @@ enum CustomerServiceStatusEnum: string
     case OK = 'ok';
     case PENDING = 'pending';
     case UNPAID = 'unpaid';
+    case ERROR = 'error';
+    case SUSPENDED = 'suspended';
 
     public function label(): string
     {
@@ -20,6 +22,8 @@ enum CustomerServiceStatusEnum: string
             self::OK => 'Actif',
             self::PENDING => 'En attente',
             self::UNPAID => 'Non payé',
+            self::ERROR => 'Erreur',
+            self::SUSPENDED => 'Suspendu',
         };
     }
 
@@ -30,16 +34,41 @@ enum CustomerServiceStatusEnum: string
             self::OK => 'success',
             self::PENDING => 'warning',
             self::UNPAID => 'danger',
+            self::ERROR => 'danger',
+            self::SUSPENDED => 'warning',
         };
     }
 
     public function icon(): string
     {
         return match ($this) {
-            self::EXPIRED => 'o-x-circle',
-            self::OK => 'o-check-circle',
-            self::PENDING => 'o-stop',
-            self::UNPAID => 'o-exclamation-circle',
+            self::EXPIRED => 'heroicon-o-x-circle',
+            self::OK => 'heroicon-o-check-circle',
+            self::PENDING => 'heroicon-o-arrow-path',
+            self::UNPAID => 'heroicon-o-exclamation-circle',
+            self::ERROR => 'heroicon-o-x-circle',
+            self::SUSPENDED => 'heroicon-o-pause-circle',
         };
+    }
+
+    public function badge()
+    {
+        return "<div class='badge badge-".$this->color()."'>".$this->label()."</div>";
+    }
+
+    public function badgeWithIcon(): string
+    {
+        $iconHtml = '';
+        if (function_exists('svg')) {
+            $svgObject = svg($this->icon());
+            $iconHtml = method_exists($svgObject, 'toHtml') ? $svgObject->toHtml() : (string) $svgObject;
+        }
+
+        return sprintf(
+            '<div class="badge badge-%s">%s%s</div>',
+            $this->color(),
+            $iconHtml,
+            $this->label()
+        );
     }
 }

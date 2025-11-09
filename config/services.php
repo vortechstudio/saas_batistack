@@ -38,6 +38,29 @@ return [
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    'redis' => [
+        'password' => env('REDIS_PASSWORD', ''),
+    ],
+
+    'mail' => [
+        'password' => env('MAIL_PASSWORD'),
+        'host' => env('MAIL_HOST', '127.0.0.1'),
+        'port' => env('MAIL_PORT', 2525),
+        'username' => env('MAIL_USERNAME'),
+    ],
+
+    'vito' => [
+        'api_key' => env('VITO_APP_KEY'),
+        'endpoint' => rtrim(env('VITO_ENDPOINT', ''), '/'),
+    ],
+
+    'slack' => [
+        'notifications' => [
+            'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
+            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
+        ],
+    ],
 ];
