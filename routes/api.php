@@ -13,6 +13,7 @@ Route::get('/user', function (Request $request) {
 Route::get('/health', function () {
     return response()->json(['status' => 'ok']);
 });
+
 Route::prefix('license')->group(function() {
     Route::get('/validate', [LicenseController::class, 'validate']);
     Route::get('/info', [LicenseController::class, 'info']);
@@ -21,6 +22,13 @@ Route::prefix('license')->group(function() {
         Route::get('/{slug}/activate', [LicenseController::class, 'moduleActivate']);
         Route::get('/{slug}/deactivate', [LicenseController::class, 'moduleDeactivate']);
     });
+});
+
+Route::prefix('version')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\VersionController::class, 'index']);
+    Route::post('/', [\App\Http\Controllers\Api\VersionController::class, 'create']);
+    Route::get('/{version}', [\App\Http\Controllers\Api\VersionController::class, 'show']);
+
 });
 
 Route::prefix('backup')->group(function () {
