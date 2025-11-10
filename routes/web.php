@@ -7,8 +7,8 @@ use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Catalogue;
 use App\Livewire\Client\Dashboard;
+use App\Services\Forge;
 use Illuminate\Support\Facades\Route;
-use Laravel\Forge\Forge;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
@@ -16,8 +16,19 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    // ID: 983394
-    dd(collect(app(\App\Services\Forge::class)->client->sites(983394))->where('name', 'batistack.ovh')->first()->id);
+    // ID: 983394 //Siteid: 2915773
+    $command = app(Forge::class)->client->executeSiteCommand(983394, 2915773, [
+        'command' => 'php artisan about --version'
+    ]);
+    //dd(app(Forge::class)->client->getSiteCommand(983394, 2915773, $command->id)[0]->status);
+
+    $commandStatus = '';
+    while ($commandStatus != 'finished') {
+        sleep(1);
+        $commandStatus = app(Forge::class)->client->getSiteCommand(983394, 2915773, $command->id)[0]->status;
+    }
+    $outputCommand = app(Forge::class)->client->getSiteCommand(983394, 2915773, $command->id)[0]->output;
+    dd($outputCommand);
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');

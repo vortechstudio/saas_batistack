@@ -32,10 +32,7 @@ class InstallMainApps implements ShouldQueue
      */
     public function handle(): void
     {
-        $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
-        $database = 'db_'.Str::slug($this->service->customer->entreprise);
-        $serverId = collect(app(\App\Services\Forge::class)->client->servers())->first()->id;
-        $siteId = collect(app(Forge::class)->client->sites($serverId))->where('name', $domain)->first()->id;
+
 
         if (config('app.env') == 'local') {
             $this->service->steps()->where('step', 'Installation des applications principales')->first()?->update([
@@ -44,6 +41,10 @@ class InstallMainApps implements ShouldQueue
             dispatch(new VerifyInstallation($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
+                $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
+                $database = 'db_'.Str::slug($this->service->customer->entreprise);
+                $serverId = collect(app(\App\Services\Forge::class)->client->servers())->first()->id;
+                $siteId = collect(app(Forge::class)->client->sites($serverId))->where('name', $domain)->first()->id;
                 // Lancement du déployment
                 $deployInit = app(Forge::class)->client->deploySite($serverId, $siteId);
 

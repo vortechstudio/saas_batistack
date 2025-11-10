@@ -51,14 +51,8 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
         $this->stateInstallTotal = $this->service->steps->count();
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
         $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
-        $this->getStorageInfo();
 
-        $users = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/users')
-            ->collect()
-            ->toArray();
 
-        $this->limitUser = count($users) >= $this->service->max_user;
     }
 
     public function refreshStateInstall()
@@ -77,6 +71,13 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     public function setActiveTab(string $tab)
     {
         $this->activeTab = $tab;
+        $this->getStorageInfo();
+        $users = Http::withoutVerifying()
+            ->get('//'.$this->service->domain.'/api/users')
+            ->collect()
+            ->toArray();
+
+        $this->limitUser = count($users) >= $this->service->max_user;
     }
 
     /**
