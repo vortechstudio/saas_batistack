@@ -22,4 +22,5 @@ return [
     ],
 
     'api_endpoint' => env('SAAS_API_ENDPOINT'),
+    'forge_api_key' => env('FORGE_API_KEY'),
 ];

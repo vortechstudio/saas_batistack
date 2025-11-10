@@ -7,12 +7,14 @@ use App\Models\User;
 use App\Services\AaPanel\DatabaseService;
 use App\Services\AaPanel\DomainService;
 use App\Services\AaPanel\FetchService;
+use App\Services\Ovh\Domain;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Laravel\Forge\Forge;
 
 class InitDomain implements ShouldQueue
 {
@@ -58,31 +60,10 @@ class InitDomain implements ShouldQueue
             dispatch(new VerifyDomain($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
-                $sites = $this->fetch->sites(10, 1, $domain);
-                $rows = $sites['message']['data'];
-                $domainExists = false;
+                // Forge & OVH Create Site
+                // OVH Déclare Domaine
+                $domain = app(Domain::class)->create('core', request()->ip());
 
-                if (is_array($rows)) {
-                    foreach ($rows as $row) {
-                        if (($row['name'] ?? null) === $domain) { $domainExists = true; break; }
-                    }
-                }
-
-                if (!$domainExists) {
-                    $this->domain->add(
-                        domain: $domain,
-                        path: '/www/wwwroot/'.$domain,
-                        runPath: '/public',
-                        phpVersion: '83',
-                    );
-
-                    $this->database->add(
-                        databaseUsername: $database,
-                        databasePassword: $database,
-                    );
-
-                    $this->domain->checkRunPath($domain);
-                }
 
                 $this->service->steps()->where('step', 'Création de domaine')->first()?->update([
                     'done' => true,

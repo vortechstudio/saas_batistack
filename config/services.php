@@ -57,10 +57,10 @@ return [
         'endpoint' => rtrim(env('VITO_ENDPOINT', ''), '/'),
     ],
 
-    'slack' => [
-        'notifications' => [
-            'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
-            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
-        ],
-    ],
+    'ovh' => [
+        'app_key' => env("OVH_APP_KEY"),
+        'app_secret' => env("OVH_APP_SECRET"),
+        'endpoint' => 'ovh-eu',
+        'app_consume_key' => env("OVH_CONSUME_KEY"),
+    ]
 ];
