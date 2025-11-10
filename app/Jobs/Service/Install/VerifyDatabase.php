@@ -6,6 +6,7 @@ use App\Models\Customer\CustomerService;
 use App\Models\User;
 use App\Services\AaPanel\DatabaseService;
 use App\Services\AaPanel\FetchService;
+use App\Services\Forge;
 use App\Services\PanelService;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -41,11 +42,10 @@ class VerifyDatabase implements ShouldQueue
             dispatch(new InstallMainApps($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
-                // Comment vérifier qu'une base de donnée existe pour le domaine
-                $res = $this->fetch->databases(10, 1, $database);
-                $rows = $res['message']['data'] ?? [];
+                $serverId = collect(app(\App\Services\Forge::class)->client->servers())->first()->id;
+                $databaseServ = collect(app(\App\Services\Forge::class)->client->databases($serverId))->where('name', $database)->first()->name;
 
-                if(is_array($rows) && count($rows) > 0){
+                if (isset($databaseServ)) {
                     $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()?->update([
                         'done' => true,
                     ]);

@@ -4,6 +4,7 @@ namespace App\Jobs\Service\Install;
 
 use App\Models\Customer\CustomerService;
 use App\Models\User;
+use App\Services\Forge;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -33,190 +34,77 @@ class InstallMainApps implements ShouldQueue
     {
         $domain = Str::slug($this->service->customer->entreprise). '.'.config('batistack.domain');
         $database = 'db_'.Str::slug($this->service->customer->entreprise);
-        $domainPath = '/www/wwwroot/'.$domain;
-        $gitRepo = 'https://github.com/vortechstudio/Batistack.git';
-
-        // Configuration SSH
-        $sshHost = config('batistack.ssh.host');
-        $sshUser = config('batistack.ssh.user');
-        $sshPassword = config('batistack.ssh.password') ?? env('SSH_PASSWORD');
-
-        // Créer le répertoire tmp sécurisé s'il n'existe pas
-        $tmpDir = storage_path('tmp');
-        if (!is_dir($tmpDir)) {
-            mkdir($tmpDir, 0700, true);
-        }
-
-        // Génération du fichier temporaire sécurisé
-        $envContent = $this->generateEnvContent($domain, $database);
-        $envTempPath = $tmpDir . DIRECTORY_SEPARATOR . '.env.temp.' . uniqid();
+        $serverId = collect(app(\App\Services\Forge::class)->client->servers())->first()->id;
+        $siteId = collect(app(Forge::class)->client->sites($serverId))->where('name', $domain)->first()->id;
 
         if (config('app.env') == 'local') {
-            if ($step = $this->service->steps()->where('step', 'Installation de l\'application principal')->first()) {
-                $step->update([
-                    'done' => true,
-                    'comment' => 'Application installée avec succès (mode local)'
-                ]);
-            }
+            $this->service->steps()->where('step', 'Installation des applications principales')->first()?->update([
+                'done' => true,
+            ]);
             dispatch(new VerifyInstallation($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
-                if (empty($sshPassword)) {
-                    throw new \RuntimeException('SSH password manquant: config(batistack.ssh.password) ou SSH_PASSWORD.');
+                // Lancement du déployment
+                $deployInit = app(Forge::class)->client->deploySite($serverId, $siteId);
+
+                // Boucle de la fonction "fetchDeploystatus" jusqu'à avoir le status "finished"
+                $deployStatus = '';
+                while ($deployStatus != 'finished') {
+                    $deployStatus = $this->fetchDeployStatus($serverId, $siteId, $deployInit->id);
+                    if ($deployStatus == 'failed') {
+                        Log::error('Deploy failed');
+                        break;
+                    }
+                    sleep(5);
                 }
-                file_put_contents($envTempPath, $envContent);
 
-                // Optimisation : commandes groupées et plus efficaces
-                $this->executeInstallationCommands($sshHost, $sshUser, $sshPassword, $domain, $domainPath, $gitRepo, $envTempPath);
-
-                // Installation réussie
-                $this->service->steps()->where('step', 'Installation de l\'application principal')->first()->update([
-                    'done' => true,
-                    'comment' => 'Application installée avec succès via Process'
+                $command = app(Forge::class)->client->executeSiteCommand($serverId, $siteId, [
+                    'php artisan app:install '.$this->service->service_code
                 ]);
 
-                dispatch(new VerifyInstallation($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+                if ($command) {
+                    $this->service->steps()->where('step', 'Installation des applications principales')->first()?->update([
+                        'done' => true,
+                    ]);
+                    dispatch(new VerifyInstallation($this->service))->onQueue('installApp');
+                } else {
+                    Notification::make()
+                        ->danger()
+                        ->title("Installation d'un service en erreur !")
+                        ->body("L'application principal est rester en cours d'installation")
+                        ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
 
+                    $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()?->update([
+                        'done' => false,
+                        'comment' => "L'application principal est rester en cours d'installation",
+                    ]);
+
+                    $this->service->update([
+                        'status' => 'error',
+                    ]);
+                }
             } catch (\Exception $e) {
-                // Gestion des erreurs
-                $this->service->steps()->where('step', 'Installation de l\'application principal')->first()->update([
+                Log::error('Erreur lors de l\'installation des applications principales');
+                $this->service->steps()->where('step', 'Vérification de la base de donnée')->first()?->update([
                     'done' => false,
-                    'comment' => $e->getMessage()
+                    'comment' => $e->getMessage(),
                 ]);
-
-                $this->service->update([
-                    'status' => 'error',
-                ]);
-
-                Log::error('Erreur installation application', [
-                    'service_id' => $this->service->id,
-                    'error' => $e->getMessage()
-                ]);
-
                 Notification::make()
                     ->danger()
                     ->title("Installation d'un service en erreur !")
                     ->body($e->getMessage())
                     ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
-
-                throw $e;
-            } finally {
-                // Suppression sécurisée du fichier temporaire
-                if (isset($envTempPath) && file_exists($envTempPath)) {
-                    try {
-                        unlink($envTempPath);
-                        Log::info('Fichier temporaire .env supprimé avec succès', ['path' => $envTempPath]);
-                    } catch (\Exception $deleteException) {
-                        Log::error('Erreur lors de la suppression du fichier temporaire .env', [
-                            'path' => $envTempPath,
-                            'error' => $deleteException->getMessage()
-                        ]);
-                        // Ne pas relancer l\'exception pour éviter de masquer l\'erreur principale
-                    }
-                }
+                $this->service->update([
+                    'status' => 'error',
+                ]);
             }
         }
     }
 
-    /**
-     * Génère le contenu du fichier .env de manière optimisée
-     */
-    private function generateEnvContent(string $domain, string $database): string
+    public function fetchDeployStatus(int $serverId, int $siteId, int $deployId)
     {
-        $envTemplate = file_get_contents(base_path('.env.batistack'));
-
-        $replacements = [
-            'DB_CONNECTION=sqlite' => 'DB_CONNECTION=mysql',
-            'DB_DATABASE=laravel' => 'DB_DATABASE='.$database,
-            'DB_USERNAME=root' => 'DB_USERNAME='.$database,
-            'DB_PASSWORD=' => 'DB_PASSWORD='.$database,
-            'APP_URL=http://localhost' => 'APP_URL=https://'.$domain,
-            'APP_DOMAIN=' => 'APP_DOMAIN='.config('batistack.domain'),
-            '# REDIS_PASSWORD=null' => 'REDIS_PASSWORD='.(config('services.redis.password') ?? env('REDIS_PASSWORD', '')),
-            'MAIL_HOST=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_HOST=127.0.0.1' : 'MAIL_HOST='.(config('services.mail.host') ?? env('MAIL_HOST', 'functions.o2switch.net')),
-            'MAIL_PORT=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PORT=1025' : 'MAIL_PORT='.(config('services.mail.port') ?? env('MAIL_PORT', '465')),
-            'MAIL_USERNAME=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_USERNAME=' : 'MAIL_USERNAME='.(config('services.mail.username') ?? env('MAIL_USERNAME', 'contact@'.config('batistack.domain'))),
-            'MAIL_PASSWORD=' => config('app.env') === 'local' || config('app.env') === 'testing' ? 'MAIL_PASSWORD=' : 'MAIL_PASSWORD='.(config('services.mail.password') ?? env('MAIL_PASSWORD', '')),
-            'MAIL_FROM_ADDRESS=' => 'MAIL_FROM_ADDRESS='.(config('mail.from.address') ?? env('MAIL_FROM_ADDRESS', 'noreply@'.config('batistack.domain'))),
-            'SAAS_API_ENDPOINT=' => 'SAAS_API_ENDPOINT='.(config('batistack.api_endpoint') ?? env('SAAS_API_ENDPOINT', 'https://api.'.config('batistack.domain')))
-        ];
-
-        return str_replace(array_keys($replacements), array_values($replacements), $envTemplate);
+        $status = app(Forge::class)->client->deploymentHistoryDeployment($serverId, $siteId, $deployId);
+        return $status->data->attributes->status;
     }
 
-    /**
-     * Exécute les commandes d'installation de manière optimisée
-     */
-    private function executeInstallationCommands(string $sshHost, string $sshUser, string $sshPassword, string $domain, string $domainPath, string $gitRepo, string $envTempPath): void
-    {
-        // Optimisation : commandes groupées en une seule connexion SSH
-        $bashScript = $this->buildInstallationScript($domain, $domainPath, $gitRepo, $envTempPath);
-
-        $sshCommand = [
-            'sshpass',
-            '-p', $sshPassword,
-            'ssh',
-            '-o', 'StrictHostKeyChecking=no',
-            '-o', 'ConnectTimeout=30',
-            "$sshUser@$sshHost",
-            '-p', '22',
-            'bash', '-c', $bashScript
-        ];
-
-        $result = Process::timeout(600)->run($sshCommand); // 10 minutes timeout
-
-        if ($result->failed()) {
-            throw new \Exception(
-                "Erreur lors de l'installation: " .
-                "\nCode de sortie: " . $result->exitCode() .
-                "\nErreur: " . $result->errorOutput() .
-                "\nSortie: " . $result->output()
-            );
-        }
-
-        Log::info("Installation SSH exécutée avec succès", [
-            'domain' => $domain,
-            'output' => $result->output()
-        ]);
-    }
-
-    /**
-     * Construit le script bash pour l'installation
-     */
-    private function buildInstallationScript(string $domain, string $domainPath, string $gitRepo, string $envTempPath): string
-    {
-        $envContent = base64_encode(file_get_contents($envTempPath));
-
-        return "
-            set -e  # Arrêter en cas d'erreur
-            cd /www/wwwroot/
-            rm -rf {$domain}
-            git clone {$gitRepo} {$domain}
-            cd {$domainPath}
-            echo '{$envContent}' | base64 -d > .env
-            composer install --no-interaction --optimize-autoloader
-            php artisan key:generate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            # Migration sécurisée - non destructive
-            php artisan migrate --force
-
-            # Seeding conditionnel - seulement si première installation
-            if [ ! -f .env.installed ]; then
-                php artisan db:seed --force
-                touch .env.installed
-            fi
-
-            php artisan storage:link
-
-            # Permissions sécurisées - propriétaire www-data et permissions minimales
-            chown -R www-data:www-data storage/ bootstrap/cache/
-            find storage/ -type d -exec chmod 755 {} \;
-            find storage/ -type f -exec chmod 644 {} \;
-            find bootstrap/cache/ -type d -exec chmod 755 {} \;
-            find bootstrap/cache/ -type f -exec chmod 644 {} \;
-            php artisan app:install --license={$this->service->service_code}
-        ";
-    }
 }

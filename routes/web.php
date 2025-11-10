@@ -16,7 +16,8 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    dd(app(\App\Services\Forge::class)->getIpAddressServer());
+    // ID: 983394
+    dd(collect(app(\App\Services\Forge::class)->client->sites(983394))->where('name', 'batistack.ovh')->first()->id);
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');

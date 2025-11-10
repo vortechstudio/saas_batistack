@@ -47,7 +47,8 @@ class InitDomain implements ShouldQueue
 
         // DB : remplacer '-' par '_' et respecter la limite (MySQL ≤64)
         $dbLabel = substr(str_replace('-', '_', $domainLabel), 0, 61);
-        $database = 'db_' . $dbLabel;
+        $database_name = 'db_' . $dbLabel;
+        $database_password = Str::random(16);
 
         $this->service->update([
             'domain' => $domain,
@@ -62,13 +63,60 @@ class InitDomain implements ShouldQueue
             try {
                 // Forge & OVH Create Site
                 // OVH Déclare Domaine
-                $domain = app(Domain::class)->create('core', request()->ip());
+                app(Domain::class)->create('core', request()->ip());
+                $serverId = collect(app(\App\Services\Forge::class)->client->servers())->first()->id;
 
 
-                $this->service->steps()->where('step', 'Création de domaine')->first()?->update([
-                    'done' => true,
-                ]);
-                dispatch(new VerifyDomain($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+                // Création de la base de donnée
+                $database = app(\App\Services\Forge::class)->client->createDatabase(
+                    $serverId,
+                    [
+                        'name' => $database_name,
+                        'user' => $label,
+                        'password' => $database_password,
+                    ],
+                );
+
+                // Création du site sur service forge
+                $site = app(\App\Services\Forge::class)->client->createSite(
+                    $serverId,
+                    [
+                        'type' => 'laravel',
+                        'domain-mode' => 'on-forge',
+                        'name' => $domain,
+                        'web_directory' => '/public',
+                        'php_version' => '8.3',
+                        'zero_downtime_deployments' => true,
+                        'source_control_provider' => 'github',
+                        'repository' => 'BatistackApp/Core2',
+                        'branch' => 'production',
+                        'database_id' => $database['data']['id'],
+                        'database_user_id' => $label,
+                    ]
+                );
+
+                if(isset($site['data'])) {
+                    $this->service->steps()->where('step', 'Création de domaine')->first()?->update([
+                        'done' => true,
+                    ]);
+                    dispatch(new VerifyDomain($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
+                } else {
+                    $this->service->update([
+                        'status' => 'error',
+                    ]);
+                    $this->service->steps()->where('step', 'Création de domaine')->first()?->update([
+                        'done' => false,
+                        'comment' => "Erreur lors de la création du site/domaine",
+                    ]);
+                    Notification::make()
+                        ->danger()
+                        ->title("Installation d'un service en erreur !")
+                        ->body("Erreur lors de la création du site/domaine")
+                        ->sendToDatabase(User::where('email', 'admin@'.config('batistack.domain'))->first());
+                }
+
+
+
             } catch (\Exception $e) {
                 $this->service->update([
                     'status' => 'error',
