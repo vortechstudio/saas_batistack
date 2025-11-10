@@ -7,9 +7,8 @@ use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Catalogue;
 use App\Livewire\Client\Dashboard;
-use App\Models\Commerce\Order;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
+use Laravel\Forge\Forge;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
@@ -17,14 +16,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/test', function () {
-    $t = Http::withoutVerifying()
-            ->post('https://core.batistack.test/api/users', [
-                "name" => 'Test',
-                "email" => "test@example.com",
-                "role" => 'admin'
-            ]);
-
-            dd($t->body());
+    dd(app(\App\Services\Forge::class)->getIpAddressServer());
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');
