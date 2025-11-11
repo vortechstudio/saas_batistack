@@ -11,9 +11,7 @@ use App\Services\Forge;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', \App\Livewire\Frontend\Home::class)->name('home');
 
 Route::get('/test', function () {
     // ID: 983394 //Siteid: 2915773
