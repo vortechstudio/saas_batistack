@@ -34,7 +34,12 @@ class InitDomain implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Provisionne le domaine, la base de données et le site pour le service client.
+     *
+     * Génère un label de domaine et des identifiants de base de données, met à jour le champ `domain`
+     * du service puis :
+     * - en environnement local : marque l'étape "Création de domaine" comme terminée et planifie la vérification du domaine ;
+     * - en environnement non-local : tente de déclarer le domaine (OVH), créer une base de données et créer un site via Forge, marque l'étape comme terminée et planifie la vérification en cas de succès ; en cas d'échec met le service en statut `error`, met l'étape en non-terminée avec le commentaire d'erreur et envoie une notification d'alerte à l'administrateur.
      */
     public function handle(): void
     {

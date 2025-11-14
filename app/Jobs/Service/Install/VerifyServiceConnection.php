@@ -26,8 +26,13 @@ class VerifyServiceConnection implements ShouldQueue
     }
 
     /**
-     * Execute the job.
-     * @throws \Exception
+     * Vérifie la connectivité du service SAAS du client, met à jour l'état d'installation et déclenche les actions suivantes.
+     *
+     * En environnement local : marque l'étape de vérification comme réussie, planifie la vérification de licence et journalise le succès.
+     * En environnement non-local : effectue des vérifications HTTP et API du domaine du service, marque l'étape comme réussie, planifie la notification au client et journalise le succès.
+     * En cas d'erreur : marque l'étape comme échouée, met le service en statut `error`, envoie une notification d'alerte à l'administrateur, journalise l'erreur et relance l'exception.
+     *
+     * @throws \Exception Si la vérification HTTP ou API échoue ou si une autre erreur empêche la finalisation de la vérification.
      */
     public function handle(): void
     {
@@ -100,6 +105,12 @@ class VerifyServiceConnection implements ShouldQueue
         }
     }
 
+    /**
+     * Vérifie que la page de connexion du domaine répond avec le statut HTTP 200.
+     *
+     * @param string $domain Nom d'hôte du service (ex. "example.com", sans protocole ni chemin).
+     * @return bool `true` si une requête GET vers `https://{domain}/login` retourne le statut 200, `false` sinon.
+     */
     private function checkHttpResponse(string $domain): bool
     {
         $request = \Http::withoutVerifying()
@@ -112,6 +123,12 @@ class VerifyServiceConnection implements ShouldQueue
         }
     }
 
+    /**
+     * Vérifie que l'endpoint API '/api/status' du domaine répond avec un code HTTP 200.
+     *
+     * @param string $domain Nom de domaine du service (ex. "example.com").
+     * @return bool `true` si la requête retourne le code 200, `false` sinon.
+     */
     private function checkApiEndpoint(string $domain): bool
     {
         $request = \Http::withoutVerifying()

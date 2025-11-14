@@ -28,7 +28,12 @@ class InstallMainApps implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Ordonne l'installation des applications principales pour le service et met à jour le suivi d'installation selon le résultat.
+     *
+     * En environnement local, marque l'étape "Installation des applications principales" comme terminée et planifie la vérification d'installation.
+     * En environnement distant, initie le déploiement via Forge, attend la fin du déploiement, exécute la commande d'installation sur le site et :
+     * - en cas de succès : marque l'étape comme terminée et planifie la vérification d'installation ;
+     * - en cas d'échec ou d'exception : notifie l'administrateur, marque la vérification de la base de donnée comme non effectuée (avec commentaire) et place le service en état d'erreur.
      */
     public function handle(): void
     {
@@ -102,6 +107,14 @@ class InstallMainApps implements ShouldQueue
         }
     }
 
+    /**
+     * Récupère le statut d'un déploiement Forge pour un site donné.
+     *
+     * @param int $serverId Identifiant du serveur Forge.
+     * @param int $siteId Identifiant du site sur le serveur Forge.
+     * @param int $deployId Identifiant du déploiement à interroger.
+     * @return string Le statut du déploiement (par exemple `finished`, `failed`, ...).
+     */
     public function fetchDeployStatus(int $serverId, int $siteId, int $deployId)
     {
         $status = app(Forge::class)->client->deploymentHistoryDeployment($serverId, $siteId, $deployId);
