@@ -27,7 +27,14 @@ class VerifyDomain implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Exécute la vérification du domaine client et progresse (ou échoue) le processus d'installation.
+     *
+     * Si l'environnement est local, la vérification est considérée comme réussie et l'étape suivante
+     * (vérification de la base de données) est planifiée. En environnement non local, tente de
+     * vérifier l'existence du domaine OVH : si la vérification réussit, marque l'étape comme faite et
+     * planifie l'étape suivante ; si la vérification échoue ou qu'une exception survient, marque l'étape
+     * comme non réalisée avec un commentaire d'erreur, positionne le service en état `error` et envoie
+     * une notification de danger à l'administrateur.
      */
     public function handle(): void
     {

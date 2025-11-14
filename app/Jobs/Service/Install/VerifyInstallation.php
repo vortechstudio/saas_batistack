@@ -27,7 +27,14 @@ class VerifyInstallation implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Exécute la vérification de l'installation d'un service et met à jour les états associés.
+     *
+     * En cas de succès, met à jour l'étape "Vérification de l'installation" comme réalisée (avec, en production, le commentaire contenant la version Laravel),
+     * déclenche la vérification de connexion du service (job VerifyServiceConnection) et enregistre une entrée de log d'information.
+     * En cas d'erreur, marque l'étape comme non réalisée en enregistrant le message d'erreur, positionne le service en statut `error`, enregistre une entrée de log d'erreur,
+     * tente de notifier l'administrateur `admin@{domain}` et répercute l'exception.
+     *
+     * @throws \Exception Si la vérification échoue (l'exception d'origine est re-levée après traitement).
      */
     public function handle(): void
     {

@@ -29,7 +29,10 @@ class VerifyDatabase implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Vérifie l'existence de la base de données du client et met à jour l'état d'installation en conséquence.
+     *
+     * Marque l'étape "Vérification de la base de donnée" comme réussie et planifie l'installation des applications principales si la base existe. 
+     * En cas d'absence de la base ou d'erreur, notifie l'administrateur, marque l'étape comme non accomplie (avec commentaire) et positionne le service en statut `error`.
      */
     public function handle(): void
     {

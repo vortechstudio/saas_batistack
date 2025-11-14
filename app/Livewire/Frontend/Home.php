@@ -10,6 +10,11 @@ use Livewire\Component;
 #[Title('Accueil')]
 class Home extends Component
 {
+    /**
+     * Rend la vue du composant frontend pour la page d'accueil.
+     *
+     * @return \Illuminate\View\View L'instance de la vue correspondant à 'livewire.frontend.home'.
+     */
     public function render()
     {
         return view('livewire.frontend.home');
