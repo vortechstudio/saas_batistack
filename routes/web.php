@@ -8,25 +8,21 @@ use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Catalogue;
 use App\Livewire\Client\Dashboard;
 use App\Services\Forge;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::get('/', \App\Livewire\Frontend\Home::class)->name('home');
 
 Route::get('/test', function () {
-    // ID: 983394 //Siteid: 2915773
-    $command = app(Forge::class)->client->executeSiteCommand(983394, 2915773, [
-        'command' => 'php artisan about --version'
-    ]);
-    //dd(app(Forge::class)->client->getSiteCommand(983394, 2915773, $command->id)[0]->status);
+    $response = Http::withoutVerifying()
+        ->post('https://core.batistack.test/api/auth/sso-link', [
+            'email' => 'maximemockelyn8@gmail.com',
+            'source' => 'saas_dashboard',
+            'secret' => config('batistack.shared_secret')
+        ]);
 
-    $commandStatus = '';
-    while ($commandStatus != 'finished') {
-        sleep(1);
-        $commandStatus = app(Forge::class)->client->getSiteCommand(983394, 2915773, $command->id)[0]->status;
-    }
-    $outputCommand = app(Forge::class)->client->getSiteCommand(983394, 2915773, $command->id)[0]->output;
-    dd($outputCommand);
+    dd($response->object());
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');

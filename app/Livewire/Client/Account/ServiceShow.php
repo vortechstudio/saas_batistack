@@ -379,7 +379,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                     ->action(function ($record) {
                         try {
                             $response = Http::withoutVerifying()
-                                ->post('//'.$this->service->domain.'/api/auth/sso-link', [
+                                ->post('https://'.$this->service->domain.'/api/auth/sso-link', [
                                     'email' => $record['email'],
                                     'source' => 'saas_dashboard',
                                     'secret' => config('batistack.shared_secret')
@@ -390,6 +390,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                             }
                             throw new \Exception("L'instance n'a pas renvoyé de lien valide.");
                         }catch (\Exception $exception) {
+                            Log::error($exception->getMessage());
                             Notification::make()
                                 ->title("Connexion échouée")
                                 ->body("Impossible d'établir la connexion SSO avec l'instance.")
