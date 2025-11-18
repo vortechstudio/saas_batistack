@@ -9,6 +9,8 @@ use App\Models\Customer\CustomerService;
 use App\Models\Product\ProductPrice;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 
 class InitOption implements ShouldQueue
 {
@@ -99,6 +101,10 @@ class InitOption implements ShouldQueue
         ]);
     }
 
+    /**
+     * @throws ConnectionException
+     * @throws \Exception
+     */
     private function defineSettingsOptions($product, $service)
     {
         $settings = collect();
@@ -125,6 +131,17 @@ class InitOption implements ShouldQueue
                     'retention_day' => 365,
                     'saving_at_day' => 2
                 ]);
+
+                $request = Http::withoutVerifying()
+                    ->get($this->service->domain.'/api/core/backup');
+
+                if($request->status() === 200) {
+                    $this->service->backups()->create([
+                        'customer_id' => $this->service->customer_id,
+                    ]);
+                } else {
+                    throw new \Exception("Erreur lors de la récupération des sauvegardes.");
+                }
                 break;
 
             case 'extension-stockages':
@@ -132,7 +149,7 @@ class InitOption implements ShouldQueue
                     'validity' => $service->expirationDate,
                     'extension_day' => 30,
                     'storage_limit' => 25,
-                ]);                
+                ]);
                 break;
         }
 
