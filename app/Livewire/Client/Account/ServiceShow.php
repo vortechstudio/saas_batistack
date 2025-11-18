@@ -45,22 +45,34 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     // Gestion des onglets
     public string $activeTab = 'modules';
 
+    /**
+     * Initialise le composant avec les données du service spécifié et calcule l'état d'installation.
+     *
+     * Charge le CustomerService correspondant au code fourni (avec produit, étapes, modules et options)
+     * et initialise les propriétés stateInstallTotal, stateInstallCurrent et stateInstallLabel
+     * à partir des étapes d'installation associées.
+     *
+     * @param string $service_code Code unique du service à afficher.
+     */
     public function mount(string $service_code)
     {
         $this->service = CustomerService::with('product', 'steps', 'modules.feature', 'options.product')->where('service_code', $service_code)->first();
         $this->stateInstallTotal = $this->service->steps->count();
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
         $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
-        $this->getStorageInfo();
 
-        $users = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/users')
-            ->collect()
-            ->toArray();
 
-        $this->limitUser = count($users) >= $this->service->max_user;
     }
 
+    /**
+     * Met à jour les propriétés représentant l'état d'installation du service.
+     *
+     * Met à jour :
+     * - $stateInstallTotal : nombre total d'étapes d'installation du service,
+     * - $stateInstallCurrent : index de l'étape courante (nombre d'étapes complétées + 1),
+     * - $stateInstallLabel : libellé de la dernière étape incomplète ou `'Fin'` si aucune,
+     * - $comment : commentaire associé à la dernière étape incomplète ou `null`.
+     */
     public function refreshStateInstall()
     {
         $this->stateInstallTotal = $this->service->steps->count();
@@ -74,9 +86,24 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
         $this->comment = $this->service->steps()->where('done', false)->latest()->first()->comment ?? null;
     }
 
+    /**
+     * Définit l'onglet actif et met à jour les informations de stockage ainsi que l'indicateur de quota d'utilisateurs.
+     *
+     * Met à jour l'onglet courant utilisé par l'interface, recharge les informations de stockage du service et calcule si la création
+     * de nouveaux utilisateurs doit être limitée en fonction du nombre d'utilisateurs présents sur le service.
+     *
+     * @param string $tab Identifiant de l'onglet à activer (par exemple 'modules', 'storage').
+     */
     public function setActiveTab(string $tab)
     {
         $this->activeTab = $tab;
+        $this->getStorageInfo();
+        $users = Http::withoutVerifying()
+            ->get('//'.$this->service->domain.'/api/users')
+            ->collect()
+            ->toArray();
+
+        $this->limitUser = count($users) >= $this->service->max_user;
     }
 
     /**
