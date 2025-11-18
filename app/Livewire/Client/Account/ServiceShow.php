@@ -136,10 +136,20 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
 
     public function table(Table $table): Table
     {
-        $users = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/users')
-            ->collect()
-            ->toArray();
+        $users = [];
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(5)
+                ->get('//'.$this->service->domain.'/api/users');
+
+            if($response->successful()) {
+                $users = $response->collect()->toArray();
+            }
+        }catch (\Exception $exception) {
+
+        }
+
 
         return $table->records(fn () => $users)
             ->columns([
@@ -207,6 +217,11 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                             ->success()
                             ->send();
                     }),
+
+                Action::make('refresh')
+                    ->label('Actualiser')
+                    ->icon(Heroicon::ArrowPath)
+                    ->action(fn() => $this->resetTable()),
             ])
             ->recordActions([
                 ActionGroup::make([
@@ -355,7 +370,33 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                             }
                         }),
 
-                ])
+                ]),
+                Action::make('impersonate')
+                    ->tooltip('Se connecter')
+                    ->iconButton()
+                    ->icon(Heroicon::ArrowRightEndOnRectangle)
+                    ->visible(fn ($record) => !$record['blocked'])
+                    ->action(function ($record) {
+                        try {
+                            $response = Http::withoutVerifying()
+                                ->post('//'.$this->service->domain.'/api/auth/sso-link', [
+                                    'email' => $record['email'],
+                                    'source' => 'saas_dashboard',
+                                    'secret' => config('batistack.shared_secret')
+                                ]);
+
+                            if ($response->successful() && $url = $response->json('url')) {
+                                return redirect()->away($url);
+                            }
+                            throw new \Exception("L'instance n'a pas renvoyé de lien valide.");
+                        }catch (\Exception $exception) {
+                            Notification::make()
+                                ->title("Connexion échouée")
+                                ->body("Impossible d'établir la connexion SSO avec l'instance.")
+                                ->danger()
+                                ->send();
+                        }
+                    }),
             ]);
     }
 
