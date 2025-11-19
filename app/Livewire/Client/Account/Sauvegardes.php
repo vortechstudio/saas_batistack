@@ -5,6 +5,7 @@ namespace App\Livewire\Client\Account;
 use App\Models\Customer\Customer;
 use App\Models\Customer\CustomerService;
 use App\Models\Customer\CustomerServiceBackup;
+use App\Services\TenantApiService;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -91,7 +92,7 @@ class Sauvegardes extends Component implements HasActions, HasSchemas, HasTable
                     Action::make('restore')
                         ->label('Restaurer')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->action(function (CustomerServiceBackup $record) {
+                        ->action(function (CustomerServiceBackup $record, TenantApiService $api) {
                             $request = Http::withoutVerifying()
                                 ->get($record->customerService->domain.'/api/core/backup-restore', ['backup' => $record->created_at->format('Y-m-d-H-i-s')]);
 
