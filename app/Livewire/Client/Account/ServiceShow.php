@@ -4,6 +4,7 @@ namespace App\Livewire\Client\Account;
 
 use App\Mail\Service\CreateUser;
 use App\Models\Customer\CustomerService;
+use App\Services\TenantApiService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -121,15 +122,19 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     /**
      * Récupère les informations de stockage du service
      */
-    public function getStorageInfo()
+    public function getStorageInfo(TenantApiService $api)
     {
-        $response = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/core/storage/info');
+        try {
+            $response = $api->getStorageInfo();
 
-        if ($response->status() == 200) {
-            $this->infoStorage = $response->object();
-        } else {
+            if ($response->successful()) {
+                $this->infoStorage = $response->object();
+            } else {
+                $this->infoStorage = [];
+            }
+        } catch (\Exception $e) {
             $this->infoStorage = [];
+            Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
         }
 
     }
@@ -139,15 +144,13 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
         $users = [];
 
         try {
-            $response = Http::withoutVerifying()
-                ->timeout(5)
-                ->get('//'.$this->service->domain.'/api/users');
+            $response = app(TenantApiService::class)->for($this->service)->getUsers();
 
             if($response->successful()) {
                 $users = $response->collect()->toArray();
             }
         }catch (\Exception $exception) {
-
+            Log::alert($exception->getMessage());
         }
 
 
@@ -178,7 +181,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ])->required(),
                     ])
                     ->requiresConfirmation()
-                    ->action(function (array $data) use ($users) {
+                    ->action(function (array $data, TenantApiService $api) use ($users) {
                         // 1. On vérifie le nombre d'utilisateur sur l'espace et le nombre autorisé
                         // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
                         // 3. On envoie un mail de définition de mot de passe à l'utilisateur.
@@ -196,10 +199,12 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
 
                         // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
                         try{
-                            Http::withoutVerifying()
-                            ->post('https://'.$this->service->domain.'/api/users', $data);
+                            $api->createUser($data);
 
-                            Log::debug("Utilisateur créé avec succès");
+                            Notification::make()
+                                ->title("Utilisateur Créer")
+                                ->success()
+                                ->send();
                         } catch (\Exception $e) {
                             Log::error($e->getMessage());
                             Notification::make()
@@ -376,14 +381,9 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                     ->iconButton()
                     ->icon(Heroicon::ArrowRightEndOnRectangle)
                     ->visible(fn ($record) => !$record['blocked'])
-                    ->action(function ($record) {
+                    ->action(function ($record, TenantApiService $api) {
                         try {
-                            $response = Http::withoutVerifying()
-                                ->post('https://'.$this->service->domain.'/api/auth/sso-link', [
-                                    'email' => $record['email'],
-                                    'source' => 'saas_dashboard',
-                                    'secret' => config('batistack.shared_secret')
-                                ]);
+                            $response = $api->for($this->service)->getSsoLink($record['email']);
 
                             if ($response->successful() && $url = $response->json('url')) {
                                 return redirect()->away($url);
