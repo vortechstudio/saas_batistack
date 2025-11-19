@@ -24,7 +24,7 @@
     @endif
 
     <div class="flex justify-between gap-5 mt-10 mb-10">
-        <div class="w-1/2">
+        <div class="w-1/3">
             <x-mary-card class="bg-gray-100 p-5 shadow-md">
                 <x-slot:title class="text-blue-900 text-xl font-black">
                     Détails du service
@@ -66,7 +66,83 @@
             </x-mary-card>
         </div>
 
-        <div class="w-1/2">
+        <div class="w-1/3">
+            <div class="mb-8" wire:init="checkServiceHealth"> <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                            @svg('heroicon-o-heart', 'w-5 h-5 text-red-500')
+                            État de santé du service
+                        </h3>
+                        <x-mary-button
+                            icon="o-arrow-path"
+                            class="btn-ghost btn-sm"
+                            wire:click="checkServiceHealth"
+                            wire:loading.attr="disabled"
+                            spinner
+                        />
+                    </div>
+
+                    @if($healthData)
+                        @if(($healthData['status'] ?? '') === 'ok')
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div class="bg-green-50 rounded p-3 flex flex-col items-center justify-center border border-green-100">
+                                    <span class="text-green-600 font-bold text-xl">En ligne</span>
+                                    <span class="text-xs text-green-500">Application</span>
+                                </div>
+
+                                <div class="bg-blue-50 rounded p-3 flex flex-col items-center justify-center border border-blue-100">
+                                    <span class="font-bold text-blue-700">{{ $healthData['database']['latency'] }} ms</span>
+                                    <span class="text-xs text-blue-500">Latence BDD</span>
+                                </div>
+
+                                <div class="bg-gray-50 rounded p-3 border border-gray-100">
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span>Disque</span>
+                                        <span class="{{ $healthData['storage']['used_percent'] > 90 ? 'text-red-500 font-bold' : '' }}">
+                                {{ $healthData['storage']['used_percent'] }}% utilisé
+                            </span>
+                                    </div>
+                                    <progress
+                                        class="progress w-full {{ $healthData['storage']['used_percent'] > 90 ? 'progress-error' : 'progress-primary' }}"
+                                        value="{{ $healthData['storage']['used_percent'] }}"
+                                        max="100">
+                                    </progress>
+                                    <div class="text-right text-[10px] text-gray-400 mt-1">{{ $healthData['storage']['free_gb'] }} GB libres</div>
+                                </div>
+
+                                <div class="bg-gray-50 rounded p-3 flex flex-col justify-center text-xs text-gray-500 border border-gray-100">
+                                    <div class="flex justify-between"><span>Laravel:</span> <span>{{ $healthData['system']['laravel_version'] }}</span></div>
+                                    <div class="flex justify-between"><span>PHP:</span> <span>{{ $healthData['system']['php_version'] }}</span></div>
+                                    <div class="flex justify-between mt-1">
+                                        <span>Debug:</span>
+                                        <span class="{{ $healthData['system']['debug_mode'] ? 'text-warning' : 'text-success' }}">
+                                {{ $healthData['system']['debug_mode'] ? 'ON' : 'OFF' }}
+                            </span>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-error shadow-lg">
+                                @svg('heroicon-o-exclamation-triangle', 'w-6 h-6')
+                                <div>
+                                    <h3 class="font-bold">Attention !</h3>
+                                    <div class="text-xs">Le service semble rencontrer des problèmes ou est inaccessible.</div>
+                                    <div class="text-xs mt-1 opacity-80">{{ $healthData['message'] ?? 'Erreur inconnue' }}</div>
+                                </div>
+                            </div>
+                        @endif
+                    @elseif($healthCheckLoading)
+                        <div class="animate-pulse flex space-x-4">
+                            <div class="flex-1 space-y-4 py-1">
+                                <div class="h-10 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="w-1/3">
             <x-mary-card class="bg-gray-100 p-5 shadow-md">
                 <x-slot:title class="text-blue-900 text-2xl font-black">
                     Détails du produits
@@ -285,8 +361,8 @@
                         @if($limitUser)
                             <x-mary-alert title="Limite d'utilisateur" icon="o-user-group" class="alert-warning" description="Le service a atteint sa limite d'utilisateur. Veuillez contacter le support pour en savoir plus." />
                         @endif
-                        {{ $this->table }}      
-                        <x-filament-actions::modals />                 
+                        {{ $this->table }}
+                        <x-filament-actions::modals />
                     </div>
                 </div>
             @endif

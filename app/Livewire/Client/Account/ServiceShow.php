@@ -42,6 +42,8 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     public ?string $comment = null;
     public ?array $infoStorage = null;
     public bool $limitUser = false;
+    public ?array $healthData = null;
+    public bool $healthCheckLoading = false;
 
     // Gestion des onglets
     public string $activeTab = 'modules';
@@ -122,8 +124,9 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     /**
      * Récupère les informations de stockage du service
      */
-    public function getStorageInfo(TenantApiService $api)
+    public function getStorageInfo()
     {
+        $api = app(TenantApiService::class);
         try {
             $response = $api->getStorageInfo();
 
@@ -137,6 +140,25 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
             Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
         }
 
+    }
+
+    public function checkServiceHealth(TenantApiService $api)
+    {
+        $this->healthCheckLoading = true;
+
+        try {
+            $response = $api->for($this->service)->checkHealth();
+
+            if ($response->successful()) {
+                $this->healthData = $response->json();
+            } else {
+                $this->healthData = ['status' => 'error', 'message' => 'Erreur HTTP ' . $response->status()];
+            }
+        } catch (\Exception $e) {
+            $this->healthData = ['status' => 'down', 'message' => 'Service injoignable'];
+        }
+
+        $this->healthCheckLoading = false;
     }
 
     public function table(Table $table): Table
@@ -199,12 +221,22 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
 
                         // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
                         try{
-                            $api->createUser($data);
+                            $request = $api->for($this->service)->createUser($data);
 
-                            Notification::make()
-                                ->title("Utilisateur Créer")
-                                ->success()
-                                ->send();
+                            if ($request->successful()) {
+                                Notification::make()
+                                    ->title("Utilisateur Créer")
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->danger()
+                                    ->title("Erreur lors de la création de l'utilisateur")
+                                    ->body($request->json())
+                                    ->send();
+                            }
+
+
                         } catch (\Exception $e) {
                             Log::error($e->getMessage());
                             Notification::make()
@@ -214,13 +246,6 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                                 ->send();
                             return;
                         }
-
-                        // 4. On notifie l'utilisateur actuel que l'utilisateur a été créé.
-                        Notification::make()
-                            ->title("Création de l'utilisateur")
-                            ->body("L'utilisateur {$data['name']} a été créé.")
-                            ->success()
-                            ->send();
                     }),
 
                 Action::make('refresh')
