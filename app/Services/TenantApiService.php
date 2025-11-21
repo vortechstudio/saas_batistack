@@ -98,9 +98,16 @@ class TenantApiService
         ]);
     }
 
-    public function checkHealth(): \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response
+    public function checkHealth()
     {
-        return $this->client()->timeout(2)->get('/status');
+        // Timeout court (2s) car un check de santé doit être rapide
+        return $this->client()->timeout(2)->get('/core/health');
+    }
+
+    public function getActivityLog(int $page = 1)
+    {
+        return $this->client()
+            ->get('/core/activity-log', ['page' => $page]);
     }
 
 
