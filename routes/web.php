@@ -15,14 +15,7 @@ use Livewire\Volt\Volt;
 Route::get('/', \App\Livewire\Frontend\Home::class)->name('home');
 
 Route::get('/test', function () {
-    $response = Http::withoutVerifying()
-        ->post('https://core.batistack.test/api/auth/sso-link', [
-            'email' => 'maximemockelyn8@gmail.com',
-            'source' => 'saas_dashboard',
-            'secret' => config('batistack.shared_secret')
-        ]);
-
-    dd($response->object());
+    dd(app(\App\Services\TenantApiService::class)->for(\App\Models\Customer\CustomerService::first())->checkHealth()->json());
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');

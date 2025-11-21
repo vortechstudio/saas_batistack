@@ -95,21 +95,6 @@
                                     <span class="text-xs text-blue-500">Latence BDD</span>
                                 </div>
 
-                                <div class="bg-gray-50 rounded p-3 border border-gray-100">
-                                    <div class="flex justify-between text-xs mb-1">
-                                        <span>Disque</span>
-                                        <span class="{{ $healthData['storage']['used_percent'] > 90 ? 'text-red-500 font-bold' : '' }}">
-                                {{ $healthData['storage']['used_percent'] }}% utilisé
-                            </span>
-                                    </div>
-                                    <progress
-                                        class="progress w-full {{ $healthData['storage']['used_percent'] > 90 ? 'progress-error' : 'progress-primary' }}"
-                                        value="{{ $healthData['storage']['used_percent'] }}"
-                                        max="100">
-                                    </progress>
-                                    <div class="text-right text-[10px] text-gray-400 mt-1">{{ $healthData['storage']['free_gb'] }} GB libres</div>
-                                </div>
-
                                 <div class="bg-gray-50 rounded p-3 flex flex-col justify-center text-xs text-gray-500 border border-gray-100">
                                     <div class="flex justify-between"><span>Laravel:</span> <span>{{ $healthData['system']['laravel_version'] }}</span></div>
                                     <div class="flex justify-between"><span>PHP:</span> <span>{{ $healthData['system']['php_version'] }}</span></div>

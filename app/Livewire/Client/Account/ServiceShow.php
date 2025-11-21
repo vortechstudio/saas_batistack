@@ -428,7 +428,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
 
     public function render()
     {
-        //dd($this->service->product->info_stripe);
+        //dd($this->infoStorage);
         return view('livewire.client.account.service-show');
     }
 }
