@@ -104,5 +104,11 @@ class TenantApiService
         return $this->client()->timeout(2)->get('/core/health');
     }
 
+    public function getActivityLog(int $page = 1)
+    {
+        return $this->client()
+            ->get('/core/activity-log', ['page' => $page]);
+    }
+
 
 }
