@@ -101,12 +101,9 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     {
         $this->activeTab = $tab;
         $this->getStorageInfo();
-        $users = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/users')
-            ->collect()
-            ->toArray();
+        $users = app(TenantApiService::class)->for($this->service)->getUsers();
 
-        $this->limitUser = count($users) >= $this->service->max_user;
+        $this->limitUser = count($users->collect()->toArray()) >= $this->service->max_user;
     }
 
     /**
@@ -128,7 +125,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     {
         $api = app(TenantApiService::class);
         try {
-            $response = $api->getStorageInfo();
+            $response = $api->for($this->service)->getStorageInfo();
 
             if ($response->successful()) {
                 $this->infoStorage = $response->object();
@@ -173,6 +170,10 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
             }
         }catch (\Exception $exception) {
             Log::alert($exception->getMessage());
+            Notification::make()
+                ->danger()
+                ->title("Impossible de récupérer la liste des utilisateurs.")
+                ->send();
         }
 
 
@@ -232,7 +233,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                                 Notification::make()
                                     ->danger()
                                     ->title("Erreur lors de la création de l'utilisateur")
-                                    ->body($request->json())
+                                    ->body($request->json()['message'])
                                     ->send();
                             }
 

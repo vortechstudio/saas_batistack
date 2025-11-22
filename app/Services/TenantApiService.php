@@ -75,6 +75,7 @@ class TenantApiService
         return $this->client()->post('/auth/sso-link', [
             'email' => $email,
             'source' => 'saas_dashboard',
+            'secret' => config('batistack.shared_secret')
         ]);
     }
 
