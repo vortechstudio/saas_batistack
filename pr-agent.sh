@@ -5,6 +5,8 @@ PR_NUMBER="$1"                  # Numéro de la PR (en argument)
 OLLAMA_MODEL="llama3"           # Modèle Ollama à utiliser
 OLLAMA_URL="http://localhost:11434/api/generate"
 
+# Vérification des dépendances
+
 if [ -z "$PR_NUMBER" ]; then
     echo "❌ Utilisation : $0 <numero_pr>"
     exit 1
