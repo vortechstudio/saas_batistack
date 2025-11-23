@@ -3,13 +3,14 @@
 namespace App\Models\Helpdesk;
 
 use App\Models\User;
+use App\Trait\Searchable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Blog extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
     protected $guarded = [];
 
     public function author(): BelongsTo

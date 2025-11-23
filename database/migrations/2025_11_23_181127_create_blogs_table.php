@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('slug')->unique();
             $table->string('excerpt')->nullable(); // Résumé pour les cartes
             $table->longText('content');
+            $table->integer('reading_time')->nullable()->comment('Temps de lecture en minutes');
             $table->string('featured_image')->nullable();
             $table->boolean('is_featured')->default(false); // Pour mettre en avant sur la home
             $table->boolean('is_published')->default(false);
