@@ -17,6 +17,9 @@
                 </div>
             </div>
         </div>
+        @vite(['resources/js/app.js'])
         @fluxScripts
+        @livewireScripts
+        @filamentScripts
     </body>
 </html>

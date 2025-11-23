@@ -116,8 +116,9 @@
                 @livewire('notifications')
             </x-slot:content>
         </x-mary-main>
-
-        @filamentScripts
         @vite('resources/js/app.js')
+        @livewireScripts
+        @filamentScripts
+
     </body>
 </html>
