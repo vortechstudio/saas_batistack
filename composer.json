@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "blade-ui-kit/blade-heroicons": "*",
+        "creativeorange/gravatar": "^1.0",
         "filament/filament": "~4.0",
         "laravel/forge-sdk": "^3.23",
         "laravel/framework": "^12.0",
