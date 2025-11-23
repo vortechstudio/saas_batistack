@@ -40,3 +40,9 @@ Route::prefix('modules')->group(function () {
     Route::get('/', [ModuleController::class, 'list']);
     Route::get('/{module_slug}', [ModuleController::class, 'info']);
 });
+
+Route::get('/users', function () {
+    $users = \App\Models\User::all()->only('email', 'name');
+
+    return response()->json($users);
+});
