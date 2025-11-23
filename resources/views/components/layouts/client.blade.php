@@ -79,6 +79,12 @@
                         <x-mary-menu-item title="Mes moyens de paiements" link="{{ route('client.account.method-payment') }}" />
                         <x-mary-menu-item title="Mes commandes" link="{{ route('client.account.orders') }}" />
                         <x-mary-menu-item title="Mes Services & Contrats" link="{{ route('client.services') }}" />
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
+                            @csrf
+                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                                {{ __('Log Out') }}
+                            </flux:menu.item>
+                        </form>
                     </div>
                 </x-mary-dropdown>
             </x-slot:actions>
@@ -103,8 +109,8 @@
                     </x-mary-menu-sub>
                     <x-mary-menu-sub title="Assistance" icon="o-lifebuoy">
                         <x-mary-menu-item title="Contact" link="####" />
-                        <x-mary-menu-item title="Centre d'aide" link="####" />
-                        <x-mary-menu-item title="Mes Tickets" link="####" />
+                        <x-mary-menu-item title="Centre d'aide" link="{{ route('assistance.index') }}" />
+                        <x-mary-menu-item title="Mes Tickets" link="{{ route('client.support.tickets') }}" />
                     </x-mary-menu-sub>
                 </x-mary-menu>
                 <x-mary-button label="Souscrire" icon="o-shopping-bag" class="btn-outline btn-wide mt-10 mx-2" link="{{ route('client.account.cart.index') }}" />

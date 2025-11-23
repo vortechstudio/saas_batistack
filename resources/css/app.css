@@ -20,6 +20,13 @@
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+
+    /* Palette OVH */
+    --color-ovh-primary: #0050d8; /* Bleu électrique */
+    --color-ovh-dark: #000e9c;    /* Bleu nuit */
+    --color-ovh-deep: #010b40;    /* Fond sombre */
+    --color-ovh-light: #f5f9ff;   /* Fond clair */
+    --color-ovh-accent: #00d0d4;  /* Cyan */
 }
 
 @variant dark (&:where(.dark, .dark *));
