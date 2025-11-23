@@ -6,12 +6,6 @@ OLLAMA_MODEL="llama3"           # Modèle Ollama à utiliser
 OLLAMA_URL="http://localhost:11434/api/generate"
 
 # Vérification des dépendances
-for cmd in git curl jq gh; do
-    if ! command -v $cmd &> /dev/null; then
-        echo "❌ Commande manquante : $cmd"
-        exit 1
-    fi
-done
 
 if [ -z "$PR_NUMBER" ]; then
     echo "❌ Utilisation : $0 <numero_pr>"

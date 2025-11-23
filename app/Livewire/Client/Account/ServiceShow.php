@@ -4,6 +4,7 @@ namespace App\Livewire\Client\Account;
 
 use App\Mail\Service\CreateUser;
 use App\Models\Customer\CustomerService;
+use App\Services\TenantApiService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -41,26 +42,40 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     public ?string $comment = null;
     public ?array $infoStorage = null;
     public bool $limitUser = false;
+    public ?array $healthData = null;
+    public bool $healthCheckLoading = false;
 
     // Gestion des onglets
     public string $activeTab = 'modules';
 
+    /**
+     * Initialise le composant avec les données du service spécifié et calcule l'état d'installation.
+     *
+     * Charge le CustomerService correspondant au code fourni (avec produit, étapes, modules et options)
+     * et initialise les propriétés stateInstallTotal, stateInstallCurrent et stateInstallLabel
+     * à partir des étapes d'installation associées.
+     *
+     * @param string $service_code Code unique du service à afficher.
+     */
     public function mount(string $service_code)
     {
         $this->service = CustomerService::with('product', 'steps', 'modules.feature', 'options.product')->where('service_code', $service_code)->first();
         $this->stateInstallTotal = $this->service->steps->count();
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
         $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
-        $this->getStorageInfo();
 
-        $users = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/users')
-            ->collect()
-            ->toArray();
 
-        $this->limitUser = count($users) >= $this->service->max_user;
     }
 
+    /**
+     * Met à jour les propriétés représentant l'état d'installation du service.
+     *
+     * Met à jour :
+     * - $stateInstallTotal : nombre total d'étapes d'installation du service,
+     * - $stateInstallCurrent : index de l'étape courante (nombre d'étapes complétées + 1),
+     * - $stateInstallLabel : libellé de la dernière étape incomplète ou `'Fin'` si aucune,
+     * - $comment : commentaire associé à la dernière étape incomplète ou `null`.
+     */
     public function refreshStateInstall()
     {
         $this->stateInstallTotal = $this->service->steps->count();
@@ -74,9 +89,21 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
         $this->comment = $this->service->steps()->where('done', false)->latest()->first()->comment ?? null;
     }
 
+    /**
+     * Définit l'onglet actif et met à jour les informations de stockage ainsi que l'indicateur de quota d'utilisateurs.
+     *
+     * Met à jour l'onglet courant utilisé par l'interface, recharge les informations de stockage du service et calcule si la création
+     * de nouveaux utilisateurs doit être limitée en fonction du nombre d'utilisateurs présents sur le service.
+     *
+     * @param string $tab Identifiant de l'onglet à activer (par exemple 'modules', 'storage').
+     */
     public function setActiveTab(string $tab)
     {
         $this->activeTab = $tab;
+        $this->getStorageInfo();
+        $users = app(TenantApiService::class)->for($this->service)->getUsers();
+
+        $this->limitUser = count($users->collect()->toArray()) >= $this->service->max_user;
     }
 
     /**
@@ -96,23 +123,59 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
      */
     public function getStorageInfo()
     {
-        $response = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/core/storage/info');
+        $api = app(TenantApiService::class);
+        try {
+            $response = $api->for($this->service)->getStorageInfo();
 
-        if ($response->status() == 200) {
-            $this->infoStorage = $response->object();
-        } else {
+            if ($response->successful()) {
+                $this->infoStorage = $response->object();
+            } else {
+                $this->infoStorage = [];
+            }
+        } catch (\Exception $e) {
             $this->infoStorage = [];
+            Log::emergency("File:" . $e->getFile(). "Line:" . $e->getLine(). "Message:" . $e->getMessage());
         }
 
     }
 
+    public function checkServiceHealth(TenantApiService $api)
+    {
+        $this->healthCheckLoading = true;
+
+        try {
+            $response = $api->for($this->service)->checkHealth();
+
+            if ($response->successful()) {
+                $this->healthData = $response->json();
+            } else {
+                $this->healthData = ['status' => 'error', 'message' => 'Erreur HTTP ' . $response->status()];
+            }
+        } catch (\Exception $e) {
+            $this->healthData = ['status' => 'down', 'message' => 'Service injoignable'];
+        }
+
+        $this->healthCheckLoading = false;
+    }
+
     public function table(Table $table): Table
     {
-        $users = Http::withoutVerifying()
-            ->get('//'.$this->service->domain.'/api/users')
-            ->collect()
-            ->toArray();
+        $users = [];
+
+        try {
+            $response = app(TenantApiService::class)->for($this->service)->getUsers();
+
+            if($response->successful()) {
+                $users = $response->collect()->toArray();
+            }
+        }catch (\Exception $exception) {
+            Log::alert($exception->getMessage());
+            Notification::make()
+                ->danger()
+                ->title("Impossible de récupérer la liste des utilisateurs.")
+                ->send();
+        }
+
 
         return $table->records(fn () => $users)
             ->columns([
@@ -141,7 +204,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                         ])->required(),
                     ])
                     ->requiresConfirmation()
-                    ->action(function (array $data) use ($users) {
+                    ->action(function (array $data, TenantApiService $api) use ($users) {
                         // 1. On vérifie le nombre d'utilisateur sur l'espace et le nombre autorisé
                         // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
                         // 3. On envoie un mail de définition de mot de passe à l'utilisateur.
@@ -159,10 +222,22 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
 
                         // 2. On envoie les données du nouvelle utilisateur sur l'espace du client
                         try{
-                            Http::withoutVerifying()
-                            ->post('https://'.$this->service->domain.'/api/users', $data);
+                            $request = $api->for($this->service)->createUser($data);
 
-                            Log::debug("Utilisateur créé avec succès");
+                            if ($request->successful()) {
+                                Notification::make()
+                                    ->title("Utilisateur Créer")
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->danger()
+                                    ->title("Erreur lors de la création de l'utilisateur")
+                                    ->body($request->json()['message'])
+                                    ->send();
+                            }
+
+
                         } catch (\Exception $e) {
                             Log::error($e->getMessage());
                             Notification::make()
@@ -172,14 +247,12 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                                 ->send();
                             return;
                         }
-
-                        // 4. On notifie l'utilisateur actuel que l'utilisateur a été créé.
-                        Notification::make()
-                            ->title("Création de l'utilisateur")
-                            ->body("L'utilisateur {$data['name']} a été créé.")
-                            ->success()
-                            ->send();
                     }),
+
+                Action::make('refresh')
+                    ->label('Actualiser')
+                    ->icon(Heroicon::ArrowPath)
+                    ->action(fn() => $this->resetTable()),
             ])
             ->recordActions([
                 ActionGroup::make([
@@ -328,13 +401,35 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
                             }
                         }),
 
-                ])
+                ]),
+                Action::make('impersonate')
+                    ->tooltip('Se connecter')
+                    ->iconButton()
+                    ->icon(Heroicon::ArrowRightEndOnRectangle)
+                    ->visible(fn ($record) => !$record['blocked'])
+                    ->action(function ($record, TenantApiService $api) {
+                        try {
+                            $response = $api->for($this->service)->getSsoLink($record['email']);
+
+                            if ($response->successful() && $url = $response->json('url')) {
+                                return redirect()->away($url);
+                            }
+                            throw new \Exception("L'instance n'a pas renvoyé de lien valide.");
+                        }catch (\Exception $exception) {
+                            Log::error($exception->getMessage());
+                            Notification::make()
+                                ->title("Connexion échouée")
+                                ->body("Impossible d'établir la connexion SSO avec l'instance.")
+                                ->danger()
+                                ->send();
+                        }
+                    }),
             ]);
     }
 
     public function render()
     {
-        //dd($this->service->product->info_stripe);
+        //dd($this->infoStorage);
         return view('livewire.client.account.service-show');
     }
 }

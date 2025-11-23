@@ -5,6 +5,7 @@ namespace App\Jobs\Service\Install;
 use App\Models\Customer\CustomerService;
 use App\Models\User;
 use App\Services\AaPanel\FetchService;
+use App\Services\Ovh\Domain;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -26,7 +27,14 @@ class VerifyDomain implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Exécute la vérification du domaine client et progresse (ou échoue) le processus d'installation.
+     *
+     * Si l'environnement est local, la vérification est considérée comme réussie et l'étape suivante
+     * (vérification de la base de données) est planifiée. En environnement non local, tente de
+     * vérifier l'existence du domaine OVH : si la vérification réussit, marque l'étape comme faite et
+     * planifie l'étape suivante ; si la vérification échoue ou qu'une exception survient, marque l'étape
+     * comme non réalisée avec un commentaire d'erreur, positionne le service en état `error` et envoie
+     * une notification de danger à l'administrateur.
      */
     public function handle(): void
     {
@@ -39,17 +47,9 @@ class VerifyDomain implements ShouldQueue
             dispatch(new VerifyDatabase($this->service))->onQueue('installApp')->delay(now()->addSeconds(10));
         } else {
             try {
-                $sites = $this->fetch->sites(20, 1, $domain);
-                $rows = $sites['message']['data'] ?? [];
-                $exists = false;
+                $ovh = app(Domain::class)->verify(Str::slug($this->service->customer->entreprise));
 
-                if (is_array($rows)) {
-                    foreach ($rows as $row) {
-                        if (($row['name'] ?? null) === $domain) { $exists = true; break; }
-                    }
-                }
-
-                if($exists) {
+                if ($ovh) {
                     $this->service->steps()->where('step', 'Vérification du domaine')->first()?->update([
                         'done' => true,
                     ]);

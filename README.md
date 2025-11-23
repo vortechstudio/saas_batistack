@@ -1,4 +1,5 @@
 # Batistack ERP
+[![Laravel Forge Site Deployment Status](https://img.shields.io/endpoint?url=https%3A%2F%2Fforge.laravel.com%2Fsite-badges%2F14a65b2c-2f06-4d2e-9ba8-9f628a682859&style=plastic)](https://forge.laravel.com/maxime-mockelyn/icy-frost-juz/2915773)
 
 Batistack est un logiciel ERP SaaS développé par Vortechstudio, conçu pour la gestion commerciale et technique des entreprises du bâtiment. Il propose une interface moderne inspirée des sites EBP et OVH, et s'appuie sur Laravel, Livewire, FilamentPHP 4 et TailwindCSS.
 

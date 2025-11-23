@@ -7,24 +7,15 @@ use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Catalogue;
 use App\Livewire\Client\Dashboard;
-use App\Models\Commerce\Order;
+use App\Services\Forge;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', \App\Livewire\Frontend\Home::class)->name('home');
 
 Route::get('/test', function () {
-    $t = Http::withoutVerifying()
-            ->post('https://core.batistack.test/api/users', [
-                "name" => 'Test',
-                "email" => "test@example.com",
-                "role" => 'admin'
-            ]);
-
-            dd($t->body());
+    dd(app(\App\Services\TenantApiService::class)->for(\App\Models\Customer\CustomerService::first())->checkHealth()->json());
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');
