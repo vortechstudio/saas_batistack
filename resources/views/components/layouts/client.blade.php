@@ -79,6 +79,12 @@
                         <x-mary-menu-item title="Mes moyens de paiements" link="{{ route('client.account.method-payment') }}" />
                         <x-mary-menu-item title="Mes commandes" link="{{ route('client.account.orders') }}" />
                         <x-mary-menu-item title="Mes Services & Contrats" link="{{ route('client.services') }}" />
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
+                            @csrf
+                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                                {{ __('Log Out') }}
+                            </flux:menu.item>
+                        </form>
                     </div>
                 </x-mary-dropdown>
             </x-slot:actions>

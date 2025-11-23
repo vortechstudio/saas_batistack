@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::get('/', \App\Livewire\Frontend\Home::class)->name('home');
+Route::get('/solutions/{slug}', \App\Livewire\Frontend\FeatureShow::class)->name('feature.show');
+Route::get('/tarifs', \App\Livewire\Frontend\Tarifs::class)->name('tarifs');
+Route::get('/company', \App\Livewire\Frontend\Company::class)->name('company');
+Route::get('/ressources', \App\Livewire\Frontend\Ressource::class)->name('ressources');
 
 Route::get('/test', function () {
     dd(app(\App\Services\TenantApiService::class)->for(\App\Models\Customer\CustomerService::first())->checkHealth()->json());
