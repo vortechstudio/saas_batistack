@@ -28,7 +28,7 @@
             <a href="#" class="hover:text-ovh-accent transition">Partenaires</a>
         </div>
         <div class="flex space-x-6">
-            <a href="#" class="hover:text-ovh-accent transition">Assistance</a>
+            <a href="{{ route('assistance.index') }}" class="hover:text-ovh-accent transition">Assistance</a>
             <a href="#" class="hover:text-ovh-accent transition">Contact</a>
         </div>
     </div>

@@ -109,8 +109,8 @@
                     </x-mary-menu-sub>
                     <x-mary-menu-sub title="Assistance" icon="o-lifebuoy">
                         <x-mary-menu-item title="Contact" link="####" />
-                        <x-mary-menu-item title="Centre d'aide" link="####" />
-                        <x-mary-menu-item title="Mes Tickets" link="####" />
+                        <x-mary-menu-item title="Centre d'aide" link="{{ route('assistance.index') }}" />
+                        <x-mary-menu-item title="Mes Tickets" link="{{ route('client.support.tickets') }}" />
                     </x-mary-menu-sub>
                 </x-mary-menu>
                 <x-mary-button label="Souscrire" icon="o-shopping-bag" class="btn-outline btn-wide mt-10 mx-2" link="{{ route('client.account.cart.index') }}" />

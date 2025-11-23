@@ -27,6 +27,6 @@ class TicketMessageObserver
 
         $ticket->save();
 
-        dispatch(new SenTicketMessageJob($ticketMessage));
+        dispatch(new SenTicketMessageJob($ticketMessage))->delay(now()->addSeconds(10));
     }
 }

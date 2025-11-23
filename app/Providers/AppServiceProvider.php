@@ -4,9 +4,12 @@ namespace App\Providers;
 
 use App\Models\Helpdesk\Blog;
 use App\Models\Helpdesk\KbArticle;
+use App\Models\Helpdesk\Ticket;
 use App\Models\Helpdesk\TicketMessage;
 use App\Observers\Helpdesk\SlugObserver;
 use App\Observers\Helpdesk\TicketMessageObserver;
+use App\Observers\Helpdesk\TicketObserver;
+use Filament\Support\Facades\FilamentColor;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +27,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Filament Processor
+        FilamentColor::register([
+            'primary' => "#0050d8",
+            'secondary' => '#010b40'
+        ]);
+
+        // Observer
+        Ticket::observe(TicketObserver::class);
         TicketMessage::observe(TicketMessageObserver::class);
         Blog::observe(SlugObserver::class);
         KbArticle::observe(SlugObserver::class);

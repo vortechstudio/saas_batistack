@@ -18,6 +18,19 @@ Route::get('/tarifs', \App\Livewire\Frontend\Tarifs::class)->name('tarifs');
 Route::get('/company', \App\Livewire\Frontend\Company::class)->name('company');
 Route::get('/ressources', \App\Livewire\Frontend\Ressource::class)->name('ressources');
 
+Route::prefix('assistance')->group(function () {
+    Route::get('/', \App\Livewire\Frontend\Assistance\Index::class)->name('assistance.index');
+    Route::prefix('kb')->group(function () {
+        Route::get('/')->name('kb.index');
+        Route::get('/{slug}')->name('kb.show');
+    });
+
+    Route::prefix('blog')->group(function () {
+        Route::get('/')->name('blog.index');
+        Route::get('/{slug}')->name('blog.show');
+    });
+});
+
 Route::get('/test', function () {
     dd(app(\App\Services\TenantApiService::class)->for(\App\Models\Customer\CustomerService::first())->checkHealth()->json());
 });
@@ -50,6 +63,13 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('backup')->group(function() {
         Route::get('/', Sauvegardes::class)->name('client.service.backup.index');
+    });
+
+    Route::prefix('support')->group(function() {
+        Route::prefix('tickets')->group(function() {
+            Route::get('/', \App\Livewire\Client\Support\ListTicket::class)->name('client.support.tickets');
+            Route::get('/{ticket}', \App\Livewire\Client\Support\ShowTicket::class)->name('client.support.ticket.show');
+        });
     });
 });
 

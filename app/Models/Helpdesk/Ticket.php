@@ -2,14 +2,18 @@
 
 namespace App\Models\Helpdesk;
 
+use App\Enum\Helpdesk\TicketCategoryEnum;
 use App\Enum\Helpdesk\TicketPriorityEnum;
 use App\Enum\Helpdesk\TicketStatusEnum;
 use App\Models\User;
+use App\Observers\Helpdesk\TicketObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([TicketObserver::class])]
 class Ticket extends Model
 {
     use HasFactory;
@@ -38,6 +42,7 @@ class Ticket extends Model
             'closed_at' => 'datetime',
             'status' => TicketStatusEnum::class,
             'priority' => TicketPriorityEnum::class,
+            'category' => TicketCategoryEnum::class,
         ];
     }
 }
