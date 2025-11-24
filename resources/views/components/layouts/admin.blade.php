@@ -84,6 +84,19 @@
                         <x-mary-menu-item title="Commandes" icon="o-document" link="#" />
                         <x-mary-menu-item title="Factures" icon="o-document-currency-euro" link="#" />
                     </x-mary-menu-sub>
+                    <x-mary-menu-sub title="Gestion des Services" icon="o-document">
+                        <x-mary-menu-item title="Services" icon="o-user" link="#" />
+                        <x-mary-menu-item title="Domaines" icon="o-user" link="#" />
+                    </x-mary-menu-sub>
+                    <x-mary-menu-sub title="Assistances & Support" icon="o-document">
+                        <x-mary-menu-item title="Blog" icon="o-user" link="#" />
+                        <x-mary-menu-sub title="Base de connaissance" icon="o-document">
+                            <x-mary-menu-item title="Catégories" icon="o-user" link="#" />
+                            <x-mary-menu-item title="Articles" icon="o-user" link="#" />
+                        </x-mary-menu-sub>
+                        <x-mary-menu-item title="Status des Systèmes" icon="o-user" link="#" />
+                        <x-mary-menu-item title="Tickets" icon="o-user" link="#" />
+                    </x-mary-menu-sub>
                 </x-mary-menu>
             </x-slot:sidebar>
 
