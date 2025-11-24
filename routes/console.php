@@ -57,6 +57,9 @@ Schedule::call(function () {
     ->daily()
     ->description("Fermeture des tickets automatiquement après 10 jours d'inactivité");
 
+Schedule::command('status:monitor')
+    ->everyMinute()
+    ->description("Vérifie la disponibilité des services critiques");
 
 
 
