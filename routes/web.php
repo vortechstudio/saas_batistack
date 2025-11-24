@@ -73,6 +73,8 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
     });
 });
 
+require __DIR__.'/admin.php';
+
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
