@@ -58,7 +58,7 @@
             </a>
 
             <!-- Card Status -->
-            <a href="#" class="bg-white p-6 rounded-xl shadow-lg border border-slate-100 hover:-translate-y-1 transition duration-300 group">
+            <a href="{{ route('status') }}" class="bg-white p-6 rounded-xl shadow-lg border border-slate-100 hover:-translate-y-1 transition duration-300 group">
                 <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center mb-4 text-green-600 group-hover:bg-green-600 group-hover:text-white transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>

@@ -3,12 +3,15 @@
 namespace App\Models\Helpdesk;
 
 use App\Enum\Helpdesk\IncidentStatusEnum;
+use App\Observers\Helpdesk\IncidentObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Str;
 
+#[ObservedBy([IncidentObserver::class])]
 class Incident extends Model
 {
     use HasFactory;
