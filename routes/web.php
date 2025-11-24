@@ -17,6 +17,7 @@ Route::get('/solutions/{slug}', \App\Livewire\Frontend\FeatureShow::class)->name
 Route::get('/tarifs', \App\Livewire\Frontend\Tarifs::class)->name('tarifs');
 Route::get('/company', \App\Livewire\Frontend\Company::class)->name('company');
 Route::get('/ressources', \App\Livewire\Frontend\Ressource::class)->name('ressources');
+Route::get('/ressources/status', \App\Livewire\Frontend\Status::class)->name('status');
 
 Route::prefix('assistance')->group(function () {
     Route::get('/', \App\Livewire\Frontend\Assistance\Index::class)->name('assistance.index');
@@ -72,6 +73,8 @@ Route::prefix('client')->middleware(['auth', 'verified'])->group(function () {
         });
     });
 });
+
+require __DIR__.'/admin.php';
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
