@@ -35,6 +35,59 @@ class Status extends Component
         // Flash message (à gérer dans la vue)
         session()->flash('status_success', 'Vous êtes bien abonné aux alertes.');
     }
+
+    /**
+     * Génère l'historique des 60 derniers jours (Barres vertes/rouges)
+     * Optimisation: On le fait une fois pour tous les incidents, pas par composant pour éviter les N+1
+     */
+    public function getUptimeHistoryProperty()
+    {
+        $days = 60;
+        $history = [];
+        $startDate = now()->subDays($days - 1)->startOfDay();
+
+        // Récupérer tous les incidents des 60 derniers jours qui ne sont PAS des maintenances
+        $incidents = Incident::where('occurred_at', '>=', $startDate)
+            ->where('impact', '!=', 'maintenance') // On exclut les maintenances des "pannes"
+            ->get()
+            ->groupBy(function($item) {
+                return $item->occurred_at->format('Y-m-d');
+            });
+
+        for ($i = 0; $i < $days; $i++) {
+            $date = $startDate->copy()->addDays($i);
+            $dateString = $date->format('Y-m-d');
+
+            $dayIncidents = $incidents->get($dateString);
+
+            if ($dayIncidents) {
+                // S'il y a eu un incident ce jour-là
+                $worstImpact = 'minor';
+                foreach($dayIncidents as $inc) {
+                    if ($inc->impact === 'critical') $worstImpact = 'critical';
+                    elseif ($inc->impact === 'major' && $worstImpact !== 'critical') $worstImpact = 'major';
+                }
+
+                $history[] = [
+                    'date' => $date,
+                    'status' => 'incident',
+                    'impact' => $worstImpact,
+                    'tooltip' => $date->translatedFormat('d M') . ' - Incident signalée'
+                ];
+            } else {
+                // Tout va bien
+                $history[] = [
+                    'date' => $date,
+                    'status' => 'operational',
+                    'impact' => 'none',
+                    'tooltip' => $date->translatedFormat('d M') . ' - Aucun incident'
+                ];
+            }
+        }
+
+        return $history;
+    }
+
     public function getGlobalStatusProperty()
     {
         // Si un composant est en panne majeure -> Panne Majeure
@@ -88,6 +141,7 @@ class Status extends Component
                 ->orderByDesc('resolved_at')
                 ->take(5)
                 ->get(),
+            'uptimeHistory' => $this->uptimeHistory, // On passe l'historique à la vue
         ]);
     }
 }
