@@ -27,7 +27,15 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Bootstrap any application services.
+     * Effectue la configuration de démarrage : enregistre le thème Filament et attache les observers aux modèles.
+     *
+     * Enregistre le schéma de couleurs Filament (primary = "#0050d8", secondary = "#010b40") et attache les observers suivants :
+     * - App\Models\Customer\Customer  => App\Observers\Customer\CustomerObserver
+     * - App\Models\Ticket\Ticket      => App\Observers\Ticket\TicketObserver
+     * - App\Models\TicketMessage      => App\Observers\Ticket\TicketMessageObserver
+     * - App\Models\Blog\Blog          => App\Observers\SlugObserver
+     * - App\Models\KbArticle\KbArticle=> App\Observers\SlugObserver
+     * - App\Models\Incident\Incident  => App\Observers\Incident\IncidentObserver
      */
     public function boot(): void
     {

@@ -61,12 +61,21 @@ class Customer extends Model
         return $this->hasMany(CustomerServiceBackup::class);
     }
 
-    /** Attributes */
+    /**
+     * Retourne la valeur actuelle de l'attribut de type de support du client.
+     *
+     * @return \App\Enums\CustomerSupportTypeEnum|null L'enum représentant le type de support, ou `null` si non défini.
+     */
     protected function getSupportTypeColorAttributes()
     {
         return $this->support_type;
     }
 
+    /**
+     * Récupère la liste des moyens de paiement associés à ce client.
+     *
+     * @return array La liste des moyens de paiement du client, chaque élément représentant un moyen de paiement (structure dépendante du fournisseur).
+     */
     public function listPaymentMethods()
     {
         return app(StripeCustomerService::class)->listPaymentMethods($this);

@@ -13,7 +13,11 @@ use Illuminate\Support\Facades\Artisan;
 class CustomerSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Remplit la base de données avec des utilisateurs et leurs clients associés, puis synchronise chaque client avec Stripe.
+     *
+     * La méthode purge les données Stripe existantes, crée dix utilisateurs, génère pour chacun un enregistrement Customer contenant
+     * des valeurs factices (type de compte, code client, entreprise, adresse, code postal, ville, pays, téléphone) et synchronise
+     * chaque client avec Stripe via le service CustomerService.
      */
     public function run(): void
     {
