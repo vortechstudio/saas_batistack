@@ -29,7 +29,7 @@ class CustomerSeeder extends Seeder
                 'adresse' => fake()->address(),
                 'code_postal' => fake()->postcode(),
                 'ville' => fake()->city(),
-                'pays' => fake()->country(),
+                'pays' => fake()->countryCode(),
                 'tel' => fake()->phoneNumber(),
                 'portable' => fake()->phoneNumber(),
             ]);
