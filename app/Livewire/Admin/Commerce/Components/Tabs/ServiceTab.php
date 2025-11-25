@@ -35,6 +35,16 @@ class ServiceTab extends Component implements HasSchemas, HasActions, HasTable
         $this->customer = $customer;
     }
 
+    /**
+     * Construit et retourne la configuration de la table affichant les services associés au client.
+     *
+     * Configure la requête filtrée par client, les colonnes (code de service, produit, statut avec badge et
+     * prochaine date de facturation), les filtres par statut, les actions de la barre d'outils (suspendre / activer)
+     * et les actions par enregistrement (voir le service).
+     *
+     * @param Table $table Instance de table Filament à configurer.
+     * @return Table La table Filament configurée pour l'affichage et la gestion des services du client.
+     */
     public function table(Table $table): Table
     {
         return $table
@@ -82,6 +92,11 @@ class ServiceTab extends Component implements HasSchemas, HasActions, HasTable
             ]);
     }
 
+    /**
+     * Rend la vue du volet "Services" utilisée dans l'onglet d'administration du commerce.
+     *
+     * @return \Illuminate\View\View La vue Blade pour le composant ServiceTab.
+     */
     public function render()
     {
         return view('livewire.admin.commerce.components.tabs.service-tab');

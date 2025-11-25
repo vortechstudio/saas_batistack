@@ -10,6 +10,13 @@ use OutOfBoundsException;
 
 class CustomerService extends StripeService
 {
+    / **
+     * Crée un client Stripe pour le modèle Customer local si aucun identifiant Stripe n'existe, puis stocke l'identifiant retourné sur le modèle.
+     *
+     * Met à jour silencieusement l'attribut `stripe_customer_id` du client local en cas de succès. En cas d'erreur, enregistre un log d'erreur et signale l'exception.
+     *
+     * @param Customer $customer Le client local utilisé pour créer le client Stripe.
+     * /
     public function create(Customer $customer): void
     {
         if ($customer->stripe_customer_id) {
@@ -87,6 +94,13 @@ class CustomerService extends StripeService
         }
     }
 
+    /**
+     * Lance le paiement d'une facture Stripe identifiée par son identifiant.
+     *
+     * @param string $invoiceId Identifiant de la facture Stripe à payer.
+     * @return mixed Données de la facture mises à jour par Stripe après tentative de paiement.
+     * @throws \Throwable Si une erreur survient lors de l'appel au client Stripe.
+     */
     public function payInvoice(string $invoiceId)
     {
         try {
@@ -98,7 +112,13 @@ class CustomerService extends StripeService
     }
 
     /**
-     * Tente de résoudre un code pays valide (ex: 'FR') à partir d'une chaine.
+     * Résout un code pays ISO alpha-2 à partir d'une chaîne d'entrée.
+     *
+     * Renvoie le code ISO alpha-2 correspondant au nom de pays ou au code fourni.
+     * Si l'entrée est vide ou ne peut pas être résolue, renvoie 'FR' en tant que valeur de repli.
+     *
+     * @param string|null $inputCountry Nom du pays ou code ISO (nullable).
+     * @return string Code ISO alpha-2 (par ex. 'FR').
      */
     private function resolveIsoCountryCode(?string $inputCountry): string
     {
