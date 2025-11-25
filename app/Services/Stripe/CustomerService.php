@@ -10,13 +10,6 @@ use OutOfBoundsException;
 
 class CustomerService extends StripeService
 {
-    / **
-     * Crée un client Stripe pour le modèle Customer local si aucun identifiant Stripe n'existe, puis stocke l'identifiant retourné sur le modèle.
-     *
-     * Met à jour silencieusement l'attribut `stripe_customer_id` du client local en cas de succès. En cas d'erreur, enregistre un log d'erreur et signale l'exception.
-     *
-     * @param Customer $customer Le client local utilisé pour créer le client Stripe.
-     * /
     public function create(Customer $customer): void
     {
         if ($customer->stripe_customer_id) {

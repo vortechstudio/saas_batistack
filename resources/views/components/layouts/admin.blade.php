@@ -77,10 +77,10 @@
 
                 {{-- Activates the menu item when a route matches the `link` property --}}
                 <x-mary-menu activate-by-route active-bg-color="bg-blue-900 text-white font-black">
-                    <x-mary-menu-item title="Tableau de Bord" icon="o-home" link="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')" />
+                    <x-mary-menu-item title="Tableau de Bord" icon="o-home" link="{{ route('admin.dashboard') }}" />
                     <x-mary-menu-sub title="Commercial" icon="o-document" icon-classes="text-warning">
                         <x-mary-menu-item title="Clients" icon="o-user" link="{{ route('admin.commerce.customers') }}" />
-                        <x-mary-menu-item title="Produits" icon="o-archive-box" link="#" />
+                        <x-mary-menu-item title="Produits" icon="o-archive-box" link="{{ route('admin.commerce.products') }}" />
                         <x-mary-menu-item title="Commandes" icon="o-document" link="#" />
                         <x-mary-menu-item title="Factures" icon="o-document-currency-euro" link="#" />
                     </x-mary-menu-sub>
