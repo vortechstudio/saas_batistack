@@ -8,9 +8,14 @@ use App\Models\User;
 use App\Notifications\Customer\WelcomeCustomerNotification;
 use App\Services\Stripe\CustomerService;
 use App\Trait\Commerce\TiersSchema;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Support\Enums\Width;
@@ -21,6 +26,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -91,32 +97,97 @@ class ListCustomer extends Component implements HasTable, HasActions, HasSchemas
                     ->using(function (array $data) {
                         $password = \Str::random(10);
 
-                        $user = User::create([
-                            'nom' => $data['nom'],
-                            'prenom' => $data['prenom'],
-                            'email' => $data['email'],
-                            'password' => \Hash::make($password),
-                        ]);
+                        try {
+                            $user = User::create([
+                                'nom' => $data['nom'],
+                                'prenom' => $data['prenom'],
+                                'email' => $data['email'],
+                                'password' => \Hash::make($password),
+                            ]);
 
-                        $customer = Customer::create([
-                            'type_compte' => $data['type_compte'],
-                            'entreprise' => $data['entreprise'] ?? null,
-                            'adresse' => $data['adresse'],
-                            'code_postal' => $data['code_postal'],
-                            'ville' => $data['ville'],
-                            'pays' => $data['pays'],
-                            'tel' => $data['tel'],
-                            'portable' => $data['portable'],
-                            'support_type' => $data['support_type'],
-                            'user_id' => $user->id
-                        ]);
+                            $customer = Customer::create([
+                                'type_compte' => $data['type_compte'],
+                                'entreprise' => $data['entreprise'] ?? null,
+                                'adresse' => $data['adresse'],
+                                'code_postal' => $data['code_postal'],
+                                'ville' => $data['ville'],
+                                'pays' => $data['pays'],
+                                'tel' => $data['tel'],
+                                'portable' => $data['portable'],
+                                'support_type' => $data['support_type'],
+                                'user_id' => $user->id
+                            ]);
 
-                        app(CustomerService::class)->create($customer);
-                        $user->notify((new WelcomeCustomerNotification())->delay(now()->addSeconds(30)));
-
+                            app(CustomerService::class)->create($customer);
+                            $user->notify(new WelcomeCustomerNotification());
+                        }catch (\Exception $exception) {
+                            \Log::emergency($exception->getMessage(), $exception);
+                            throw $exception;
+                        }
                     }),
             ])
-            ->recordActions([]);
+            ->recordActions([
+                Action::make('view')
+                    ->iconButton()
+                    ->icon(Heroicon::Eye)
+                    ->tooltip("Voir le client")
+                    ->url('#'),
+
+                ActionGroup::make([
+                    EditAction::make('edit')
+                        ->icon(Heroicon::Pencil)
+                        ->modalHeading("Nouveau client")
+                        ->modalWidth(Width::FourExtraLarge)
+                        ->label("Modifier le client")
+                        ->schema($this->getSchemaTiers()),
+
+                    Action::make('active')
+                        ->label('Activer le client')
+                        ->icon(Heroicon::CheckCircle)
+                        ->visible(fn (?Model $record) => $record->status === 'inactive')
+                        ->color('success')
+                        ->action(function (?Model $record) {
+                            $record->update(['status' => 'active']);
+                        }),
+
+                    Action::make('desactive')
+                        ->label('Désactiver le client')
+                        ->icon(Heroicon::XCircle)
+                        ->visible(fn (?Model $record) => $record->status === 'active')
+                        ->color('danger')
+                        ->action(function (?Model $record) {
+                            $record->update(['status' => 'inactive']);
+                        }),
+
+                    Action::make('reinit-password')
+                        ->label("Réinitialiser le mot de passe")
+                        ->icon(Heroicon::Key)
+                        ->color('warning')
+                        ->action(function (?Model $record) {
+                            Password::sendResetLink(['email' => $record->user->email]);
+                            Notification::make()
+                                ->success()
+                                ->title("Un lien de réinitialisation à été envoyer au client")
+                                ->send();
+                        }),
+
+                    DeleteAction::make('delete')
+                        ->icon(Heroicon::Trash)
+                        ->label("Supprimer le client")
+                        ->color('danger')
+                        ->modalHeading("Supprimer le client")
+                        ->mutateDataUsing(function (?Model $record, array $data) {
+                            $data['nom'] = $record->user->nom;
+                            $data['prenom'] = $record->user->prenom;
+                            return $data;
+                        })
+                        ->requiresConfirmation()
+                        ->using(function (Customer $record) {
+                            $record->delete();
+                        })
+
+                ])
+            ]);
     }
 
     public function render()
