@@ -15,6 +15,10 @@ class CustomerObserver
      */
     public function creating(Customer $customer): void
     {
-        $customer->code_client = 'CLI'.rand(100000,999999999);
+        do {
+            $code = 'CLI' . str_pad(rand(100000, 9999999), 7, '0', STR_PAD_LEFT);
+        } while (Customer::where('code_client', $code)->exists());
+
+        $customer->code_client = $code;
     }
 }
