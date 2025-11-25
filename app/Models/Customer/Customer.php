@@ -66,7 +66,7 @@ class Customer extends Model
 
     protected static function booted(): void
     {
-        static::created(function (Customer $customer) {
+        static::creating(function (Customer $customer) {
             $customer->code_client = 'CLI' . str_pad($customer->id, 4, '0', STR_PAD_LEFT);
             $customer->save();
 

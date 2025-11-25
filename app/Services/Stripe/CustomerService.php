@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class CustomerService extends StripeService
 {
-    public function create(Customer $customer)
+    public function create(Customer $customer): void
     {
         try {
             $stripeCustomer = $this->client->customers->create([
@@ -28,8 +28,8 @@ class CustomerService extends StripeService
             $customer->stripe_customer_id = $stripeCustomer->id;
             $customer->save();
         }catch(\Throwable $e) {
+            \Log::emergency($e->getMessage(), $e);
             report($e);
-            throw $e;
         }
     }
 
