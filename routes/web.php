@@ -33,7 +33,20 @@ Route::prefix('assistance')->group(function () {
 });
 
 Route::get('/test', function () {
-    dd(app(\App\Services\TenantApiService::class)->for(\App\Models\Customer\CustomerService::first())->checkHealth()->json());
+    $customer = \App\Models\Customer\Customer::create([
+        "code_client" => "CLI".rand(100000,999999999),
+        "type_compte" => \App\Enum\Customer\CustomerTypeEnum::PARTICULIER,
+        "entreprise" => "Lorem",
+        "adresse" => fake()->streetAddress,
+        "code_postal" => fake()->postcode,
+        "ville" => fake()->city,
+        "pays" => fake()->country,
+        "tel" => fake()->phoneNumber,
+        "portable" => fake()->phoneNumber,
+        "user_id" => 1
+    ]);
+
+    dd($customer);
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');

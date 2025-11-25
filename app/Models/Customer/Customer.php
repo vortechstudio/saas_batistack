@@ -6,12 +6,15 @@ use App\Enum\Customer\CustomerSupportTypeEnum;
 use App\Enum\Customer\CustomerTypeEnum;
 use App\Models\Commerce\Order;
 use App\Models\User;
+use App\Observers\Customer\CustomerObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Services\Stripe\CustomerService as StripeCustomerService;
 use App\Services\Stripe\StripeService;
 
+#[ObservedBy([CustomerObserver::class])]
 class Customer extends Model
 {
     /** @use HasFactory<\Database\Factories\Customer\CustomerFactory> */
@@ -62,17 +65,6 @@ class Customer extends Model
     protected function getSupportTypeColorAttributes()
     {
         return $this->support_type;
-    }
-
-    protected static function booted(): void
-    {
-        static::creating(function (Customer $customer) {
-            $customer->code_client = 'CLI' . str_pad($customer->id, 4, '0', STR_PAD_LEFT);
-            $customer->save();
-
-            //$customerService = app(\App\Services\Stripe\StripeCustomerService::class);
-            //$customerService->create($customer);
-        });
     }
 
     public function listPaymentMethods()

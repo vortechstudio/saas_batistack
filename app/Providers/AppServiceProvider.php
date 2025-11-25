@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Customer\Customer;
 use App\Models\Helpdesk\Blog;
 use App\Models\Helpdesk\Incident;
 use App\Models\Helpdesk\KbArticle;
 use App\Models\Helpdesk\Ticket;
 use App\Models\Helpdesk\TicketMessage;
+use App\Observers\Customer\CustomerObserver;
 use App\Observers\Helpdesk\IncidentObserver;
 use App\Observers\Helpdesk\SlugObserver;
 use App\Observers\Helpdesk\TicketMessageObserver;
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Observer
+        Customer::observe(CustomerObserver::class);
         Ticket::observe(TicketObserver::class);
         TicketMessage::observe(TicketMessageObserver::class);
         Blog::observe(SlugObserver::class);
