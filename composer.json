@@ -15,6 +15,7 @@
         "laravel/horizon": "^5.33",
         "laravel/slack-notification-channel": "^3.6",
         "laravel/tinker": "^2.10.1",
+        "league/iso3166": "^4.3",
         "livewire/flux": "^2.1.1",
         "livewire/livewire": "^3.6",
         "livewire/volt": "^1.7.0",

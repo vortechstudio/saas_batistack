@@ -7,8 +7,6 @@ use App\Livewire\Client\Account\Service;
 use App\Livewire\Client\Account\ServiceShow;
 use App\Livewire\Client\Catalogue;
 use App\Livewire\Client\Dashboard;
-use App\Services\Forge;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -33,7 +31,7 @@ Route::prefix('assistance')->group(function () {
 });
 
 Route::get('/test', function () {
-    dd(app(\App\Services\TenantApiService::class)->for(\App\Models\Customer\CustomerService::first())->checkHealth()->json());
+
 });
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('webhook.stripe');

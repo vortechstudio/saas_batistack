@@ -18,8 +18,13 @@ class ShowCustomer extends Component implements HasActions, HasSchemas, HasTable
 {
     use InteractsWithActions, InteractsWithSchemas, InteractsWithTable, TiersSchema;
     public Customer $customer;
-    public string $selectedTab = 'tiers';
+    public string $selectedTab = 'services';
 
+    /**
+     * Initialise le composant avec l'instance de client fournie.
+     *
+     * @param Customer $customer L'instance du client à afficher et manipuler dans le composant.
+     */
     public function mount(Customer $customer)
     {
         $this->customer = $customer;

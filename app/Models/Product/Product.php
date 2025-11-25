@@ -56,6 +56,7 @@ class Product extends Model
             ProductCategoryEnum::LICENSE => config('app.url').'/storage/product/'.$this->slug.'.png',
             ProductCategoryEnum::MODULE => config('app.url').'/storage/modules/'.$this->slug.'.png',
             ProductCategoryEnum::OPTION => config('app.url').'/storage/options/'.$this->slug.'.png',
+            ProductCategoryEnum::SUPPORT => config('app.url').'/storage/support/'.$this->slug.'.png',
         };
     }
 
