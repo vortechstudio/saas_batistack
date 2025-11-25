@@ -131,7 +131,7 @@ class ListCustomer extends Component implements HasTable, HasActions, HasSchemas
                     ->iconButton()
                     ->icon(Heroicon::Eye)
                     ->tooltip("Voir le client")
-                    ->url('#'),
+                    ->url(fn (?Model $record) => route('admin.commerce.customers.show', $record)),
 
                 ActionGroup::make([
                     EditAction::make('edit')
