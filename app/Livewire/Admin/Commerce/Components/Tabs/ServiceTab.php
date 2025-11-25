@@ -2,14 +2,19 @@
 
 namespace App\Livewire\Admin\Commerce\Components\Tabs;
 
+use App\Actions\Services\ServiceStatusUpdate;
 use App\Enum\Customer\CustomerServiceStatusEnum;
 use App\Models\Customer\Customer;
 use App\Models\Customer\CustomerService;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -67,7 +72,14 @@ class ServiceTab extends Component implements HasSchemas, HasActions, HasTable
                     ->action(fn (Collection $records) => $records->each->update(['status' => CustomerServiceStatusEnum::OK])),
             ])
             ->headerActions([])
-            ->recordActions([]);
+            ->recordActions([
+                ActionGroup::make([
+                    Action::make('view')
+                        ->label("Voir le service")
+                        ->icon(Heroicon::Eye)
+                        ->url("#"),
+                ])
+            ]);
     }
 
     public function render()

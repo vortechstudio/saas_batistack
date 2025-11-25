@@ -18,7 +18,7 @@ class ShowCustomer extends Component implements HasActions, HasSchemas, HasTable
 {
     use InteractsWithActions, InteractsWithSchemas, InteractsWithTable, TiersSchema;
     public Customer $customer;
-    public string $selectedTab = 'tiers';
+    public string $selectedTab = 'services';
 
     public function mount(Customer $customer)
     {
