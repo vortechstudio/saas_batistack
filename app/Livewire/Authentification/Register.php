@@ -53,7 +53,7 @@ class Register extends Component implements HasSchemas
 
                             TextInput::make('entreprise')
                                 ->label('Raison Social')
-                                ->visible(fn (Get $get) => $get('type_compte') !== CustomerTypeEnum::PARTICULIER),
+                                ->visible(fn (Get $get) => $get('type_compte') !== CustomerTypeEnum::PARTICULIER->value),
 
                             Textarea::make('adresse')
                                 ->label('Adresse')
@@ -118,7 +118,7 @@ class Register extends Component implements HasSchemas
         $customer = Customer::create([
             'code_client' => "CLI".rand(100000,999999999),
             'type_compte' => $data['type_compte'],
-            'entreprise' => $data['entreprise'],
+            'entreprise' => $data['entreprise'] ?? null,
             'adresse' => $data['adresse'],
             'code_postal' => $data['code_postal'],
             'ville' => $data['ville'],
