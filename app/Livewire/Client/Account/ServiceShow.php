@@ -22,6 +22,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -57,14 +58,12 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
      *
      * @param string $service_code Code unique du service à afficher.
      */
-    public function mount(string $service_code)
+    public function mount(string $service_code): void
     {
         $this->service = CustomerService::with('product', 'steps', 'modules.feature', 'options.product')->where('service_code', $service_code)->first();
         $this->stateInstallTotal = $this->service->steps->count();
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
         $this->stateInstallLabel = $this->service->steps()->where('done', false)->latest()->first()->step ?? '';
-
-
     }
 
     /**
@@ -76,7 +75,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
      * - $stateInstallLabel : libellé de la dernière étape incomplète ou `'Fin'` si aucune,
      * - $comment : commentaire associé à la dernière étape incomplète ou `null`.
      */
-    public function refreshStateInstall()
+    public function refreshStateInstall(): void
     {
         $this->stateInstallTotal = $this->service->steps->count();
         $this->stateInstallCurrent = $this->service->steps->where('done', true)->count()+1;
@@ -96,8 +95,9 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
      * de nouveaux utilisateurs doit être limitée en fonction du nombre d'utilisateurs présents sur le service.
      *
      * @param string $tab Identifiant de l'onglet à activer (par exemple 'modules', 'storage').
+     * @throws ConnectionException
      */
-    public function setActiveTab(string $tab)
+    public function setActiveTab(string $tab): void
     {
         $this->activeTab = $tab;
         $this->getStorageInfo();
@@ -121,7 +121,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     /**
      * Récupère les informations de stockage du service
      */
-    public function getStorageInfo()
+    public function getStorageInfo(): void
     {
         $api = app(TenantApiService::class);
         try {
@@ -139,7 +139,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
 
     }
 
-    public function checkServiceHealth(TenantApiService $api)
+    public function checkServiceHealth(TenantApiService $api): void
     {
         $this->healthCheckLoading = true;
 
@@ -162,18 +162,20 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
     {
         $users = [];
 
-        try {
-            $response = app(TenantApiService::class)->for($this->service)->getUsers();
+        if ($this->service->status->value === 'ok') {
+            try {
+                $response = app(TenantApiService::class)->for($this->service)->getUsers();
 
-            if($response->successful()) {
-                $users = $response->collect()->toArray();
+                if($response->successful()) {
+                    $users = $response->collect()->toArray();
+                }
+            }catch (\Exception $exception) {
+                Log::alert($exception->getMessage());
+                Notification::make()
+                    ->danger()
+                    ->title("Impossible de récupérer la liste des utilisateurs.")
+                    ->send();
             }
-        }catch (\Exception $exception) {
-            Log::alert($exception->getMessage());
-            Notification::make()
-                ->danger()
-                ->title("Impossible de récupérer la liste des utilisateurs.")
-                ->send();
         }
 
 
@@ -427,7 +429,7 @@ class ServiceShow extends Component implements HasActions, HasSchemas, HasTable
             ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\View\View
     {
         //dd($this->infoStorage);
         return view('livewire.client.account.service-show');
