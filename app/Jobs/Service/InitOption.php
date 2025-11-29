@@ -7,6 +7,7 @@ use App\Enum\Customer\CustomerServiceStatusEnum;
 use App\Models\Commerce\Order;
 use App\Models\Customer\CustomerService;
 use App\Models\Product\ProductPrice;
+use App\Services\TenantApiService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Http\Client\ConnectionException;
@@ -132,15 +133,18 @@ class InitOption implements ShouldQueue
                     'saving_at_day' => 2
                 ]);
 
-                $request = Http::withoutVerifying()
-                    ->get($this->service->domain.'/api/core/backup');
+                $request = app(TenantApiService::class)->for($service)->triggerBackup();
 
-                if($request->status() === 200) {
+                if($request->successful()) {
                     $this->service->backups()->create([
                         'customer_id' => $this->service->customer_id,
                     ]);
                 } else {
-                    throw new \Exception("Erreur lors de la récupération des sauvegardes.");
+                    \Log::emergency("Erreur lors de la récupération des sauvegardes.", [
+                        "status" => $request->status(),
+                        "error" => $request
+                    ]);
+                    throw new \Exception($request->body());
                 }
                 break;
 

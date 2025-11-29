@@ -86,10 +86,17 @@ class TenantApiService
         return $this->client()->get('/core/storage/info');
     }
 
+    /**
+     * @throws \Exception
+     */
     public function triggerBackup(): \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response
     {
         // On augmente le timeout pour la sauvegarde car cela peut être long
-        return $this->client()->timeout(60)->post('/core/backup/run');
+        try {
+            return $this->client()->timeout(60)->get('/core/backup');
+        } catch (ConnectionException|\Exception $e) {
+            throw new \Exception($e->getMessage());
+        }
     }
 
     public function restoreBackup(string $backupTimestamp): \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response

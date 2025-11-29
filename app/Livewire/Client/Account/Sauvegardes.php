@@ -17,6 +17,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -58,7 +59,15 @@ class Sauvegardes extends Component implements HasActions, HasSchemas, HasTable
                         ->schema([
                             Select::make('customer_service_id')
                                 ->label("Service")
-                                ->options($this->customer->services()->pluck('service_code', 'id')),
+                                ->options(function () {
+                                    return $this->customer->services()
+                                        ->whereHas('options', function (Builder $query) {
+                                            $query->whereHas('product', function (Builder $query) {
+                                                $query->where('slug', 'sauvegarde-et-retentions');
+                                            });
+                                        })
+                                        ->pluck('service_code', 'id');
+                                }),
                         ])
                         ->action(function (array $data) {
                             try {
